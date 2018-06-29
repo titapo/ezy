@@ -1,0 +1,10 @@
+add_executable(unit_test ezy.cc)
+
+include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/thirdparty/catch/include)
+
+#target_link_libraries(unit_test PRIVATE ezy_lib catch)
+
+set_property(TARGET unit_test PROPERTY CXX_STANDARD 17)
+
+
+# add_test(NAME unit_test COMMAND check)
