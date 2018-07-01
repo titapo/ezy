@@ -328,28 +328,22 @@ SCENARIO("strong type extensions")
     }
     */
    
-    //
-    // TODO fold
-    // TODO span(unary): similar to partition, just splitting at first !unary(element)
-    // TODO break(unary): span with inverted condition
-    // TODO drop(n: index): drop (and return) the first n elements <-- what is the difference between this and take
-    //                     (mutability?)
-    // TODO split_at(index)
     // TODO flatten
     WHEN("flattened")
     {
       // FIXME it seems that MyNumbers has no const_iterator
       using Raised = strong_type< std::vector<std::vector<int>>, struct RaisedTag, iterable>;
-      const Raised raised{std::vector{1, 2, 3}, std::vector{4, 5, 6}};
-      COMPARE_RANGES(raised.flatten(), (std::initializer_list{1, 2, 3, 4, 5, 6}));
-      // COMPARE_RANGES(Raised{}.flatten(), (std::initializer_list<int>{})); FIXME segfault
+
+      COMPARE_RANGES((Raised{std::vector{1, 2, 3}, std::vector{4, 5, 6}}).flatten(),
+          (std::initializer_list{1, 2, 3, 4, 5, 6}));
+
+      COMPARE_RANGES((Raised{std::vector{1, 2, 3}, std::vector<int>{}, std::vector<int>{}, std::vector{4, 5, 6}}).flatten(),
+          (std::initializer_list{1, 2, 3, 4, 5, 6}));
+
+      COMPARE_RANGES(Raised{}.flatten(),
+          (std::initializer_list<int>{}));
     }
-    // TODO head/tail
-    // TODO take(n)?, take_while(predicate)
-    // TODO unzip
-    // TODO grouping?
-    // TODO collect?
-    // TODO empty
+
     /*
     WHEN("elements flatmapped")
     {
@@ -361,6 +355,20 @@ SCENARIO("strong type extensions")
       }
     }
     */
+
+    //
+    // TODO fold
+    // TODO span(unary): similar to partition, just splitting at first !unary(element)
+    // TODO break(unary): span with inverted condition
+    // TODO drop(n: index): drop (and return) the first n elements <-- what is the difference between this and take
+    //                     (mutability?)
+    // TODO split_at(index)
+    // TODO head/tail
+    // TODO take(n)?, take_while(predicate)
+    // TODO unzip
+    // TODO grouping?
+    // TODO collect?
+    // TODO empty
   }
 
 }

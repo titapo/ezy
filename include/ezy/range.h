@@ -257,7 +257,6 @@
         bool operator==(const iterator_concatenator& rhs) const
         {
           static int cntr = 0;
-          if (cntr++ >= 40) throw 123; // FIXME remove this
           if (auto [it, end] = tracking_info<0>(); it != end)
           {
             if (auto [r_it, r_end] = rhs.tracking_info<0>(); r_it != r_end)
@@ -311,8 +310,6 @@
 
         iterator_flattener(const range_type& range)
           : tracker(range)
-          //, inner(outer()->begin())
-          , inner(0)
         { 
           if (auto [it, end] = tracker.template get<0>(); it != end) // not empty
             inner = outer()->begin();
@@ -320,8 +317,6 @@
 
         iterator_flattener(const range_type& range, end_marker_t&&)
           : tracker(range, end_marker_t{})
-          //, inner(outer()->end())
-          , inner(0)
         {
           if (auto [it, end] = tracker.template get<0>(); it != end) // not empty
             inner = outer()->end();
@@ -329,20 +324,14 @@
 
         iterator_flattener& operator++()
         {
-          static unsigned cntr = 0;
           ++inner;
-          if (++cntr > 8) throw 321;
-          if (inner == outer()->end()) // end of current subrange
+          auto [outer_it, outer_end] = tracker.template get<0>();
+          while (outer_it != outer_end && inner == outer_it->end()) // end of current subrange
           {
-            // TODO handle empty subranges
-            ++outer();
-            if (auto [it, end] = tracker.template get<0>(); it != end) // not finished
+            ++outer_it;
+            if (outer_it != outer_end) // not finished
             {
               inner = outer()->begin();
-            }
-            else
-            {
-              inner = outer()->end();
             }
           }
 
@@ -354,9 +343,19 @@
           return *inner;
         }
 
-        bool operator==(const iterator_flattener& rhs) const
+        friend bool operator==(const iterator_flattener& lhs, const iterator_flattener& rhs)
         {
-          return inner == rhs.inner_it();
+          const auto& lhs_tracker = lhs.tracker.template get<0>();
+          const auto& rhs_tracker = rhs.tracker.template get<0>();
+          if (lhs_tracker.first != rhs_tracker.first)
+            return false;
+
+          if (lhs_tracker.first != lhs_tracker.second
+              && rhs_tracker.first != rhs_tracker.second
+              && lhs.inner != rhs.inner)
+            return false;
+
+          return true;
         }
 
         bool operator!=(const iterator_flattener& rhs) const
@@ -364,16 +363,10 @@
           return !(*this == rhs);
         }
 
-        const inner_iterator& inner_it() const // FIXME naming
-        {
-          return inner;
-        }
-
         orig_iterator& outer()
         {
           return tracker.template get<0>().first;
         }
-
 
       private:
           range_tracker<range_type> tracker;
