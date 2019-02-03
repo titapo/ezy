@@ -10,12 +10,12 @@ namespace ezy::experimental::function
    * curry
    */
   template <typename T, typename U, typename F, typename = std::is_invocable<F(T, T)>>
-  auto curry(F&& f)
+  decltype(auto) curry(F&& f)
   {
     // TODO accept different references
     return [=](T a) {
       return [=](U b) {
-        return f(a, b);
+        return std::invoke(f, a, b);
       };
     };
   }
@@ -31,9 +31,11 @@ namespace ezy::experimental::function
     {}
 
     template <typename T>
-    auto operator()(T&& p)
+    decltype(auto) operator()(T&& p)
     {
-      return std::get<1>(fs)(std::get<0>(fs)(std::forward<T>(p)));
+      return std::invoke(
+          std::get<1>(fs),
+          std::invoke(std::get<0>(fs), std::forward<T>(p)));
     }
 
     std::tuple<F1, F2> fs;
@@ -44,7 +46,7 @@ namespace ezy::experimental::function
   template <typename F1, typename F2>
   composed<F1, F2> compose(F1&& f1, F2&& f2)
   {
-    return composed<F1, F2>(f1, f2);
+    return composed<F1, F2>(std::forward<F1>(f1), std::forward<F2>(f2));
   }
 
 }

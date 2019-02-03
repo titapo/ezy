@@ -1006,4 +1006,14 @@ SCENARIO("compose")
     auto calculate = compose(addHundred, formatNumber);
     REQUIRE(calculate(23) == "result is: 123");
   }
+
+  WHEN("access member")
+  {
+    struct S{ int i; };
+
+    auto calculate = compose(&S::i, addHundred);
+
+    S s{3};
+    REQUIRE(calculate(s) == 103);
+  }
 }
