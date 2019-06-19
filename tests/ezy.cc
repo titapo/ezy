@@ -369,6 +369,33 @@ SCENARIO("strong type extensions")
     // TODO grouping?
     // TODO collect?
     // TODO empty
+    //
+
+    // TODO this does not work. Some weird iteration invalidation is suspected
+    /*
+    WHEN("mapped then filtered")
+    {
+      auto transform = [](auto i) { return i + 10; };
+      auto is_even = [](auto i) { return (i % 2) == 0; };
+
+      const auto result = numbers
+        .map(transform)
+        .filter(is_even)
+        ;
+      std::cout << "xxx"<< std::endl;
+
+      for (const auto& e : result)
+        std::cout << e << std::endl;
+
+      std::cout << "xxx2"<< std::endl;
+      for (const auto& e : result) // This segfaults
+        std::cout << e << std::endl;
+      std::cout << "this is done " << &result << "\n"<< std::endl;
+      //const auto expected = (std::initializer_list<int>{12,14,16,18,20});
+      //REQUIRE(std::equal(result.begin(), result.end(), expected.begin(), expected.end()));
+      COMPARE_RANGES(result, (std::initializer_list<int>{12,14,16,18,20 ,99})); // this also segfaults
+    }
+    */
   }
 
 }
