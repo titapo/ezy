@@ -279,6 +279,12 @@ class Optional : public Enumeration<T, NoneType>
 
     struct const_iterator
     {
+      using difference_type = size_t; // is it ok?
+      using value_type = T;
+      using pointer = std::add_pointer_t<T>;
+      using reference = std::add_lvalue_reference_t<T>;
+      using iterator_category = std::forward_iterator_tag;
+
       explicit const_iterator(const T* value_ptr)
         : ptr(value_ptr)
       {}

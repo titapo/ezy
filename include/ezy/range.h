@@ -213,6 +213,8 @@
       public: 
         using orig_type = typename first_range_type::const_iterator;
         using value_type = decltype(*std::declval<orig_type>());
+        using pointer = std::add_pointer_t<value_type>;
+        using reference = std::add_lvalue_reference_t<value_type>;
         using difference_type = typename orig_type::difference_type;
         using iterator_category = std::input_iterator_tag; // forward_iterator_tag?
 
@@ -305,8 +307,12 @@
       public:
         using orig_iterator = typename range_type::const_iterator;
         using inner_iterator = typename orig_iterator::value_type::const_iterator;
+
         using value_type = typename inner_iterator::value_type;
         using difference_type = typename inner_iterator::difference_type;
+        using pointer = typename inner_iterator::pointer;
+        using reference = typename inner_iterator::reference;
+        using iterator_category = std::forward_iterator_tag;
 
         iterator_flattener(const range_type& range)
           : tracker(range)
@@ -665,6 +671,10 @@
     {
       public:
         using const_iterator = iterator_flattener<RangeType>;
+
+        using value_type = typename const_iterator::value_type;
+        using pointer = typename const_iterator::pointer;
+        using reference = typename const_iterator::reference;
         using difference_type = typename const_iterator::difference_type;
 
         flattened_range_view(const RangeType& range)
