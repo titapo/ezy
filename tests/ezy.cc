@@ -727,7 +727,6 @@ SCENARIO("strong type for const struct")
     }
   }
 
-  // FIXME how?
   WHEN("move constructed")
   {
     ST st{4, "str"};
@@ -787,16 +786,13 @@ SCENARIO("strong type reference for struct")
   WHEN("move constructed")
   {
     static_assert(std::is_move_constructible_v<ST>);
-    // FIXME make it work
-    /*
-    ST st{4, "str"};
+    ST st(s);
     const ST other(std::move(st));
     THEN("its values are also moved")
     {
       REQUIRE(other.get().i == 4);
       REQUIRE(other.get().s == "str");
     }
-    */
   }
 }
 
@@ -833,7 +829,6 @@ SCENARIO("strong type for vector")
 
   WHEN("move constructed")
   {
-    // TODO check it
     ST st{4, 5, 7, 9};
     const ST other(std::move(st));
     THEN("it contains all the values")
