@@ -958,6 +958,11 @@ SCENARIO("compilation tests")
   static_assert(std::is_same_v<strip_strong_type_t<OneFeature>, Simple>);
   static_assert(std::is_same_v<strip_strong_type_t<MoreFeatures>, Simple>);
 
+  static_assert(std::is_same_v<rebind_strong_type_t<Simple, double>, strong_type<double, struct Tag>>);
+  static_assert(std::is_same_v<rebind_strong_type_t<SimpleRef, double>, strong_type<double, struct Tag>>); // TODO think: not a strong_type_reference
+  static_assert(std::is_same_v<rebind_strong_type_t<OneFeature, double>, strong_type<double, struct Tag, addable>>);
+  static_assert(std::is_same_v<rebind_strong_type_t<MoreFeatures, double>, strong_type<double, struct Tag, addable, subtractable, equal_comparable>>);
+
   // TODO it will not work in any case (eg. derived features)
   /*
   static_assert(has_feature_v<Simple, addable> == false);

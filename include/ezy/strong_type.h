@@ -190,6 +190,19 @@ struct strip_strong_type<strong_type<T, Tag, Features...>>
 template <typename ST>
 using strip_strong_type_t = typename strip_strong_type<ST>::type;
 
+template <typename ST, typename U>
+struct rebind_strong_type
+{};
+
+template <typename T, typename U, typename Tag, template <typename> class... Features>
+struct rebind_strong_type<strong_type<T, Tag, Features...>, U>
+{
+  using type = strong_type<U, Tag, Features...>;
+};
+
+template <typename ST, typename U>
+using rebind_strong_type_t = typename rebind_strong_type<ST, U>::type;
+
 /*
 template <typename ST, typename Feature>
 struct has_feature : std::false_type
