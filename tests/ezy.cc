@@ -521,6 +521,110 @@ SCENARIO("optional")
   }
 }
 
+SCENARIO("visitable feature")
+{
+  GIVEN("a variant strong type which is visitable")
+  {
+    using V = strong_type<std::variant<int, std::string>, struct Tag, visitable>;
+    // Should I open std namespace to support it?
+    // WHEN("std::visit called on it")
+    // {
+    //   REQUIRE(std::visit(ezy::overloaded{
+    //       [](int) -> std::string { return "int"; },
+    //       [](const std::string&) -> std::string { return "string"; }
+    //       }, v)== "string");
+    // }
+    THEN("visit can be called on a mutable instance")
+    {
+      V v{"foobar"};
+      REQUIRE(v.visit(
+          [](int) -> std::string { return "int"; },
+          [](const std::string&) -> std::string { return "string"; }
+          ) == "string");
+    }
+
+    THEN("visit can be called on an immutable instance")
+    {
+      const V v{"foobar"};
+      REQUIRE(v.visit(
+          [](int) -> std::string { return "int"; },
+          [](const std::string&) -> std::string { return "string"; }
+          ) == "string");
+    }
+
+    THEN("visit can be called on a prvalue instance")
+    {
+      struct move_only
+      {
+        int i;
+        explicit move_only(int i) : i(i) {}
+
+        move_only(const move_only&) = delete;
+        move_only& operator=(const move_only&) = delete;
+
+        move_only(move_only&&) = default;
+        move_only& operator=(move_only&&) = default;
+      };
+
+      using VM = strong_type<std::variant<move_only, std::string>, struct Tag, visitable>;
+
+      move_only m{3};
+      // TODO proper moving check
+      REQUIRE(VM{move_only(10)}.visit(
+          [&](move_only&& mo) -> std::string { m = std::move(mo); return "move-only"; },
+          [](std::string&&) -> std::string { return "string"; }
+          ) == "move-only");
+
+      REQUIRE(m.i == 10);
+    }
+  }
+}
+
+
+SCENARIO("result-like continuation")
+{
+  GIVEN("map")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    auto twice = [](int i) {return i*2;};
+    REQUIRE(std::get<int>(R{10}.map(twice).map(twice).get()) == 40);
+    REQUIRE(std::get<std::string>(R{"hoo"}.map(twice).map(twice).get()) == "hoo");
+  }
+  GIVEN("map -- changing type")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    auto and_a_half = [](int i) {return i*1.5;};
+    REQUIRE(std::get<double>(R{10}.map(and_a_half).get()) == 15.0);
+    REQUIRE(std::get<std::string>(R{"hoo"}.map(and_a_half).get()) == "hoo");
+  }
+
+  GIVEN("and_then")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    auto half = [](int i) -> R {if (i % 2 == 0) return R{i / 2}; else return R{"oops"};};
+    REQUIRE(std::get<int>(R{10}.and_then(half).get()) == 5);
+    REQUIRE(std::get<std::string>(R{10}.and_then(half).and_then(half).get()) == "oops");
+  }
+
+  GIVEN("and_then -- changing type")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R2 = rebind_strong_type_t<R, std::variant<double, std::string>>;
+    auto change = [](int i) -> R2 {if (i % 3 == 0) return R2{i / 3}; else return R2{"oops"};};
+    REQUIRE(std::get<double>(R{9}.and_then(change).get()) == 3.0);
+    REQUIRE(std::get<double>(R{9}.and_then(change).and_then(change).get()) == 1.0);
+    REQUIRE(std::get<std::string>(R{9}.and_then(change).and_then(change).and_then(change).get()) == "oops");
+  }
+  GIVEN("and_then -- function returning underlying type")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using V = std::variant<int, std::string>;
+    auto half = [](int i) -> V {if (i % 2 == 0) return V{i / 2}; else return V{"oops"};};
+    REQUIRE(std::get<int>(R{10}.and_then(half).get()) == 5);
+    REQUIRE(std::get<std::string>(R{10}.and_then(half).and_then(half).get()) == "oops");
+  }
+}
+
 template <typename ... Ts>
 using variant = Enumeration<Ts...>;
 

@@ -626,4 +626,88 @@ struct algo_iterable : crtp<T, algo_iterable>
 template <typename T>
 struct iterable : has_iterator<T>, algo_iterable<T> {};
 
+
+template <typename... T>
+struct print_type;
+
+
+template <typename T>
+struct visitable : crtp<T, visitable>
+{
+  template <typename... Visitors>
+  decltype(auto) visit(Visitors&&... visitors) &
+  {
+    return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, this->that().get());
+  }
+
+  template <typename... Visitors>
+  decltype(auto) visit(Visitors&&... visitors) const &
+  {
+    return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, this->that().get());
+  }
+
+  // TODO check it
+  template <typename... Visitors>
+  decltype(auto) visit(Visitors&&... visitors) &&
+  {
+    //print_type<decltype((*this).that().get()), decltype(std::move(*this).that().get())>{};
+    return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, std::move(*this).that().get());
+  }
+};
+
+// TODO support for std::get
+
+template <typename T>
+struct result_like_continuation : crtp<T, result_like_continuation>
+{
+  using base = crtp<T, result_like_continuation>;
+  using self_type = result_like_continuation;
+  //using success_type = decltype(std::get<0>(std::declval<typename base::that_type::type>()));
+
+  template <typename Fn>
+  constexpr decltype(auto) map(Fn&& fn)
+  {
+    // TODO generalize this out from here
+    using underlying_type = typename T::type;
+    using success_type = std::decay_t<decltype(std::get<0>(std::declval<underlying_type>()))>;
+    using error_type = std::decay_t<decltype(std::get<1>(std::declval<underlying_type>()))>;
+
+    // TODO static_assert(std::is_invocable_v<Fn(success_type)>, "Fn must be invocable with success_type");
+    //TODO using map_result_type = std::invoke_result_t<Fn(success_type)>;
+    using fn_result_type = decltype(fn(std::declval<success_type>()));
+
+    using R = std::variant<fn_result_type, error_type>; // TODO this should be rebinded too
+    using return_type = rebind_strong_type_t<T, R>;
+
+    return return_type(std::visit(ezy::overloaded{
+        [&](const success_type& s) { return R{std::invoke(fn, s)}; },
+        [](const error_type& e) { return R{e}; }
+        }, this->that().get()));
+
+  }
+
+  template <typename Fn>
+  constexpr decltype(auto) and_then(Fn&& fn)
+  {
+    // TODO generalize this out from here
+    using underlying_type = typename T::type;
+    using success_type = std::decay_t<decltype(std::get<0>(std::declval<underlying_type>()))>;
+    using error_type = std::decay_t<decltype(std::get<1>(std::declval<underlying_type>()))>;
+
+    using fn_result_type = decltype(fn(std::declval<success_type>()));
+    //TODO static_assert wrapper [variant] and error type must be the same
+    //TODO Fn can return with strong type or raw (underlying) types. How to distinguish?
+
+    using R = fn_result_type;
+    using new_underlying_type = plain_type_t<R>; // still not totally OK -> underlying type is also a strong type?
+    using return_type = rebind_strong_type_t<T, new_underlying_type>;
+
+    return return_type(std::visit(ezy::overloaded{
+        [&](const success_type& s) -> R { return std::invoke(fn, s); },
+        [](const error_type& e) { return R{e}; }
+        }, this->that().get()));
+  }
+};
+
+
 #endif
