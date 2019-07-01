@@ -133,14 +133,27 @@ struct is_strong_type : std::false_type
 template <typename T, typename Tag, template<typename> class... Features>
 struct is_strong_type<strong_type<T, Tag, Features...>> : std::true_type
 {};
-/*
-template <typename... Ts>
-struct is_strong_type<strong_type<Ts...>> : std::true_type
-{};
-*/
 
 template <typename ST>
 inline constexpr bool is_strong_type_v = is_strong_type<ST>::value;
+
+template <typename T, typename = void>
+struct plain_type;
+
+template <typename ST>
+struct plain_type<ST, std::enable_if_t<is_strong_type_v<ST>>>
+{
+  using type = typename ST::type;
+};
+
+template <typename T>
+struct plain_type<T, std::enable_if_t<!is_strong_type_v<T>>>
+{
+  using type = T;
+};
+
+template <typename T>
+using plain_type_t = typename plain_type<T>::type;
 
 template <typename S>
 struct get_underlying_type

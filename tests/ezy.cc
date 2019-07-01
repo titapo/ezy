@@ -935,6 +935,12 @@ SCENARIO("compilation tests")
   static_assert(is_strong_type_v<OneFeature> == true);
   static_assert(is_strong_type_v<MoreFeatures> == true);
 
+  static_assert(std::is_same_v<plain_type_t<int>, int>);
+  static_assert(std::is_same_v<plain_type_t<Simple>, int>);
+  static_assert(std::is_same_v<plain_type_t<SimpleRef>, int&>);
+  static_assert(std::is_same_v<plain_type_t<OneFeature>, int>);
+  static_assert(std::is_same_v<plain_type_t<MoreFeatures>, int>);
+
   // TODO rename: extract_underlying_type
   //static_assert(std::is_same_v<get_underlying_type<int>::type, int>); // must fail
   static_assert(std::is_same_v<get_underlying_type<Simple>::type, int>);
