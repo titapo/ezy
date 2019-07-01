@@ -85,9 +85,15 @@ class strong_type : public Features<strong_type<T, Tag, Features...>>...
 
     //strong_type(const strong_type& rhs) = default;
 
-    T& get() { return value; }
-    // this should be added T&& get() && { return value; }
-    const T& get() const { return value; }
+    T& get() & { return value; }
+    decltype(auto) get() &&
+    {
+      if constexpr (std::is_lvalue_reference_v<T>)
+        return value;
+      else
+        return std::move(value);
+    }
+    const T& get() const & { return value; }
 
     explicit operator T() { return value; }
     explicit operator T() const { return value; }
@@ -105,8 +111,9 @@ template <typename T, template<typename> class crtp_type>
 struct crtp
 {
   using that_type = T;
-  T& that() { return static_cast<T&>(*this); }
-  const T& that() const { return static_cast<const T&>(*this); }
+  T& that() & { return static_cast<T&>(*this); }
+  const T& that() const & { return static_cast<const T&>(*this); }
+  T&& that() && { return static_cast<T&&>(*this); }
 };
 
 template <typename T, template<typename> class crtp_type>

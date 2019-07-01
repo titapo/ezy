@@ -501,6 +501,7 @@ SCENARIO("optional")
       THEN("positive values are mapped actually")
       {
         // TODO (usability) std::string shouldn't be written here
+        // moreover string should not be created if contains Some
         REQUIRE(opt_0.map_or(stringify, std::string("a")) == "0");
         REQUIRE(opt_1.map_or(stringify, std::string("a")) == "1");
         REQUIRE(opt_n.map_or(stringify, std::string("a")) == "a");
