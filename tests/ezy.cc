@@ -613,6 +613,15 @@ SCENARIO("result-like continuation")
     auto change = [](int i) -> R2 {if (i % 3 == 0) return R2{i / 3}; else return R2{"oops"};};
     REQUIRE(std::get<double>(R{9}.and_then(change).get()) == 3.0);
     REQUIRE(std::get<double>(R{9}.and_then(change).and_then(change).get()) == 1.0);
+  }
+
+  GIVEN("and_then -- changing type")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R2 = rebind_strong_type_t<R, std::variant<double, std::string>>;
+    auto change = [](int i) -> R2 {if (i % 3 == 0) return R2{i / 3}; else return R2{"oops"};};
+    REQUIRE(std::get<double>(R{9}.and_then(change).get()) == 3.0);
+    REQUIRE(std::get<double>(R{9}.and_then(change).and_then(change).get()) == 1.0);
     REQUIRE(std::get<std::string>(R{9}.and_then(change).and_then(change).and_then(change).get()) == "oops");
   }
   GIVEN("and_then -- function returning underlying type")

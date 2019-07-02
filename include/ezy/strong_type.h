@@ -679,11 +679,17 @@ struct result_like_continuation : crtp<T, result_like_continuation>
     using R = std::variant<fn_result_type, error_type>; // TODO this should be rebinded too
     using return_type = rebind_strong_type_t<T, R>;
 
+    /* TODO find out which one is better?
+    if (std::holds_alternative<success_type>(this->that().get()))
+      return return_type(std::invoke(std::forward<Fn>(fn), std::get<success_type>(this->that().get())));
+    else
+      return return_type(std::get<error_type>(this->that().get()));
+      */
+
     return return_type(std::visit(ezy::overloaded{
         [&](const success_type& s) { return R{std::invoke(fn, s)}; },
         [](const error_type& e) { return R{e}; }
         }, this->that().get()));
-
   }
 
   template <typename Fn>
