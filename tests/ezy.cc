@@ -521,6 +521,18 @@ SCENARIO("optional")
   }
 }
 
+struct move_only
+{
+  int i;
+  explicit move_only(int i) : i(i) {}
+
+  move_only(const move_only&) = delete;
+  move_only& operator=(const move_only&) = delete;
+
+  move_only(move_only&&) = default;
+  move_only& operator=(move_only&&) = default;
+};
+
 SCENARIO("visitable feature")
 {
   GIVEN("a variant strong type which is visitable")
@@ -554,18 +566,6 @@ SCENARIO("visitable feature")
 
     THEN("visit can be called on a prvalue instance")
     {
-      struct move_only
-      {
-        int i;
-        explicit move_only(int i) : i(i) {}
-
-        move_only(const move_only&) = delete;
-        move_only& operator=(const move_only&) = delete;
-
-        move_only(move_only&&) = default;
-        move_only& operator=(move_only&&) = default;
-      };
-
       using VM = strong_type<std::variant<move_only, std::string>, struct Tag, visitable>;
 
       move_only m{3};
@@ -597,6 +597,18 @@ SCENARIO("result-like continuation")
     REQUIRE(std::get<double>(R{10}.map(and_a_half).get()) == 15.0);
     REQUIRE(std::get<std::string>(R{"hoo"}.map(and_a_half).get()) == "hoo");
   }
+
+  //TODO
+  /*
+  GIVEN("map -- properly moves rvalue")
+  {
+    using R = strong_type<std::variant<int, move_only>, void, result_like_continuation>;
+    move_only result{4};
+    REQUIRE(std::get<int>(R{move_only{10}}.map([&](move_only&& m) { result = std::move(m); return 2;}).get()) == 2);
+    REQUIRE(result.i == 10);
+    //REQUIRE(std::get<std::string>(R{"hoo"}.map(and_a_half).get()) == "hoo");
+  }
+  */
 
   GIVEN("and_then")
   {

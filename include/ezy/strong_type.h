@@ -662,21 +662,40 @@ struct result_like_continuation : crtp<T, result_like_continuation>
 {
   using base = crtp<T, result_like_continuation>;
   using self_type = result_like_continuation;
-  //using success_type = decltype(std::get<0>(std::declval<typename base::that_type::type>()));
+
+  template <typename Type>
+  struct result_trait;
+
+  template <template <typename...> class Wrapper, typename Success, typename Error>
+  struct result_trait<Wrapper<Success, Error>>
+  {
+    using type = Wrapper<Success, Error>;
+    using success_type = std::decay_t<decltype(std::get<0>(std::declval<type>()))>;
+    using error_type = std::decay_t<decltype(std::get<1>(std::declval<type>()))>;
+
+    template <typename NewSuccess>
+    struct rebind_success
+    {
+      using type = Wrapper<NewSuccess, error_type>;
+    };
+
+    template <typename NewSuccess>
+    using rebind_success_t = typename rebind_success<NewSuccess>::type;
+  };
 
   template <typename Fn>
   constexpr decltype(auto) map(Fn&& fn)
   {
+    using trait = result_trait<typename T::type>;
     // TODO generalize this out from here
-    using underlying_type = typename T::type;
-    using success_type = std::decay_t<decltype(std::get<0>(std::declval<underlying_type>()))>;
-    using error_type = std::decay_t<decltype(std::get<1>(std::declval<underlying_type>()))>;
+    using success_type = typename trait::success_type;
+    using error_type = typename trait::error_type;
 
     // TODO static_assert(std::is_invocable_v<Fn(success_type)>, "Fn must be invocable with success_type");
     //TODO using map_result_type = std::invoke_result_t<Fn(success_type)>;
-    using fn_result_type = decltype(fn(std::declval<success_type>()));
+    using fn_result_type = decltype(fn(std::declval<typename trait::success_type>()));
 
-    using R = std::variant<fn_result_type, error_type>; // TODO this should be rebinded too
+    using R = typename trait::template rebind_success_t<fn_result_type>;
     using return_type = rebind_strong_type_t<T, R>;
 
     /* TODO find out which one is better?
@@ -695,18 +714,19 @@ struct result_like_continuation : crtp<T, result_like_continuation>
   template <typename Fn>
   constexpr decltype(auto) and_then(Fn&& fn)
   {
+    using trait = result_trait<typename T::type>;
     // TODO generalize this out from here
-    using underlying_type = typename T::type;
-    using success_type = std::decay_t<decltype(std::get<0>(std::declval<underlying_type>()))>;
-    using error_type = std::decay_t<decltype(std::get<1>(std::declval<underlying_type>()))>;
+    using success_type = typename trait::success_type;
+    using error_type = typename trait::error_type;
 
     using fn_result_type = decltype(fn(std::declval<success_type>()));
-    //TODO static_assert wrapper [variant] and error type must be the same
-    //TODO Fn can return with strong type or raw (underlying) types. How to distinguish?
 
     using R = fn_result_type;
     using new_underlying_type = plain_type_t<R>; // still not totally OK -> underlying type is also a strong type?
     using return_type = rebind_strong_type_t<T, new_underlying_type>;
+
+    using new_trait = result_trait<typename return_type::type>;
+    static_assert(std::is_same_v<typename new_trait::error_type, typename trait::error_type>, "error types must be the same");
 
     return return_type(std::visit(ezy::overloaded{
         [&](const success_type& s) -> R { return std::invoke(fn, s); },
