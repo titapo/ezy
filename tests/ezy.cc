@@ -569,7 +569,6 @@ SCENARIO("visitable feature")
       using VM = strong_type<std::variant<move_only, std::string>, struct Tag, visitable>;
 
       move_only m{3};
-      // TODO proper moving check
       REQUIRE(VM{move_only(10)}.visit(
           [&](move_only&& mo) -> std::string { m = std::move(mo); return "move-only"; },
           [](std::string&&) -> std::string { return "string"; }
@@ -583,10 +582,11 @@ SCENARIO("visitable feature")
 
 SCENARIO("result-like continuation")
 {
+
+  auto twice = [](int i) {return i*2;};
   GIVEN("map")
   {
     using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
-    auto twice = [](int i) {return i*2;};
     REQUIRE(std::get<int>(R{10}.map(twice).map(twice).get()) == 40);
     REQUIRE(std::get<std::string>(R{"hoo"}.map(twice).map(twice).get()) == "hoo");
   }
@@ -598,17 +598,26 @@ SCENARIO("result-like continuation")
     REQUIRE(std::get<std::string>(R{"hoo"}.map(and_a_half).get()) == "hoo");
   }
 
-  //TODO
-  /*
-  GIVEN("map -- properly moves rvalue")
+  GIVEN("map -- properly moves rvalue as a success type")
+  {
+    using R = strong_type<std::variant<move_only, int>, void, result_like_continuation>;
+    move_only result{4};
+    REQUIRE(std::get<double>(R{move_only{10}}.map([&](move_only&& m) { result = std::move(m); return 2.0;}).get()) == 2.0);
+    REQUIRE(result.i == 10);
+  }
+
+  GIVEN("map -- properly moves rvalue as an error type")
   {
     using R = strong_type<std::variant<int, move_only>, void, result_like_continuation>;
-    move_only result{4};
-    REQUIRE(std::get<int>(R{move_only{10}}.map([&](move_only&& m) { result = std::move(m); return 2;}).get()) == 2);
-    REQUIRE(result.i == 10);
-    //REQUIRE(std::get<std::string>(R{"hoo"}.map(and_a_half).get()) == "hoo");
+    REQUIRE(std::get<move_only>(R{move_only{10}}.map([](int i) { return 2.0;}).get()).i == 10);
   }
-  */
+
+  GIVEN("map -- const")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    const R r{10};
+    REQUIRE(std::get<int>(r.map(twice).get()) == 20);
+  }
 
   GIVEN("and_then")
   {
@@ -643,6 +652,26 @@ SCENARIO("result-like continuation")
     auto half = [](int i) -> V {if (i % 2 == 0) return V{i / 2}; else return V{"oops"};};
     REQUIRE(std::get<int>(R{10}.and_then(half).get()) == 5);
     REQUIRE(std::get<std::string>(R{10}.and_then(half).and_then(half).get()) == "oops");
+  }
+  GIVEN("and_then -- properly moves rvalue")
+  {
+    using V = strong_type<std::variant<move_only, int>, void, result_like_continuation>;
+    move_only result{1};
+    REQUIRE(std::get<int>(V{move_only{10}}.and_then([&](move_only&&m) -> V { result = std::move(m); return V{5};}).get()) == 5);
+    REQUIRE(result.i == 10);
+  }
+
+  GIVEN("and_then -- properly moves rvalue as an error type")
+  {
+    using R = strong_type<std::variant<int, move_only>, void, result_like_continuation>;
+    REQUIRE(std::get<move_only>(R{move_only{10}}.and_then([](int i) { return R{move_only{3}};}).get()).i == 10);
+  }
+
+  GIVEN("and_then -- const")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    const R r{10};
+    REQUIRE(std::get<int>(r.and_then([](int i){ return R{i + 1};}).get()) == 11);
   }
 }
 
@@ -1112,6 +1141,30 @@ SCENARIO("compilation tests")
    * { ... };
    *
    */
+}
+
+SCENARIO("helper traits")
+{
+  static_assert(std::is_same_v<forward_const_t<int, double>, int>);
+  static_assert(std::is_same_v<forward_const_t<int, double&>, int>);
+  static_assert(std::is_same_v<forward_const_t<int, double&&>, int>);
+  static_assert(std::is_same_v<forward_const_t<int, const double>, const int>);
+  static_assert(std::is_same_v<forward_const_t<int, const double&>, const int>);
+  static_assert(std::is_same_v<forward_const_t<int, const double&&>, const int>);
+
+  static_assert(std::is_same_v<forward_reference_t<int, double>, int>);
+  static_assert(std::is_same_v<forward_reference_t<int, double&>, int&>);
+  static_assert(std::is_same_v<forward_reference_t<int, double&&>, int&&>);
+  static_assert(std::is_same_v<forward_reference_t<int, const double>, int>);
+  static_assert(std::is_same_v<forward_reference_t<int, const double&>, int&>);
+  static_assert(std::is_same_v<forward_reference_t<int, const double&&>, int&&>);
+
+  static_assert(std::is_same_v<forward_c_ref_t<int, double>, int>);
+  static_assert(std::is_same_v<forward_c_ref_t<int, double&>, int&>);
+  static_assert(std::is_same_v<forward_c_ref_t<int, double&&>, int&&>);
+  static_assert(std::is_same_v<forward_c_ref_t<int, const double>, const int>);
+  static_assert(std::is_same_v<forward_c_ref_t<int, const double&>, const int&>);
+  static_assert(std::is_same_v<forward_c_ref_t<int, const double&&>, const int&&>);
 }
 
 #include <ezy/experimental/function>

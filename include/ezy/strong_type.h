@@ -657,6 +657,40 @@ struct visitable : crtp<T, visitable>
 
 // TODO support for std::get
 
+template <typename Subject, typename Pattern>
+struct forward_const
+{
+  using type = std::conditional_t<std::is_const_v<std::remove_reference_t<Pattern>>, std::add_const_t<Subject>, Subject>;
+};
+
+template <typename Subject, typename Pattern>
+using forward_const_t = typename forward_const<Subject, Pattern>::type;
+
+template <typename Subject, typename Pattern>
+struct forward_reference
+{
+  using type = std::conditional_t<
+    std::is_reference_v<Pattern>,
+    std::conditional_t<
+      std::is_lvalue_reference_v<Pattern>, std::add_lvalue_reference_t<Subject>, std::add_rvalue_reference_t<Subject>
+    >,
+    Subject
+  >;
+};
+
+template <typename Subject, typename Pattern>
+using forward_reference_t = typename forward_reference<Subject, Pattern>::type;
+
+template <typename Subject, typename Pattern>
+struct forward_c_ref
+{
+  using type = forward_reference_t<forward_const_t<Subject, Pattern>, Pattern>;
+};
+
+template <typename Subject, typename Pattern>
+using forward_c_ref_t = typename forward_c_ref<Subject, Pattern>::type;
+
+
 template <typename T>
 struct result_like_continuation : crtp<T, result_like_continuation>
 {
@@ -683,20 +717,19 @@ struct result_like_continuation : crtp<T, result_like_continuation>
     using rebind_success_t = typename rebind_success<NewSuccess>::type;
   };
 
-  template <typename Fn>
-  constexpr decltype(auto) map(Fn&& fn)
+
+  template <typename ST, typename Fn>
+  static constexpr decltype(auto) map_impl(ST&& t, Fn&& fn)
   {
-    using trait = result_trait<typename T::type>;
-    // TODO generalize this out from here
-    using success_type = typename trait::success_type;
-    using error_type = typename trait::error_type;
+    using dST = std::decay_t<ST>;
+    using trait = result_trait<typename dST::type>;
 
     // TODO static_assert(std::is_invocable_v<Fn(success_type)>, "Fn must be invocable with success_type");
     //TODO using map_result_type = std::invoke_result_t<Fn(success_type)>;
     using fn_result_type = decltype(fn(std::declval<typename trait::success_type>()));
 
     using R = typename trait::template rebind_success_t<fn_result_type>;
-    using return_type = rebind_strong_type_t<T, R>;
+    using return_type = rebind_strong_type_t<dST, R>;
 
     /* TODO find out which one is better?
     if (std::holds_alternative<success_type>(this->that().get()))
@@ -706,32 +739,67 @@ struct result_like_continuation : crtp<T, result_like_continuation>
       */
 
     return return_type(std::visit(ezy::overloaded{
-        [&](const success_type& s) { return R{std::invoke(fn, s)}; },
-        [](const error_type& e) { return R{e}; }
-        }, this->that().get()));
+        [&](forward_c_ref_t<typename trait::success_type, ST> s) { return R{std::invoke(std::forward<Fn>(fn), std::forward<decltype(s)>(s))}; },
+        [](forward_c_ref_t<typename trait::error_type, ST> e) { return R{std::forward<decltype(e)>(e)}; }
+        }, std::forward<ST>(t).get()));
   }
 
-  template <typename Fn>
-  constexpr decltype(auto) and_then(Fn&& fn)
+  template <typename ST, typename Fn>
+  static constexpr decltype(auto) and_then_impl(ST&& t, Fn&& fn)
   {
-    using trait = result_trait<typename T::type>;
-    // TODO generalize this out from here
-    using success_type = typename trait::success_type;
-    using error_type = typename trait::error_type;
+    using dST = std::decay_t<ST>;
+    using trait = result_trait<typename dST::type>;
 
-    using fn_result_type = decltype(fn(std::declval<success_type>()));
+    using fn_result_type = decltype(fn(std::declval<typename trait::success_type>()));
 
     using R = fn_result_type;
     using new_underlying_type = plain_type_t<R>; // still not totally OK -> underlying type is also a strong type?
-    using return_type = rebind_strong_type_t<T, new_underlying_type>;
+    using return_type = rebind_strong_type_t<dST, new_underlying_type>;
 
     using new_trait = result_trait<typename return_type::type>;
     static_assert(std::is_same_v<typename new_trait::error_type, typename trait::error_type>, "error types must be the same");
 
     return return_type(std::visit(ezy::overloaded{
-        [&](const success_type& s) -> R { return std::invoke(fn, s); },
-        [](const error_type& e) { return R{e}; }
-        }, this->that().get()));
+        [&](forward_c_ref_t<typename trait::success_type, ST> s) -> R { return std::invoke(std::forward<Fn>(fn), std::forward<decltype(s)>(s)); },
+        [](forward_c_ref_t<typename trait::error_type, ST> e) { return R{std::forward<decltype(e)>(e)}; }
+        }, std::forward<ST>(t).get()));
+  }
+
+
+  template <typename Fn>
+  constexpr decltype(auto) map(Fn&& fn) &
+  {
+    return map_impl((*this).that(), std::forward<Fn>(fn));
+  }
+
+  template <typename Fn>
+  constexpr decltype(auto) map(Fn&& fn) const &
+  {
+    return map_impl((*this).that(), std::forward<Fn>(fn));
+  }
+
+  template <typename Fn>
+  constexpr decltype(auto) map(Fn&& fn) &&
+  {
+    return map_impl(std::move(*this).that(), std::forward<Fn>(fn));
+  }
+
+  template <typename Fn>
+  constexpr decltype(auto) and_then(Fn&& fn) &
+  {
+    return and_then_impl((*this).that(), std::forward<Fn>(fn));
+  }
+
+  template <typename Fn>
+  constexpr decltype(auto) and_then(Fn&& fn) const&
+  {
+    return and_then_impl((*this).that(), std::forward<Fn>(fn));
+  }
+
+  template <typename Fn>
+  constexpr decltype(auto) and_then(Fn&& fn) &&
+  {
+    return and_then_impl(std::move(*this).that(), std::forward<Fn>(fn));
   }
 };
 
