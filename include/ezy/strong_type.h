@@ -47,11 +47,6 @@ class strong_type : public Features<strong_type<T, Tag, Features...>>...
     using type = T;
     using self_type = strong_type;
 
-    template <typename U, std::enable_if_t<std::is_constructible_v<T, U>>* = nullptr >
-    // construction from underlying type
-    explicit strong_type(U&& p_value) // noexcept(std::is_nothrow_move_constructible<T>::value)
-      : value(std::forward<U>(p_value)) {}
-
     strong_type(const strong_type& rhs)
       : value(rhs.get()) {}
 
