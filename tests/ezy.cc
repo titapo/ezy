@@ -1030,6 +1030,58 @@ SCENARIO("strong type for const integer")
   }
 }
 
+SCENARIO("strong type constructions")
+{
+  WHEN("underlying type is brace constructible")
+  {
+    struct S {int i; double d;};
+    THEN("strong type can construct it")
+    {
+      using ST = strong_type<S, struct Tag>;
+      ST st{1, 1.2};
+      REQUIRE(st.get().i == 1);
+      REQUIRE(st.get().d == 1.2);
+    }
+  }
+
+  WHEN("underlying type is noexplicit not brace constructible")
+  {
+    struct S { S(double p) : i(p), d(p*2) {} int i; double d;};
+    THEN("strong type can construct it")
+    {
+      using ST = strong_type<S, struct Tag>;
+      ST st{1.2};
+      REQUIRE(st.get().i == 1);
+      REQUIRE(st.get().d == 2.4);
+    }
+  }
+
+  WHEN("underlying type is noexplicit binary not brace constructible")
+  {
+    struct S { S(double p1, double p2) : i(p1 + p2), d(p1*2 - p2) {} int i; double d;};
+    THEN("strong type can construct it")
+    {
+      using ST = strong_type<S, struct Tag>;
+      ST st{2.3, 4.1};
+      REQUIRE(st.get().i == 6);
+      REQUIRE(st.get().d == 0.5);
+    }
+  }
+
+  WHEN("underlying type is explicit binary not brace constructible")
+  {
+    struct S { explicit S(double p1, double p2) : i(p1 + p2), d(p1*2 - p2) {} int i; double d;};
+    THEN("strong type can construct it")
+    {
+      using ST = strong_type<S, struct Tag>;
+      ST st{2.3, 4.1};
+      REQUIRE(st.get().i == 6);
+      REQUIRE(st.get().d == 0.5);
+    }
+  }
+  
+}
+
 /**
  * strong type features: arithmetic features
  */
