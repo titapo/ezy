@@ -698,6 +698,26 @@ SCENARIO("result-like continuation")
   }
 }
 
+SCENARIO("result like interface for std::optional")
+{
+  auto twice = [](int i) {return i*2;};
+
+  using O = strong_type<std::optional<int>, void, result_interface<optional_adapter>::continuation>;
+  auto half = [](int i) -> O {if (i % 2 == 0) return O{i / 2}; else return O{std::nullopt};};
+  GIVEN("map")
+  {
+    REQUIRE(O{10}.map(twice).map(twice).get().value() == 40);
+    REQUIRE(!O{std::nullopt}.map(twice).map(twice).get().has_value());
+  }
+
+  GIVEN("and_then")
+  {
+    REQUIRE(!O{10}.and_then(half).and_then(half).get().has_value());
+    REQUIRE(O{20}.and_then(half).and_then(half).get().value() == 5);
+    REQUIRE(!O{std::nullopt}.and_then(half).and_then(half).get().has_value());
+  }
+}
+
 template <typename ... Ts>
 using variant = Enumeration<Ts...>;
 

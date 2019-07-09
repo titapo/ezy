@@ -682,6 +682,18 @@ struct result_adapter<Wrapper<Success, Error>>
     return std::get<error>(std::forward<T>(t));
   }
 
+  template <typename... Ts>
+  static decltype(auto) make_success(Ts&&... ts)
+  {
+    return type{std::in_place_index_t<success>{}, std::forward<Ts>(ts)...};
+  }
+
+  template <typename... Ts>
+  static decltype(auto) make_error(Ts&&... ts)
+  {
+    return type{std::in_place_index_t<error>{}, std::forward<Ts>(ts)...};
+  }
+
   template <typename NewSuccess>
   struct rebind_success
   {
@@ -690,6 +702,56 @@ struct result_adapter<Wrapper<Success, Error>>
 
   template <typename NewSuccess>
   using rebind_success_t = typename rebind_success<NewSuccess>::type;
+};
+
+template <typename Optional>
+struct optional_adapter;
+
+template <template <typename...> class Optional, typename Value>
+struct optional_adapter<Optional<Value>>
+{
+  using type = Optional<Value>;
+  using success_type = Value;
+  using error_type = std::nullopt_t;
+  inline static constexpr auto error_value = std::nullopt;
+
+  template <typename T>
+  static bool is_success(T&& t) noexcept
+  {
+    return t.has_value();
+  }
+
+  template <typename T>
+  static decltype(auto) get_success(T&& t) noexcept
+  {
+    return std::forward<T>(t).value();
+  }
+
+  template <typename T>
+  static decltype(auto) get_error(T&& t) noexcept
+  {
+    return type{error_value};
+  }
+
+  template <typename... Ts>
+  static decltype(auto) make_success(Ts&&... ts)
+  {
+    return type{std::in_place_t{}, std::forward<Ts>(ts)...};
+  }
+
+  template <typename... Ts>
+  static decltype(auto) make_error(Ts&&... ts)
+  {
+    return type{error_value};
+  }
+
+  template <typename NewValue>
+  struct rebind_success
+  {
+    using type = Optional<NewValue>;
+  };
+  template <typename NewValue>
+  using rebind_success_t = typename rebind_success<NewValue>::type;
 };
 
 
@@ -742,12 +804,11 @@ struct result_interface
       using return_type = rebind_strong_type_t<dST, R>;
 
       if (trait::is_success(t.get()))
-        return return_type(R{
-              std::in_place_index_t<new_trait::success>{},
+        return return_type(new_trait::make_success(
               std::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get()))
-            });
+            ));
       else
-        return return_type(R{std::in_place_index_t<new_trait::error>{}, trait::get_error(std::forward<ST>(t).get())});
+        return return_type(new_trait::make_error(trait::get_error(std::forward<ST>(t).get())));
     }
 
     template <typename ST, typename Fn>
@@ -768,7 +829,7 @@ struct result_interface
       if (trait::is_success(t.get()))
         return return_type(std::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get())));
       else
-        return return_type(std::in_place_index_t<new_trait::error>{}, trait::get_error(std::forward<ST>(t).get()));
+        return return_type(new_trait::make_error(trait::get_error(std::forward<ST>(t).get())));
     }
 
 
