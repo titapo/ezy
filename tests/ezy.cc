@@ -590,6 +590,14 @@ SCENARIO("result-like continuation")
     REQUIRE(std::get<int>(R{10}.map(twice).map(twice).get()) == 40);
     REQUIRE(std::get<std::string>(R{"hoo"}.map(twice).map(twice).get()) == "hoo");
   }
+
+  GIVEN("map -- same types")
+  {
+    using R = strong_type<std::variant<int, int>, void, result_like_continuation>;
+    using V = typename get_underlying_type<R>::type;
+    REQUIRE(std::get<0>(R{V(std::in_place_index_t<0>{}, 10)}.map(twice).map(twice).get()) == 40);
+    REQUIRE(std::get<1>(R{V(std::in_place_index_t<1>{}, 15)}.map(twice).map(twice).get()) == 15);
+  }
   GIVEN("map -- changing type")
   {
     using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
@@ -625,6 +633,21 @@ SCENARIO("result-like continuation")
     auto half = [](int i) -> R {if (i % 2 == 0) return R{i / 2}; else return R{"oops"};};
     REQUIRE(std::get<int>(R{10}.and_then(half).get()) == 5);
     REQUIRE(std::get<std::string>(R{10}.and_then(half).and_then(half).get()) == "oops");
+  }
+
+  GIVEN("and_then -- same types")
+  {
+    using R = strong_type<std::variant<int, int>, void, result_like_continuation>;
+    auto half = [](int i) -> R {
+      if (i % 2 == 0)
+        return R{std::in_place_index_t<0>{}, i / 2}; // TODO helper in strong type. eg R::make_success(i / 2)
+      else
+        return R{std::in_place_index_t<1>{}, 100};
+    };
+    using V = typename get_underlying_type<R>::type;
+    REQUIRE(std::get<1>(R{V(std::in_place_index_t<0>{}, 10)}.and_then(half).and_then(half).get()) == 100);
+    REQUIRE(std::get<0>(R{V(std::in_place_index_t<0>{}, 64)}.and_then(half).and_then(half).get()) == 16);
+    REQUIRE(std::get<1>(R{V(std::in_place_index_t<1>{}, 64)}.and_then(half).and_then(half).get()) == 64);
   }
 
   GIVEN("and_then -- changing type")
@@ -1193,30 +1216,6 @@ SCENARIO("compilation tests")
    * { ... };
    *
    */
-}
-
-SCENARIO("helper traits")
-{
-  static_assert(std::is_same_v<forward_const_t<int, double>, int>);
-  static_assert(std::is_same_v<forward_const_t<int, double&>, int>);
-  static_assert(std::is_same_v<forward_const_t<int, double&&>, int>);
-  static_assert(std::is_same_v<forward_const_t<int, const double>, const int>);
-  static_assert(std::is_same_v<forward_const_t<int, const double&>, const int>);
-  static_assert(std::is_same_v<forward_const_t<int, const double&&>, const int>);
-
-  static_assert(std::is_same_v<forward_reference_t<int, double>, int>);
-  static_assert(std::is_same_v<forward_reference_t<int, double&>, int&>);
-  static_assert(std::is_same_v<forward_reference_t<int, double&&>, int&&>);
-  static_assert(std::is_same_v<forward_reference_t<int, const double>, int>);
-  static_assert(std::is_same_v<forward_reference_t<int, const double&>, int&>);
-  static_assert(std::is_same_v<forward_reference_t<int, const double&&>, int&&>);
-
-  static_assert(std::is_same_v<forward_c_ref_t<int, double>, int>);
-  static_assert(std::is_same_v<forward_c_ref_t<int, double&>, int&>);
-  static_assert(std::is_same_v<forward_c_ref_t<int, double&&>, int&&>);
-  static_assert(std::is_same_v<forward_c_ref_t<int, const double>, const int>);
-  static_assert(std::is_same_v<forward_c_ref_t<int, const double&>, const int&>);
-  static_assert(std::is_same_v<forward_c_ref_t<int, const double&&>, const int&&>);
 }
 
 #include <ezy/experimental/function>

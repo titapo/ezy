@@ -652,38 +652,46 @@ struct visitable : crtp<T, visitable>
 
 // TODO support for std::get
 
-template <typename Subject, typename Pattern>
-struct forward_const
+template <typename Type>
+struct result_trait;
+
+template <template <typename...> class Wrapper, typename Success, typename Error>
+struct result_trait<Wrapper<Success, Error>>
 {
-  using type = std::conditional_t<std::is_const_v<std::remove_reference_t<Pattern>>, std::add_const_t<Subject>, Subject>;
+  using type = Wrapper<Success, Error>;
+  inline static constexpr size_t success = 0;
+  inline static constexpr size_t error = 1;
+  using success_type = std::decay_t<decltype(std::get<success>(std::declval<type>()))>;
+  using error_type = std::decay_t<decltype(std::get<error>(std::declval<type>()))>;
+
+  template <typename T>
+  static bool is_success(T&& t) noexcept
+  {
+    return std::get_if<success>(&t) != nullptr;
+  }
+
+  template <typename T>
+  static decltype(auto) get_success(T&& t) noexcept
+  {
+    return std::get<success>(std::forward<T>(t));
+  }
+
+  template <typename T>
+  static decltype(auto) get_error(T&& t) noexcept
+  {
+    return std::get<error>(std::forward<T>(t));
+  }
+
+  template <typename NewSuccess>
+  struct rebind_success
+  {
+    using type = Wrapper<NewSuccess, error_type>;
+  };
+
+  template <typename NewSuccess>
+  using rebind_success_t = typename rebind_success<NewSuccess>::type;
 };
 
-template <typename Subject, typename Pattern>
-using forward_const_t = typename forward_const<Subject, Pattern>::type;
-
-template <typename Subject, typename Pattern>
-struct forward_reference
-{
-  using type = std::conditional_t<
-    std::is_reference_v<Pattern>,
-    std::conditional_t<
-      std::is_lvalue_reference_v<Pattern>, std::add_lvalue_reference_t<Subject>, std::add_rvalue_reference_t<Subject>
-    >,
-    Subject
-  >;
-};
-
-template <typename Subject, typename Pattern>
-using forward_reference_t = typename forward_reference<Subject, Pattern>::type;
-
-template <typename Subject, typename Pattern>
-struct forward_c_ref
-{
-  using type = forward_reference_t<forward_const_t<Subject, Pattern>, Pattern>;
-};
-
-template <typename Subject, typename Pattern>
-using forward_c_ref_t = typename forward_c_ref<Subject, Pattern>::type;
 
 
 template <typename T>
@@ -692,26 +700,31 @@ struct result_like_continuation : crtp<T, result_like_continuation>
   using base = crtp<T, result_like_continuation>;
   using self_type = result_like_continuation;
 
-  template <typename Type>
-  struct result_trait;
 
-  template <template <typename...> class Wrapper, typename Success, typename Error>
-  struct result_trait<Wrapper<Success, Error>>
-  {
-    using type = Wrapper<Success, Error>;
-    using success_type = std::decay_t<decltype(std::get<0>(std::declval<type>()))>;
-    using error_type = std::decay_t<decltype(std::get<1>(std::declval<type>()))>;
+  /* TODO make it work
+  using trait_type = result_trait<typename T::type>;
 
-    template <typename NewSuccess>
-    struct rebind_success
-    {
-      using type = Wrapper<NewSuccess, error_type>;
-    };
+  bool is_success() const
+  { return trait_type::is_success((*this).that()); }
 
-    template <typename NewSuccess>
-    using rebind_success_t = typename rebind_success<NewSuccess>::type;
-  };
+  decltype(auto) success() const &
+  { return trait_type::get_success((*this).that()); }
 
+  decltype(auto) success() &
+  { return trait_type::get_success((*this).that()); }
+
+  decltype(auto) success() &&
+  { return trait_type::get_success(std::move(*this).that()); }
+
+  decltype(auto) error() const &
+  { return trait_type::get_error((*this).that()); }
+
+  decltype(auto) error() &
+  { return trait_type::get_error((*this).that()); }
+
+  decltype(auto) error() &&
+  { return trait_type::get_error(std::move(*this).that()); }
+  */
 
   template <typename ST, typename Fn>
   static constexpr decltype(auto) map_impl(ST&& t, Fn&& fn)
@@ -724,19 +737,16 @@ struct result_like_continuation : crtp<T, result_like_continuation>
     using fn_result_type = decltype(fn(std::declval<typename trait::success_type>()));
 
     using R = typename trait::template rebind_success_t<fn_result_type>;
+    using new_trait = result_trait<R>;
     using return_type = rebind_strong_type_t<dST, R>;
 
-    /* TODO find out which one is better?
-    if (std::holds_alternative<success_type>(this->that().get()))
-      return return_type(std::invoke(std::forward<Fn>(fn), std::get<success_type>(this->that().get())));
+    if (trait::is_success(t.get()))
+      return return_type(R{
+            std::in_place_index_t<new_trait::success>{},
+            std::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get()))
+          });
     else
-      return return_type(std::get<error_type>(this->that().get()));
-      */
-
-    return return_type(std::visit(ezy::overloaded{
-        [&](forward_c_ref_t<typename trait::success_type, ST> s) { return R{std::invoke(std::forward<Fn>(fn), std::forward<decltype(s)>(s))}; },
-        [](forward_c_ref_t<typename trait::error_type, ST> e) { return R{std::forward<decltype(e)>(e)}; }
-        }, std::forward<ST>(t).get()));
+      return return_type(R{std::in_place_index_t<new_trait::error>{}, trait::get_error(std::forward<ST>(t).get())});
   }
 
   template <typename ST, typename Fn>
@@ -754,10 +764,11 @@ struct result_like_continuation : crtp<T, result_like_continuation>
     using new_trait = result_trait<typename return_type::type>;
     static_assert(std::is_same_v<typename new_trait::error_type, typename trait::error_type>, "error types must be the same");
 
-    return return_type(std::visit(ezy::overloaded{
-        [&](forward_c_ref_t<typename trait::success_type, ST> s) -> R { return std::invoke(std::forward<Fn>(fn), std::forward<decltype(s)>(s)); },
-        [](forward_c_ref_t<typename trait::error_type, ST> e) { return R{std::forward<decltype(e)>(e)}; }
-        }, std::forward<ST>(t).get()));
+
+    if (trait::is_success(t.get()))
+      return return_type(std::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get())));
+    else
+      return return_type(std::in_place_index_t<new_trait::error>{}, trait::get_error(std::forward<ST>(t).get()));
   }
 
 
