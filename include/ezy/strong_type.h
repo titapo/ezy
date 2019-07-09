@@ -653,10 +653,10 @@ struct visitable : crtp<T, visitable>
 // TODO support for std::get
 
 template <typename Type>
-struct result_trait;
+struct result_adapter;
 
 template <template <typename...> class Wrapper, typename Success, typename Error>
-struct result_trait<Wrapper<Success, Error>>
+struct result_adapter<Wrapper<Success, Error>>
 {
   using type = Wrapper<Success, Error>;
   inline static constexpr size_t success = 0;
@@ -693,121 +693,124 @@ struct result_trait<Wrapper<Success, Error>>
 };
 
 
-
-template <typename T>
-struct result_like_continuation : crtp<T, result_like_continuation>
+template <template <typename...> class Adapter>
+struct result_interface
 {
-  using base = crtp<T, result_like_continuation>;
-  using self_type = result_like_continuation;
-
-
-  /* TODO make it work
-  using trait_type = result_trait<typename T::type>;
-
-  bool is_success() const
-  { return trait_type::is_success((*this).that()); }
-
-  decltype(auto) success() const &
-  { return trait_type::get_success((*this).that()); }
-
-  decltype(auto) success() &
-  { return trait_type::get_success((*this).that()); }
-
-  decltype(auto) success() &&
-  { return trait_type::get_success(std::move(*this).that()); }
-
-  decltype(auto) error() const &
-  { return trait_type::get_error((*this).that()); }
-
-  decltype(auto) error() &
-  { return trait_type::get_error((*this).that()); }
-
-  decltype(auto) error() &&
-  { return trait_type::get_error(std::move(*this).that()); }
-  */
-
-  template <typename ST, typename Fn>
-  static constexpr decltype(auto) map_impl(ST&& t, Fn&& fn)
+  template <typename T>
+  struct continuation : crtp<T, continuation>
   {
-    using dST = std::decay_t<ST>;
-    using trait = result_trait<typename dST::type>;
+    using base = crtp<T, continuation>;
+    using self_type = continuation;
 
-    // TODO static_assert(std::is_invocable_v<Fn(success_type)>, "Fn must be invocable with success_type");
-    //TODO using map_result_type = std::invoke_result_t<Fn(success_type)>;
-    using fn_result_type = decltype(fn(std::declval<typename trait::success_type>()));
+    /* TODO make it work
+    using trait_type = Adapter<typename T::type>;
 
-    using R = typename trait::template rebind_success_t<fn_result_type>;
-    using new_trait = result_trait<R>;
-    using return_type = rebind_strong_type_t<dST, R>;
+    bool is_success() const
+    { return trait_type::is_success((*this).that()); }
 
-    if (trait::is_success(t.get()))
-      return return_type(R{
-            std::in_place_index_t<new_trait::success>{},
-            std::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get()))
-          });
-    else
-      return return_type(R{std::in_place_index_t<new_trait::error>{}, trait::get_error(std::forward<ST>(t).get())});
-  }
+    decltype(auto) success() const &
+    { return trait_type::get_success((*this).that()); }
 
-  template <typename ST, typename Fn>
-  static constexpr decltype(auto) and_then_impl(ST&& t, Fn&& fn)
-  {
-    using dST = std::decay_t<ST>;
-    using trait = result_trait<typename dST::type>;
+    decltype(auto) success() &
+    { return trait_type::get_success((*this).that()); }
 
-    using fn_result_type = decltype(fn(std::declval<typename trait::success_type>()));
+    decltype(auto) success() &&
+    { return trait_type::get_success(std::move(*this).that()); }
 
-    using R = fn_result_type;
-    using new_underlying_type = plain_type_t<R>; // still not totally OK -> underlying type is also a strong type?
-    using return_type = rebind_strong_type_t<dST, new_underlying_type>;
+    decltype(auto) error() const &
+    { return trait_type::get_error((*this).that()); }
 
-    using new_trait = result_trait<typename return_type::type>;
-    static_assert(std::is_same_v<typename new_trait::error_type, typename trait::error_type>, "error types must be the same");
+    decltype(auto) error() &
+    { return trait_type::get_error((*this).that()); }
+
+    decltype(auto) error() &&
+    { return trait_type::get_error(std::move(*this).that()); }
+    */
+
+    template <typename ST, typename Fn>
+    static constexpr decltype(auto) map_impl(ST&& t, Fn&& fn)
+    {
+      using dST = std::decay_t<ST>;
+      using trait = Adapter<typename dST::type>;
+
+      // TODO static_assert(std::is_invocable_v<Fn(success_type)>, "Fn must be invocable with success_type");
+      //TODO using map_result_type = std::invoke_result_t<Fn(success_type)>;
+      using fn_result_type = decltype(fn(std::declval<typename trait::success_type>()));
+
+      using R = typename trait::template rebind_success_t<fn_result_type>;
+      using new_trait = Adapter<R>;
+      using return_type = rebind_strong_type_t<dST, R>;
+
+      if (trait::is_success(t.get()))
+        return return_type(R{
+              std::in_place_index_t<new_trait::success>{},
+              std::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get()))
+            });
+      else
+        return return_type(R{std::in_place_index_t<new_trait::error>{}, trait::get_error(std::forward<ST>(t).get())});
+    }
+
+    template <typename ST, typename Fn>
+    static constexpr decltype(auto) and_then_impl(ST&& t, Fn&& fn)
+    {
+      using dST = std::decay_t<ST>;
+      using trait = Adapter<typename dST::type>;
+
+      using fn_result_type = decltype(fn(std::declval<typename trait::success_type>()));
+
+      using R = fn_result_type;
+      using new_underlying_type = plain_type_t<R>; // still not totally OK -> underlying type is also a strong type?
+      using return_type = rebind_strong_type_t<dST, new_underlying_type>;
+
+      using new_trait = Adapter<typename return_type::type>;
+      static_assert(std::is_same_v<typename new_trait::error_type, typename trait::error_type>, "error types must be the same");
+
+      if (trait::is_success(t.get()))
+        return return_type(std::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get())));
+      else
+        return return_type(std::in_place_index_t<new_trait::error>{}, trait::get_error(std::forward<ST>(t).get()));
+    }
 
 
-    if (trait::is_success(t.get()))
-      return return_type(std::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get())));
-    else
-      return return_type(std::in_place_index_t<new_trait::error>{}, trait::get_error(std::forward<ST>(t).get()));
-  }
+    template <typename Fn>
+    constexpr decltype(auto) map(Fn&& fn) &
+    {
+      return map_impl((*this).that(), std::forward<Fn>(fn));
+    }
 
+    template <typename Fn>
+    constexpr decltype(auto) map(Fn&& fn) const &
+    {
+      return map_impl((*this).that(), std::forward<Fn>(fn));
+    }
 
-  template <typename Fn>
-  constexpr decltype(auto) map(Fn&& fn) &
-  {
-    return map_impl((*this).that(), std::forward<Fn>(fn));
-  }
+    template <typename Fn>
+    constexpr decltype(auto) map(Fn&& fn) &&
+    {
+      return map_impl(std::move(*this).that(), std::forward<Fn>(fn));
+    }
 
-  template <typename Fn>
-  constexpr decltype(auto) map(Fn&& fn) const &
-  {
-    return map_impl((*this).that(), std::forward<Fn>(fn));
-  }
+    template <typename Fn>
+    constexpr decltype(auto) and_then(Fn&& fn) &
+    {
+      return and_then_impl((*this).that(), std::forward<Fn>(fn));
+    }
 
-  template <typename Fn>
-  constexpr decltype(auto) map(Fn&& fn) &&
-  {
-    return map_impl(std::move(*this).that(), std::forward<Fn>(fn));
-  }
+    template <typename Fn>
+    constexpr decltype(auto) and_then(Fn&& fn) const&
+    {
+      return and_then_impl((*this).that(), std::forward<Fn>(fn));
+    }
 
-  template <typename Fn>
-  constexpr decltype(auto) and_then(Fn&& fn) &
-  {
-    return and_then_impl((*this).that(), std::forward<Fn>(fn));
-  }
-
-  template <typename Fn>
-  constexpr decltype(auto) and_then(Fn&& fn) const&
-  {
-    return and_then_impl((*this).that(), std::forward<Fn>(fn));
-  }
-
-  template <typename Fn>
-  constexpr decltype(auto) and_then(Fn&& fn) &&
-  {
-    return and_then_impl(std::move(*this).that(), std::forward<Fn>(fn));
-  }
+    template <typename Fn>
+    constexpr decltype(auto) and_then(Fn&& fn) &&
+    {
+      return and_then_impl(std::move(*this).that(), std::forward<Fn>(fn));
+    }
+  };
 };
 
+template <typename T>
+using result_like_continuation = typename result_interface<result_adapter>::continuation<T>;
 
 #endif
