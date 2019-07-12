@@ -764,12 +764,15 @@ struct result_interface
     using base = crtp<T, continuation>;
     using self_type = continuation;
 
-    /* TODO make it work
-    using trait_type = Adapter<typename T::type>;
+    //using trait_type = Adapter<typename T::type>;
 
     bool is_success() const
-    { return trait_type::is_success((*this).that()); }
+    { return Adapter<typename T::type>::is_success((*this).that().get()); }
 
+    bool is_error() const
+    { return !is_success(); }
+
+    /* TODO make it work
     decltype(auto) success() const &
     { return trait_type::get_success((*this).that()); }
 
@@ -788,6 +791,37 @@ struct result_interface
     decltype(auto) error() &&
     { return trait_type::get_error(std::move(*this).that()); }
     */
+
+    template <typename ST, typename Alternative>
+    static constexpr decltype(auto) success_or_impl(ST&& t, Alternative&& alternative)
+    {
+      using dST = std::decay_t<ST>;
+      using trait = Adapter<typename dST::type>;
+
+      using ReturnType = typename trait::success_type;
+      if (trait::is_success(std::forward<ST>(t).get()))
+        return ReturnType{trait::get_success(std::forward<ST>(t).get())};
+      else
+        return ReturnType{std::forward<Alternative>(alternative)};
+    }
+
+    template <typename Alternative>
+    decltype(auto) success_or(Alternative&& alternative) &
+    {
+      return success_or_impl((*this).that(), std::forward<Alternative>(alternative));
+    }
+
+    template <typename Alternative>
+    decltype(auto) success_or(Alternative&& alternative) const &
+    {
+      return success_or_impl((*this).that(), std::forward<Alternative>(alternative));
+    }
+
+    template <typename Alternative>
+    decltype(auto) success_or(Alternative&& alternative) &&
+    {
+      return success_or_impl(std::move(*this).that(), std::forward<Alternative>(alternative));
+    }
 
     template <typename ST, typename Fn>
     static constexpr decltype(auto) map_impl(ST&& t, Fn&& fn)
@@ -810,6 +844,32 @@ struct result_interface
       else
         return return_type(new_trait::make_error(trait::get_error(std::forward<ST>(t).get())));
     }
+
+    template <typename ST, typename Fn, typename Alternative>
+    static constexpr decltype(auto) map_or_impl(ST&& t, Fn&& fn, Alternative&& alternative)
+    {
+      // TODO check whether implementing it can be faster or not
+      return success_or_impl(map_impl(std::forward<ST>(t), std::forward<Fn>(fn)), std::forward<Alternative>(alternative));
+    }
+
+    template <typename Fn, typename Alternative>
+    decltype(auto) map_or(Fn&& fn, Alternative&& alternative) &
+    {
+      return map_or_impl((*this).that(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
+    }
+
+    template <typename Fn, typename Alternative>
+    decltype(auto) map_or(Fn&& fn, Alternative&& alternative) const &
+    {
+      return map_or_impl((*this).that(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
+    }
+
+    template <typename Fn, typename Alternative>
+    decltype(auto) map_or(Fn&& fn, Alternative&& alternative) &&
+    {
+      return map_or_impl(std::move(*this).that(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
+    }
+
 
     template <typename ST, typename Fn>
     static constexpr decltype(auto) and_then_impl(ST&& t, Fn&& fn)

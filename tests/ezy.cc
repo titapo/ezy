@@ -584,6 +584,43 @@ SCENARIO("result-like continuation")
 {
 
   auto twice = [](int i) {return i*2;};
+  GIVEN("is_success")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    REQUIRE(R{10}.is_success());
+    REQUIRE(!R{"alma"}.is_success());
+  }
+
+  GIVEN("is_error")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    REQUIRE(!R{10}.is_error());
+    REQUIRE(R{"alma"}.is_error());
+  }
+
+  GIVEN("success_or")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    REQUIRE(R{10}.success_or(3) == 10);
+    REQUIRE(R{"alma"}.success_or(3) == 3);
+  }
+
+  GIVEN("success_or -- const")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    const R r1{10};
+    REQUIRE(r1.success_or(3) == 10);
+
+    const R r2{"alma"};
+    REQUIRE(r2.success_or(3) == 3);
+  }
+
+  GIVEN("success_or -- moves") {
+    using R = strong_type<std::variant<move_only, std::string>, void, result_like_continuation>;
+    REQUIRE(R{move_only{5}}.success_or(move_only{4}).i == 5);
+    REQUIRE(R{"alma"}.success_or(move_only{4}).i == 4);
+  }
+
   GIVEN("map")
   {
     using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
@@ -625,6 +662,30 @@ SCENARIO("result-like continuation")
     using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
     const R r{10};
     REQUIRE(std::get<int>(r.map(twice).get()) == 20);
+  }
+
+  GIVEN("map_or")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    REQUIRE(R{10}.map_or(twice, 2) == 20);
+    REQUIRE(R{"hoo"}.map_or(twice, 2) == 2);
+  }
+
+  // TODO underlying type is const?
+  GIVEN("map_or -- const")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    const R r1{10};
+    REQUIRE(r1.map_or(twice, 2) == 20);
+    const R r2{"hoo"};
+    REQUIRE(r2.map_or(twice, 2) == 2);
+  }
+
+  GIVEN("map_or -- move")
+  {
+    using R = strong_type<std::variant<move_only, std::string>, void, result_like_continuation>;
+    REQUIRE(R{move_only{4}}.map_or([](move_only&& m){ return move_only{123};}, move_only{9}).i == 123);
+    REQUIRE(R{"hoo"}.map_or([](move_only&& m){ return move_only{123};}, move_only{9}).i == 9);
   }
 
   GIVEN("and_then")
@@ -710,12 +771,46 @@ SCENARIO("result like interface for std::optional")
     REQUIRE(!O{std::nullopt}.map(twice).map(twice).get().has_value());
   }
 
+  GIVEN("map -- changing type")
+  {
+    auto and_a_half = [](int i) {return i*1.5;};
+    REQUIRE(O{10}.map(and_a_half).get().value() == 15.0);
+    REQUIRE(!O{std::nullopt}.map(and_a_half).map(twice).get().has_value());
+  }
+
+  GIVEN("map -- properly moves")
+  {
+    using Om = strong_type<std::optional<move_only>, void, result_interface<optional_adapter>::continuation>;
+    move_only result{4};
+    REQUIRE(Om{move_only{10}}.map([&](move_only&& m) { result = std::move(m); return 2.0;}).get().value() == 2.0);
+    REQUIRE(result.i == 10);
+  }
+
   GIVEN("and_then")
   {
     REQUIRE(!O{10}.and_then(half).and_then(half).get().has_value());
     REQUIRE(O{20}.and_then(half).and_then(half).get().value() == 5);
     REQUIRE(!O{std::nullopt}.and_then(half).and_then(half).get().has_value());
   }
+
+  GIVEN("and_then -- changing type")
+  {
+    using O2 = rebind_strong_type_t<O, std::optional<double>>;
+    auto change = [](int i) -> O2 {if (i % 3 == 0) return O2{i / 3}; else return O2{std::nullopt};};
+    REQUIRE(O{9}.and_then(change).get().value() == 3.0);
+    REQUIRE(O{9}.and_then(change).and_then(change).get().value() == 1.0);
+    REQUIRE(!O{9}.and_then(change).and_then(change).and_then(change).get().has_value());
+    REQUIRE(!O{10}.and_then(change).get().has_value());
+  }
+
+  GIVEN("and_then -- properly moves")
+  {
+    using Om = strong_type<std::optional<move_only>, void, result_interface<optional_adapter>::continuation>;
+    move_only result{4};
+    REQUIRE(Om{move_only{10}}.and_then([&](move_only&& m) { result = std::move(m); return Om{2};}).get().value().i == 2);
+    REQUIRE(result.i == 10);
+  }
+
 }
 
 template <typename ... Ts>
