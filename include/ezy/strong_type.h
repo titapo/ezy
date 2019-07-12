@@ -667,7 +667,7 @@ struct result_adapter<Wrapper<Success, Error>>
   template <typename T>
   static bool is_success(T&& t) noexcept
   {
-    return std::get_if<success>(&t) != nullptr;
+    return t.index() == success;
   }
 
   template <typename T>
