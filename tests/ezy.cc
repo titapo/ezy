@@ -688,6 +688,16 @@ SCENARIO("result-like continuation")
     REQUIRE(R{"hoo"}.map_or([](move_only&& m){ return move_only{123};}, move_only{9}).i == 9);
   }
 
+  GIVEN("map_or_else")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    REQUIRE(R{5}.map_or_else<int>(twice, &std::string::size) == 10);
+    REQUIRE(R{"foo"}.map_or_else<int>(twice, &std::string::size) == 3);
+  }
+  // TODO map_or_else -- const
+  // TODO map_or_else -- rvalue
+  // TODO map_or_else -- non-explicitly specified return type
+
   GIVEN("and_then")
   {
     using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;

@@ -857,6 +857,30 @@ struct result_interface
           return return_type(new_trait::make_error(trait::get_error(std::forward<ST>(t).get())));
       }
 
+      template <typename ST, typename FnSucc, typename FnErr>
+      static constexpr decltype(auto) map_or_else(ST&& t, FnSucc&& fn_succ, FnErr&& fn_err)
+      {
+        using dST = std::decay_t<ST>;
+        using trait = Adapter<typename dST::type>;
+
+        if (trait::is_success(t.get()))
+          return std::invoke(std::forward<FnSucc>(fn_succ), trait::get_success(std::forward<ST>(t).get()));
+        else
+          return std::invoke(std::forward<FnErr>(fn_err), trait::get_error(std::forward<ST>(t).get()));
+      }
+
+      template <typename Ret, typename ST, typename FnSucc, typename FnErr>
+      static constexpr Ret map_or_else(ST&& t, FnSucc&& fn_succ, FnErr&& fn_err)
+      {
+        using dST = std::decay_t<ST>;
+        using trait = Adapter<typename dST::type>;
+
+        if (trait::is_success(t.get()))
+          return static_cast<Ret>(std::invoke(std::forward<FnSucc>(fn_succ), trait::get_success(std::forward<ST>(t).get())));
+        else
+          return static_cast<Ret>(std::invoke(std::forward<FnErr>(fn_err), trait::get_error(std::forward<ST>(t).get())));
+      }
+
     };
 
     template <typename Alternative>
@@ -895,7 +919,6 @@ struct result_interface
       return impl::map_or(std::move(*this).that(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
     }
 
-
     template <typename Fn>
     constexpr decltype(auto) map(Fn&& fn) &
     {
@@ -913,6 +936,43 @@ struct result_interface
     {
       return impl::map(std::move(*this).that(), std::forward<Fn>(fn));
     }
+
+    template <typename FnSucc, typename FnErr>
+    constexpr decltype(auto) map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &
+    {
+      return impl::map_or_else((*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+    }
+
+    template <typename FnSucc, typename FnErr>
+    constexpr decltype(auto) map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) const &
+    {
+      return impl::map_or_else((*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+    }
+
+    template <typename FnSucc, typename FnErr>
+    constexpr decltype(auto) map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &&
+    {
+      return impl::map_or_else(std::move(*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+    }
+
+    template <typename Ret, typename FnSucc, typename FnErr>
+    constexpr Ret map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &
+    {
+      return impl::template map_or_else<Ret>((*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+    }
+
+    template <typename Ret, typename FnSucc, typename FnErr>
+    constexpr Ret map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) const &
+    {
+      return impl::template map_or_else<Ret>((*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+    }
+
+    template <typename Ret, typename FnSucc, typename FnErr>
+    constexpr Ret map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &&
+    {
+      return impl::template map_or_else<Ret>(std::move(*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+    }
+
 
     template <typename Fn>
     constexpr decltype(auto) and_then(Fn&& fn) &
