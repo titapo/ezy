@@ -728,7 +728,7 @@ struct optional_adapter<Optional<Value>>
   }
 
   template <typename T>
-  static decltype(auto) get_error(T&& t) noexcept
+  static decltype(auto) get_error(T&&) noexcept
   {
     return type{error_value};
   }
