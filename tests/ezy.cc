@@ -688,15 +688,80 @@ SCENARIO("result-like continuation")
     REQUIRE(R{"hoo"}.map_or([](move_only&& m){ return move_only{123};}, move_only{9}).i == 9);
   }
 
+  auto size_as_int = [](const auto& a) -> int { return a.size(); };
   GIVEN("map_or_else")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    REQUIRE(R{5}.map_or_else(twice, size_as_int) == 10);
+    REQUIRE(R{"foo"}.map_or_else(twice, size_as_int) == 3);
+  }
+
+  GIVEN("map_or_else -- const")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    const R r1{5};
+    REQUIRE(r1.map_or_else(twice, size_as_int) == 10);
+    const R r2{"foo"};
+    REQUIRE(r2.map_or_else(twice, size_as_int) == 3);
+  }
+
+  GIVEN("map_or_else -- moving success rvalue")
+  {
+    using R = strong_type<std::variant<move_only, std::string>, void, result_like_continuation>;
+    move_only res{9};
+    auto move_out = [&](move_only&& m) {res = std::move(m); return res.i + 2; };
+    REQUIRE(R{move_only{5}}.map_or_else(move_out, size_as_int) == 7);
+    REQUIRE(res.i == 5);
+    REQUIRE(R{"foo"}.map_or_else(move_out, size_as_int) == 3);
+  }
+
+  GIVEN("map_or_else -- moving error rvalue")
+  {
+    using R = strong_type<std::variant<int, move_only>, void, result_like_continuation>;
+    move_only res{9};
+    auto move_out = [&](move_only&& m) {res = std::move(m); return res.i + 2; };
+    REQUIRE(R{5}.map_or_else(twice, move_out) == 10);
+    REQUIRE(res.i == 9);
+    REQUIRE(R{move_only{3}}.map_or_else(twice, move_out) == 5);
+    REQUIRE(res.i == 3);
+  }
+
+  GIVEN("map_or_else<>")
   {
     using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
     REQUIRE(R{5}.map_or_else<int>(twice, &std::string::size) == 10);
     REQUIRE(R{"foo"}.map_or_else<int>(twice, &std::string::size) == 3);
   }
-  // TODO map_or_else -- const
-  // TODO map_or_else -- rvalue
-  // TODO map_or_else -- non-explicitly specified return type
+
+  GIVEN("map_or_else<> -- const")
+  {
+    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    const R r1{5};
+    REQUIRE(r1.map_or_else<int>(twice, &std::string::size) == 10);
+    const R r2{"foo"};
+    REQUIRE(r2.map_or_else<int>(twice, &std::string::size) == 3);
+  }
+
+  GIVEN("map_or_else<> -- moving success rvalue")
+  {
+    using R = strong_type<std::variant<move_only, std::string>, void, result_like_continuation>;
+    move_only res{9};
+    auto move_out = [&](move_only&& m) {res = std::move(m); return res.i + 2; };
+    REQUIRE(R{move_only{5}}.map_or_else<int>(move_out, size_as_int) == 7);
+    REQUIRE(res.i == 5);
+    REQUIRE(R{"foo"}.map_or_else<int>(move_out, size_as_int) == 3);
+  }
+
+  GIVEN("map_or_else<> -- moving error rvalue")
+  {
+    using R = strong_type<std::variant<int, move_only>, void, result_like_continuation>;
+    move_only res{9};
+    auto move_out = [&](move_only&& m) {res = std::move(m); return res.i + 2; };
+    REQUIRE(R{5}.map_or_else<int>(twice, move_out) == 10);
+    REQUIRE(res.i == 9);
+    REQUIRE(R{move_only{3}}.map_or_else<int>(twice, move_out) == 5);
+    REQUIRE(res.i == 3);
+  }
 
   GIVEN("and_then")
   {
