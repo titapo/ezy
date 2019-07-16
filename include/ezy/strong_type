@@ -3,4 +3,9 @@
 
 #include "strong_type.h"
 
+#include "features/arithmetic.h"
+#include "features/iterable.h"
+#include "features/visitable.h"
+#include "features/result_interface.h"
+
 #endif
