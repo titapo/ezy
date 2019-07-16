@@ -1,0 +1,6 @@
+#ifndef EZY_STRONG_TYPE_INCLUDED
+#define EZY_STRONG_TYPE_INCLUDED
+
+#include "strong_type.h"
+
+#endif

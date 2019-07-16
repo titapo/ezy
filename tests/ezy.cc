@@ -2,7 +2,7 @@
 
 #include <catch.hpp>
 
-#include "../include/ezy/strong_type.h"
+#include "../include/ezy/strong_type"
 #include "../include/ezy/Enumeration.h"
 
 /**
