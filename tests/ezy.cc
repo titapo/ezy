@@ -521,6 +521,8 @@ SCENARIO("optional")
   }
 }
 
+#include "../include/ezy/utility.h"
+
 struct move_only
 {
   int i;
@@ -532,6 +534,91 @@ struct move_only
   move_only(move_only&&) = default;
   move_only& operator=(move_only&&) = default;
 };
+
+
+SCENARIO("feature: inherit_std_optional")
+{
+  GIVEN("a strong type with feature")
+  {
+    struct S {int i;};
+    using Opt = strong_type<std::optional<S>, void, ezy::features::inherit_std_optional>;
+    using OptMo = strong_type<std::optional<move_only>, void, ezy::features::inherit_std_optional>;
+    WHEN("an instance holds a value")
+    {
+      Opt o{S{42}};
+      THEN("arrow operator works")
+      {
+        REQUIRE(o->i == 42);
+        o->i = 10;
+        REQUIRE(o->i == 10);
+      }
+
+      THEN("star operator works")
+      {
+        REQUIRE((*o).i == 42);
+        (*o).i = 11;
+        REQUIRE((*o).i == 11);
+      }
+
+      THEN("it's convertible to bool")
+      {
+        REQUIRE(!!o);
+      }
+      THEN("has_value returns")
+      {
+        REQUIRE(o.has_value());
+      }
+
+      THEN("value returned")
+      {
+        REQUIRE(o.value().i == 42);
+      }
+      THEN("value_or() returned")
+      {
+        REQUIRE(o.value_or(S{15}).i == 42);
+      }
+    }
+
+    WHEN("star operator called on prvalue")
+    THEN("it works")
+    {
+      move_only result = *OptMo{move_only{42}};
+      REQUIRE(result.i == 42);
+    }
+
+    WHEN("star operator called on moved object")
+    THEN("it works")
+    {
+      auto mo = OptMo{move_only{42}};
+      move_only result = *std::move(mo);
+      REQUIRE(result.i == 42);
+    }
+
+    WHEN("an instance holds nothing")
+    {
+      Opt o{std::nullopt};
+      // THEN("calling star or arrow operator results undefined behaviour")
+      THEN("it's convertible to bool")
+      {
+        REQUIRE(!o);
+      }
+      THEN("has_value returns")
+      {
+        REQUIRE(!o.has_value());
+      }
+
+      THEN("value() throws")
+      {
+        REQUIRE_THROWS_AS(o.value(), std::bad_optional_access);
+      }
+
+      THEN("value_or() returns default")
+      {
+        REQUIRE(o.value_or(S{15}).i == 15);
+      }
+    }
+  }
+}
 
 SCENARIO("visitable feature")
 {
