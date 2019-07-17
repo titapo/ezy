@@ -48,17 +48,17 @@ class strong_type : public Features<strong_type<T, Tag, Features...>>...
     using self_type = strong_type;
 
     strong_type(const strong_type& rhs)
-      : value(rhs.get()) {}
+      : _value(rhs.get()) {}
 
     strong_type& operator=(const strong_type& rhs)
     {
-      value = rhs.get();
+      _value = rhs.get();
       return *this;
     }
 
     strong_type& operator=(strong_type&& rhs)
     {
-      value = std::move(rhs.get());
+      _value = std::move(rhs.get());
       return *this;
     }
 
@@ -68,34 +68,34 @@ class strong_type : public Features<strong_type<T, Tag, Features...>>...
         //, std::enable_if_t<detail::is_braces_constructible<T, Args...>::value>* = nullptr
         //, std::enable_if_t<(sizeof...(Args) != 1) || (!std::is_same_v<std::decay_t<typename detail::headof<Args...>::type>, strong_type>)>* = nullptr
         )
-      : value{std::forward<Args>(args)...}
+      : _value{std::forward<Args>(args)...}
     {}
 
     // construction from other
     strong_type(strong_type&& rhs
         , std::enable_if_t<std::is_move_constructible_v<T> || std::is_trivially_move_constructible_v<T>>* = nullptr
         )
-      : value(std::move(rhs).get()) // will it be copied?
+      : _value(std::move(rhs).get()) // will it be copied?
     {}
 
     //strong_type(const strong_type& rhs) = default;
 
-    T& get() & { return value; }
+    T& get() & { return _value; }
     decltype(auto) get() &&
     {
       if constexpr (std::is_lvalue_reference_v<T>)
-        return value;
+        return _value;
       else
-        return std::move(value);
+        return std::move(_value);
     }
-    const T& get() const & { return value; }
+    const T& get() const & { return _value; }
 
-    explicit operator T() { return value; }
-    explicit operator T() const { return value; }
+    explicit operator T() { return _value; }
+    explicit operator T() const { return _value; }
 
     // swap
   private:
-    T value;
+    T _value;
 };
 
 // TODO if not already a reference?
