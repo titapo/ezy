@@ -1,6 +1,11 @@
 #ifndef EZY_FEATURES_RESULT_INTERFACE_INCLUDED
 #define EZY_FEATURES_RESULT_INTERFACE_INCLUDED
 
+#include "../strong_type.h"
+
+#include <functional>
+#include <variant> // std::get
+
 template <typename Type>
 struct result_adapter;
 

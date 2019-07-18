@@ -1,22 +1,12 @@
 #ifndef ENUMERATION_H_INCLUDED
 #define ENUMERATION_H_INCLUDED
 
+#include "overloaded.h"
+
 #include <variant>
 #include <type_traits>
 #include <functional>
 
-namespace ezy
-{
-  template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-  template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
-
-  struct tuple_overload
-  {
-    template <typename... Ts>
-    auto operator()(Ts... ts)
-    { return overloaded{std::forward<Ts>(ts)...}; }
-  };
-}
 
 template <typename Fn>
 struct argument_type;
