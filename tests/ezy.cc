@@ -948,6 +948,12 @@ SCENARIO("result like interface for std::optional")
     REQUIRE(result.i == 10);
   }
 
+  GIVEN("map_or_else")
+  {
+    REQUIRE(O{10}.map_or_else(twice, [](std::nullopt_t){ return 4; }) == 20);
+    REQUIRE(O{std::nullopt}.map_or_else(twice, [](std::nullopt_t){ return 4; }) == 4);
+  }
+
   GIVEN("and_then")
   {
     REQUIRE(!O{10}.and_then(half).and_then(half).get().has_value());
