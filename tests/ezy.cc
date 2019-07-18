@@ -57,7 +57,7 @@ enum class Evaluated
 template <typename ActionType, ResultIs Result = ResultIs::Range, Evaluated Eval = Evaluated::Lazy>
 void check_evaluation(ActionType&& action)
 {
-  using MyNumbers = strong_type<std::vector<int>, struct MyNumbersTag, iterable>;
+  using MyNumbers = ezy::strong_type<std::vector<int>, struct MyNumbersTag, ezy::features::iterable>;
   MyNumbers numbers{1,2,3,4,5,6,7,8,9,10};
   const auto result = action(numbers);
   const auto new_numbers = MyNumbers{42, 43, 44, 45};
@@ -100,7 +100,7 @@ void check_eager_evaluation_with_value(ActionType&& action)
 
 SCENARIO("strong type extensions")
 {
-  using MyNumbers = strong_type<std::vector<int>, struct MyNumbersTag, iterable>;
+  using MyNumbers = ezy::strong_type<std::vector<int>, struct MyNumbersTag, ezy::features::iterable>;
   GIVEN("some numbers")
   {
     MyNumbers numbers{1,2,3,4,5,6,7,8,9,10};
@@ -333,7 +333,7 @@ SCENARIO("strong type extensions")
     WHEN("flattened")
     {
       // FIXME it seems that MyNumbers has no const_iterator
-      using Raised = strong_type< std::vector<std::vector<int>>, struct RaisedTag, iterable>;
+      using Raised = ezy::strong_type< std::vector<std::vector<int>>, struct RaisedTag, ezy::features::iterable>;
 
       COMPARE_RANGES((Raised{std::vector{1, 2, 3}, std::vector{4, 5, 6}}).flatten(),
           (std::initializer_list{1, 2, 3, 4, 5, 6}));
@@ -542,8 +542,8 @@ SCENARIO("feature: inherit_std_optional")
   GIVEN("a strong type with feature")
   {
     struct S {int i;};
-    using Opt = strong_type<std::optional<S>, void, ezy::features::inherit_std_optional>;
-    using OptMo = strong_type<std::optional<move_only>, void, ezy::features::inherit_std_optional>;
+    using Opt = ezy::strong_type<std::optional<S>, void, ezy::features::inherit_std_optional>;
+    using OptMo = ezy::strong_type<std::optional<move_only>, void, ezy::features::inherit_std_optional>;
     WHEN("an instance holds a value")
     {
       Opt o{S{42}};
@@ -625,7 +625,7 @@ SCENARIO("visitable feature")
 {
   GIVEN("a variant strong type which is visitable")
   {
-    using V = strong_type<std::variant<int, std::string>, struct Tag, visitable>;
+    using V = ezy::strong_type<std::variant<int, std::string>, struct Tag, ezy::features::visitable>;
     // Should I open std namespace to support it?
     // WHEN("std::visit called on it")
     // {
@@ -654,7 +654,7 @@ SCENARIO("visitable feature")
 
     THEN("visit can be called on a prvalue instance")
     {
-      using VM = strong_type<std::variant<move_only, std::string>, struct Tag, visitable>;
+      using VM = ezy::strong_type<std::variant<move_only, std::string>, struct Tag, ezy::features::visitable>;
 
       move_only m{3};
       REQUIRE(VM{move_only(10)}.visit(
@@ -674,28 +674,28 @@ SCENARIO("result-like continuation")
   auto twice = [](int i) {return i*2;};
   GIVEN("is_success")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     REQUIRE(R{10}.is_success());
     REQUIRE(!R{"alma"}.is_success());
   }
 
   GIVEN("is_error")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     REQUIRE(!R{10}.is_error());
     REQUIRE(R{"alma"}.is_error());
   }
 
   GIVEN("success_or")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     REQUIRE(R{10}.success_or(3) == 10);
     REQUIRE(R{"alma"}.success_or(3) == 3);
   }
 
   GIVEN("success_or -- const")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     const R r1{10};
     REQUIRE(r1.success_or(3) == 10);
 
@@ -704,28 +704,28 @@ SCENARIO("result-like continuation")
   }
 
   GIVEN("success_or -- moves") {
-    using R = strong_type<std::variant<move_only, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<move_only, std::string>, void, ezy::features::result_like_continuation>;
     REQUIRE(R{move_only{5}}.success_or(move_only{4}).i == 5);
     REQUIRE(R{"alma"}.success_or(move_only{4}).i == 4);
   }
 
   GIVEN("map")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     REQUIRE(std::get<int>(R{10}.map(twice).map(twice).get()) == 40);
     REQUIRE(std::get<std::string>(R{"hoo"}.map(twice).map(twice).get()) == "hoo");
   }
 
   GIVEN("map -- same types")
   {
-    using R = strong_type<std::variant<int, int>, void, result_like_continuation>;
-    using V = typename get_underlying_type<R>::type;
+    using R = ezy::strong_type<std::variant<int, int>, void, ezy::features::result_like_continuation>;
+    using V = typename ezy::get_underlying_type<R>::type;
     REQUIRE(std::get<0>(R{V(std::in_place_index_t<0>{}, 10)}.map(twice).map(twice).get()) == 40);
     REQUIRE(std::get<1>(R{V(std::in_place_index_t<1>{}, 15)}.map(twice).map(twice).get()) == 15);
   }
   GIVEN("map -- changing type")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     auto and_a_half = [](int i) {return i*1.5;};
     REQUIRE(std::get<double>(R{10}.map(and_a_half).get()) == 15.0);
     REQUIRE(std::get<std::string>(R{"hoo"}.map(and_a_half).get()) == "hoo");
@@ -733,7 +733,7 @@ SCENARIO("result-like continuation")
 
   GIVEN("map -- properly moves rvalue as a success type")
   {
-    using R = strong_type<std::variant<move_only, int>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<move_only, int>, void, ezy::features::result_like_continuation>;
     move_only result{4};
     REQUIRE(std::get<double>(R{move_only{10}}.map([&](move_only&& m) { result = std::move(m); return 2.0;}).get()) == 2.0);
     REQUIRE(result.i == 10);
@@ -741,20 +741,20 @@ SCENARIO("result-like continuation")
 
   GIVEN("map -- properly moves rvalue as an error type")
   {
-    using R = strong_type<std::variant<int, move_only>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, move_only>, void, ezy::features::result_like_continuation>;
     REQUIRE(std::get<move_only>(R{move_only{10}}.map([](int i) { return 2.0;}).get()).i == 10);
   }
 
   GIVEN("map -- const")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     const R r{10};
     REQUIRE(std::get<int>(r.map(twice).get()) == 20);
   }
 
   GIVEN("map_or")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     REQUIRE(R{10}.map_or(twice, 2) == 20);
     REQUIRE(R{"hoo"}.map_or(twice, 2) == 2);
   }
@@ -762,7 +762,7 @@ SCENARIO("result-like continuation")
   // TODO underlying type is const?
   GIVEN("map_or -- const")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     const R r1{10};
     REQUIRE(r1.map_or(twice, 2) == 20);
     const R r2{"hoo"};
@@ -771,7 +771,7 @@ SCENARIO("result-like continuation")
 
   GIVEN("map_or -- move")
   {
-    using R = strong_type<std::variant<move_only, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<move_only, std::string>, void, ezy::features::result_like_continuation>;
     REQUIRE(R{move_only{4}}.map_or([](move_only&& m){ return move_only{123};}, move_only{9}).i == 123);
     REQUIRE(R{"hoo"}.map_or([](move_only&& m){ return move_only{123};}, move_only{9}).i == 9);
   }
@@ -779,14 +779,14 @@ SCENARIO("result-like continuation")
   auto size_as_int = [](const auto& a) -> int { return a.size(); };
   GIVEN("map_or_else")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     REQUIRE(R{5}.map_or_else(twice, size_as_int) == 10);
     REQUIRE(R{"foo"}.map_or_else(twice, size_as_int) == 3);
   }
 
   GIVEN("map_or_else -- const")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     const R r1{5};
     REQUIRE(r1.map_or_else(twice, size_as_int) == 10);
     const R r2{"foo"};
@@ -795,7 +795,7 @@ SCENARIO("result-like continuation")
 
   GIVEN("map_or_else -- moving success rvalue")
   {
-    using R = strong_type<std::variant<move_only, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<move_only, std::string>, void, ezy::features::result_like_continuation>;
     move_only res{9};
     auto move_out = [&](move_only&& m) {res = std::move(m); return res.i + 2; };
     REQUIRE(R{move_only{5}}.map_or_else(move_out, size_as_int) == 7);
@@ -805,7 +805,7 @@ SCENARIO("result-like continuation")
 
   GIVEN("map_or_else -- moving error rvalue")
   {
-    using R = strong_type<std::variant<int, move_only>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, move_only>, void, ezy::features::result_like_continuation>;
     move_only res{9};
     auto move_out = [&](move_only&& m) {res = std::move(m); return res.i + 2; };
     REQUIRE(R{5}.map_or_else(twice, move_out) == 10);
@@ -816,14 +816,14 @@ SCENARIO("result-like continuation")
 
   GIVEN("map_or_else<>")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     REQUIRE(R{5}.map_or_else<int>(twice, &std::string::size) == 10);
     REQUIRE(R{"foo"}.map_or_else<int>(twice, &std::string::size) == 3);
   }
 
   GIVEN("map_or_else<> -- const")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     const R r1{5};
     REQUIRE(r1.map_or_else<int>(twice, &std::string::size) == 10);
     const R r2{"foo"};
@@ -832,7 +832,7 @@ SCENARIO("result-like continuation")
 
   GIVEN("map_or_else<> -- moving success rvalue")
   {
-    using R = strong_type<std::variant<move_only, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<move_only, std::string>, void, ezy::features::result_like_continuation>;
     move_only res{9};
     auto move_out = [&](move_only&& m) {res = std::move(m); return res.i + 2; };
     REQUIRE(R{move_only{5}}.map_or_else<int>(move_out, size_as_int) == 7);
@@ -842,7 +842,7 @@ SCENARIO("result-like continuation")
 
   GIVEN("map_or_else<> -- moving error rvalue")
   {
-    using R = strong_type<std::variant<int, move_only>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, move_only>, void, ezy::features::result_like_continuation>;
     move_only res{9};
     auto move_out = [&](move_only&& m) {res = std::move(m); return res.i + 2; };
     REQUIRE(R{5}.map_or_else<int>(twice, move_out) == 10);
@@ -853,7 +853,7 @@ SCENARIO("result-like continuation")
 
   GIVEN("and_then")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     auto half = [](int i) -> R {if (i % 2 == 0) return R{i / 2}; else return R{"oops"};};
     REQUIRE(std::get<int>(R{10}.and_then(half).get()) == 5);
     REQUIRE(std::get<std::string>(R{10}.and_then(half).and_then(half).get()) == "oops");
@@ -861,14 +861,14 @@ SCENARIO("result-like continuation")
 
   GIVEN("and_then -- same types")
   {
-    using R = strong_type<std::variant<int, int>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, int>, void, ezy::features::result_like_continuation>;
     auto half = [](int i) -> R {
       if (i % 2 == 0)
         return R{std::in_place_index_t<0>{}, i / 2}; // TODO helper in strong type. eg R::make_success(i / 2)
       else
         return R{std::in_place_index_t<1>{}, 100};
     };
-    using V = typename get_underlying_type<R>::type;
+    using V = typename ezy::get_underlying_type<R>::type;
     REQUIRE(std::get<1>(R{V(std::in_place_index_t<0>{}, 10)}.and_then(half).and_then(half).get()) == 100);
     REQUIRE(std::get<0>(R{V(std::in_place_index_t<0>{}, 64)}.and_then(half).and_then(half).get()) == 16);
     REQUIRE(std::get<1>(R{V(std::in_place_index_t<1>{}, 64)}.and_then(half).and_then(half).get()) == 64);
@@ -876,8 +876,8 @@ SCENARIO("result-like continuation")
 
   GIVEN("and_then -- changing type")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
-    using R2 = rebind_strong_type_t<R, std::variant<double, std::string>>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
+    using R2 = ezy::rebind_strong_type_t<R, std::variant<double, std::string>>;
     auto change = [](int i) -> R2 {if (i % 3 == 0) return R2{i / 3}; else return R2{"oops"};};
     REQUIRE(std::get<double>(R{9}.and_then(change).get()) == 3.0);
     REQUIRE(std::get<double>(R{9}.and_then(change).and_then(change).get()) == 1.0);
@@ -885,8 +885,8 @@ SCENARIO("result-like continuation")
 
   GIVEN("and_then -- changing type")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
-    using R2 = rebind_strong_type_t<R, std::variant<double, std::string>>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
+    using R2 = ezy::rebind_strong_type_t<R, std::variant<double, std::string>>;
     auto change = [](int i) -> R2 {if (i % 3 == 0) return R2{i / 3}; else return R2{"oops"};};
     REQUIRE(std::get<double>(R{9}.and_then(change).get()) == 3.0);
     REQUIRE(std::get<double>(R{9}.and_then(change).and_then(change).get()) == 1.0);
@@ -894,7 +894,7 @@ SCENARIO("result-like continuation")
   }
   GIVEN("and_then -- function returning underlying type")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     using V = std::variant<int, std::string>;
     auto half = [](int i) -> V {if (i % 2 == 0) return V{i / 2}; else return V{"oops"};};
     REQUIRE(std::get<int>(R{10}.and_then(half).get()) == 5);
@@ -902,7 +902,7 @@ SCENARIO("result-like continuation")
   }
   GIVEN("and_then -- properly moves rvalue")
   {
-    using V = strong_type<std::variant<move_only, int>, void, result_like_continuation>;
+    using V = ezy::strong_type<std::variant<move_only, int>, void, ezy::features::result_like_continuation>;
     move_only result{1};
     REQUIRE(std::get<int>(V{move_only{10}}.and_then([&](move_only&&m) -> V { result = std::move(m); return V{5};}).get()) == 5);
     REQUIRE(result.i == 10);
@@ -910,13 +910,13 @@ SCENARIO("result-like continuation")
 
   GIVEN("and_then -- properly moves rvalue as an error type")
   {
-    using R = strong_type<std::variant<int, move_only>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, move_only>, void, ezy::features::result_like_continuation>;
     REQUIRE(std::get<move_only>(R{move_only{10}}.and_then([](int i) { return R{move_only{3}};}).get()).i == 10);
   }
 
   GIVEN("and_then -- const")
   {
-    using R = strong_type<std::variant<int, std::string>, void, result_like_continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     const R r{10};
     REQUIRE(std::get<int>(r.and_then([](int i){ return R{i + 1};}).get()) == 11);
   }
@@ -926,7 +926,7 @@ SCENARIO("result like interface for std::optional")
 {
   auto twice = [](int i) {return i*2;};
 
-  using O = strong_type<std::optional<int>, void, result_interface<optional_adapter>::continuation>;
+  using O = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
   auto half = [](int i) -> O {if (i % 2 == 0) return O{i / 2}; else return O{std::nullopt};};
   GIVEN("map")
   {
@@ -943,7 +943,7 @@ SCENARIO("result like interface for std::optional")
 
   GIVEN("map -- properly moves")
   {
-    using Om = strong_type<std::optional<move_only>, void, result_interface<optional_adapter>::continuation>;
+    using Om = ezy::strong_type<std::optional<move_only>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
     move_only result{4};
     REQUIRE(Om{move_only{10}}.map([&](move_only&& m) { result = std::move(m); return 2.0;}).get().value() == 2.0);
     REQUIRE(result.i == 10);
@@ -964,7 +964,7 @@ SCENARIO("result like interface for std::optional")
 
   GIVEN("and_then -- changing type")
   {
-    using O2 = rebind_strong_type_t<O, std::optional<double>>;
+    using O2 = ezy::rebind_strong_type_t<O, std::optional<double>>;
     auto change = [](int i) -> O2 {if (i % 3 == 0) return O2{i / 3}; else return O2{std::nullopt};};
     REQUIRE(O{9}.and_then(change).get().value() == 3.0);
     REQUIRE(O{9}.and_then(change).and_then(change).get().value() == 1.0);
@@ -974,7 +974,7 @@ SCENARIO("result like interface for std::optional")
 
   GIVEN("and_then -- properly moves")
   {
-    using Om = strong_type<std::optional<move_only>, void, result_interface<optional_adapter>::continuation>;
+    using Om = ezy::strong_type<std::optional<move_only>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
     move_only result{4};
     REQUIRE(Om{move_only{10}}.and_then([&](move_only&& m) { result = std::move(m); return Om{2};}).get().value().i == 2);
     REQUIRE(result.i == 10);
@@ -993,8 +993,8 @@ struct Field
 
 struct Valid {};
 struct Invalid {};
-using ValidField = strong_type<Field, Valid>;
-using InvalidField = strong_type<Field, Invalid>;
+using ValidField = ezy::strong_type<Field, Valid>;
+using InvalidField = ezy::strong_type<Field, Invalid>;
 
 const auto fieldValidity = ezy::overloaded{
   [](const ValidField&) -> std::string { return "valid"; },
@@ -1043,7 +1043,7 @@ SCENARIO("result type")
 
 SCENARIO("strong type for integer")
 {
-  using ST = strong_type<int, struct DummyTag>;
+  using ST = ezy::strong_type<int, struct DummyTag>;
   WHEN("Constructed")
   {
     const ST st(12);
@@ -1099,7 +1099,7 @@ SCENARIO("strong type for struct")
     std::string s;
   };
 
-  using ST = strong_type<MyStruct, struct DummyTag>;
+  using ST = ezy::strong_type<MyStruct, struct DummyTag>;
 
   WHEN("constructed")
   {
@@ -1154,7 +1154,7 @@ SCENARIO("strong type for const struct")
     std::string s;
   };
 
-  using ST = strong_type<const MyStruct, struct DummyTag>;
+  using ST = ezy::strong_type<const MyStruct, struct DummyTag>;
 
   WHEN("constructed")
   {
@@ -1209,7 +1209,7 @@ SCENARIO("strong type reference for struct")
     std::string s;
   };
 
-  using ST = strong_type_reference<MyStruct, struct DummyTag>;
+  using ST = ezy::strong_type_reference<MyStruct, struct DummyTag>;
   MyStruct s{4, "str"};
 
   WHEN("constructed")
@@ -1260,7 +1260,7 @@ SCENARIO("strong type reference for struct")
 
 SCENARIO("strong type for vector")
 {
-  using ST = strong_type<std::vector<int>, struct DummyTag>;
+  using ST = ezy::strong_type<std::vector<int>, struct DummyTag>;
 
   WHEN("constructed with init list")
   {
@@ -1306,7 +1306,7 @@ SCENARIO("strong type for vector")
 
 SCENARIO("strong type for const integer")
 {
-  using ST = strong_type<const int, struct DummyTag>;
+  using ST = ezy::strong_type<const int, struct DummyTag>;
   WHEN("constructed")
   {
     const ST st(123);
@@ -1344,7 +1344,7 @@ SCENARIO("strong type constructions")
     struct S {int i; double d;};
     THEN("strong type can construct it")
     {
-      using ST = strong_type<S, struct Tag>;
+      using ST = ezy::strong_type<S, struct Tag>;
       ST st{1, 1.2};
       REQUIRE(st.get().i == 1);
       REQUIRE(st.get().d == 1.2);
@@ -1356,7 +1356,7 @@ SCENARIO("strong type constructions")
     struct S { S(double p) : i(p), d(p*2) {} int i; double d;};
     THEN("strong type can construct it")
     {
-      using ST = strong_type<S, struct Tag>;
+      using ST = ezy::strong_type<S, struct Tag>;
       ST st{1.2};
       REQUIRE(st.get().i == 1);
       REQUIRE(st.get().d == 2.4);
@@ -1368,7 +1368,7 @@ SCENARIO("strong type constructions")
     struct S { S(double p1, double p2) : i(p1 + p2), d(p1*2 - p2) {} int i; double d;};
     THEN("strong type can construct it")
     {
-      using ST = strong_type<S, struct Tag>;
+      using ST = ezy::strong_type<S, struct Tag>;
       ST st{2.3, 4.1};
       REQUIRE(st.get().i == 6);
       REQUIRE(st.get().d == 0.5);
@@ -1380,7 +1380,7 @@ SCENARIO("strong type constructions")
     struct S { explicit S(double p1, double p2) : i(p1 + p2), d(p1*2 - p2) {} int i; double d;};
     THEN("strong type can construct it")
     {
-      using ST = strong_type<S, struct Tag>;
+      using ST = ezy::strong_type<S, struct Tag>;
       ST st{2.3, 4.1};
       REQUIRE(st.get().i == 6);
       REQUIRE(st.get().d == 0.5);
@@ -1396,7 +1396,7 @@ SCENARIO("strong type integer arithmetic")
 {
   WHEN("addable")
   {
-    using Add = strong_type<int, struct Tag, addable>;
+    using Add = ezy::strong_type<int, struct Tag, ezy::features::addable>;
     THEN("addition works")
     {
       Add a(5);
@@ -1415,7 +1415,7 @@ SCENARIO("strong type integer arithmetic")
 
   WHEN("subtractable")
   {
-    using Sub = strong_type<int, struct Tag, subtractable>;
+    using Sub = ezy::strong_type<int, struct Tag, ezy::features::subtractable>;
     THEN("subtraction works")
     {
       Sub a(5);
@@ -1438,57 +1438,57 @@ SCENARIO("strong type integer arithmetic")
  */
 SCENARIO("compilation tests")
 {
-  using Simple = strong_type<int, struct Tag>;
-  using SimpleRef = strong_type_reference<int, struct Tag>;
-  using OneFeature = strong_type<int, struct Tag, addable>;
-  using MoreFeatures = strong_type<int, struct Tag, addable, subtractable, equal_comparable>;
+  using Simple = ezy::strong_type<int, struct Tag>;
+  using SimpleRef = ezy::strong_type_reference<int, struct Tag>;
+  using OneFeature = ezy::strong_type<int, struct Tag, ezy::features::addable>;
+  using MoreFeatures = ezy::strong_type<int, struct Tag, ezy::features::addable, ezy::features::subtractable, ezy::features::equal_comparable>;
 
-  static_assert(is_strong_type_v<int> == false);
-  static_assert(is_strong_type_v<Simple> == true);
-  static_assert(is_strong_type_v<SimpleRef> == true);
-  static_assert(is_strong_type_v<OneFeature> == true);
-  static_assert(is_strong_type_v<MoreFeatures> == true);
+  static_assert(ezy::is_strong_type_v<int> == false);
+  static_assert(ezy::is_strong_type_v<Simple> == true);
+  static_assert(ezy::is_strong_type_v<SimpleRef> == true);
+  static_assert(ezy::is_strong_type_v<OneFeature> == true);
+  static_assert(ezy::is_strong_type_v<MoreFeatures> == true);
 
-  static_assert(std::is_same_v<plain_type_t<int>, int>);
-  static_assert(std::is_same_v<plain_type_t<Simple>, int>);
-  static_assert(std::is_same_v<plain_type_t<SimpleRef>, int&>);
-  static_assert(std::is_same_v<plain_type_t<OneFeature>, int>);
-  static_assert(std::is_same_v<plain_type_t<MoreFeatures>, int>);
+  static_assert(std::is_same_v<ezy::plain_type_t<int>, int>);
+  static_assert(std::is_same_v<ezy::plain_type_t<Simple>, int>);
+  static_assert(std::is_same_v<ezy::plain_type_t<SimpleRef>, int&>);
+  static_assert(std::is_same_v<ezy::plain_type_t<OneFeature>, int>);
+  static_assert(std::is_same_v<ezy::plain_type_t<MoreFeatures>, int>);
 
   // TODO rename: extract_underlying_type
-  //static_assert(std::is_same_v<get_underlying_type<int>::type, int>); // must fail
-  static_assert(std::is_same_v<get_underlying_type<Simple>::type, int>);
-  static_assert(std::is_same_v<get_underlying_type<SimpleRef>::type, int&>);
-  static_assert(std::is_same_v<get_underlying_type<OneFeature>::type, int>);
-  static_assert(std::is_same_v<get_underlying_type<MoreFeatures>::type, int>);
+  //static_assert(std::is_same_v<ezy::get_underlying_type<int>::type, int>); // must fail
+  static_assert(std::is_same_v<ezy::get_underlying_type<Simple>::type, int>);
+  static_assert(std::is_same_v<ezy::get_underlying_type<SimpleRef>::type, int&>);
+  static_assert(std::is_same_v<ezy::get_underlying_type<OneFeature>::type, int>);
+  static_assert(std::is_same_v<ezy::get_underlying_type<MoreFeatures>::type, int>);
 
   //static_assert(std::is_same_v<extract_tag_t<int>, struct Tag>); // must fail
-  static_assert(std::is_same_v<extract_tag_t<Simple>, struct Tag>);
-  static_assert(std::is_same_v<extract_tag_t<SimpleRef>, struct Tag>);
-  static_assert(std::is_same_v<extract_tag_t<OneFeature>, struct Tag>);
-  static_assert(std::is_same_v<extract_tag_t<MoreFeatures>, struct Tag>);
+  static_assert(std::is_same_v<ezy::extract_tag_t<Simple>, struct Tag>);
+  static_assert(std::is_same_v<ezy::extract_tag_t<SimpleRef>, struct Tag>);
+  static_assert(std::is_same_v<ezy::extract_tag_t<OneFeature>, struct Tag>);
+  static_assert(std::is_same_v<ezy::extract_tag_t<MoreFeatures>, struct Tag>);
 
-  static_assert(std::is_same_v<extract_features_t<Simple>, std::tuple<>>);
-  static_assert(std::is_same_v<extract_features_t<SimpleRef>, std::tuple<>>);
-  static_assert(std::is_same_v<extract_features_t<OneFeature>, std::tuple<addable<OneFeature>>>);
-  static_assert(std::is_same_v<extract_features_t<MoreFeatures>, std::tuple<addable<MoreFeatures>, subtractable<MoreFeatures>, equal_comparable<MoreFeatures>>>);
+  static_assert(std::is_same_v<ezy::extract_features_t<Simple>, std::tuple<>>);
+  static_assert(std::is_same_v<ezy::extract_features_t<SimpleRef>, std::tuple<>>);
+  static_assert(std::is_same_v<ezy::extract_features_t<OneFeature>, std::tuple<ezy::features::addable<OneFeature>>>);
+  static_assert(std::is_same_v<ezy::extract_features_t<MoreFeatures>, std::tuple<ezy::features::addable<MoreFeatures>, ezy::features::subtractable<MoreFeatures>, ezy::features::equal_comparable<MoreFeatures>>>);
 
-  static_assert(std::is_same_v<strip_strong_type_t<Simple>, Simple>);
-  static_assert(std::is_same_v<strip_strong_type_t<SimpleRef>, SimpleRef>);
-  static_assert(std::is_same_v<strip_strong_type_t<OneFeature>, Simple>);
-  static_assert(std::is_same_v<strip_strong_type_t<MoreFeatures>, Simple>);
+  static_assert(std::is_same_v<ezy::strip_strong_type_t<Simple>, Simple>);
+  static_assert(std::is_same_v<ezy::strip_strong_type_t<SimpleRef>, SimpleRef>);
+  static_assert(std::is_same_v<ezy::strip_strong_type_t<OneFeature>, Simple>);
+  static_assert(std::is_same_v<ezy::strip_strong_type_t<MoreFeatures>, Simple>);
 
-  static_assert(std::is_same_v<rebind_strong_type_t<Simple, double>, strong_type<double, struct Tag>>);
-  static_assert(std::is_same_v<rebind_strong_type_t<SimpleRef, double>, strong_type<double, struct Tag>>); // TODO think: not a strong_type_reference
-  static_assert(std::is_same_v<rebind_strong_type_t<OneFeature, double>, strong_type<double, struct Tag, addable>>);
-  static_assert(std::is_same_v<rebind_strong_type_t<MoreFeatures, double>, strong_type<double, struct Tag, addable, subtractable, equal_comparable>>);
+  static_assert(std::is_same_v<ezy::rebind_strong_type_t<Simple, double>, ezy::strong_type<double, struct Tag>>);
+  static_assert(std::is_same_v<ezy::rebind_strong_type_t<SimpleRef, double>, ezy::strong_type<double, struct Tag>>); // TODO think: not a estrong_type_reference
+  static_assert(std::is_same_v<ezy::rebind_strong_type_t<OneFeature, double>, ezy::strong_type<double, struct Tag, ezy::features::addable>>);
+  static_assert(std::is_same_v<ezy::rebind_strong_type_t<MoreFeatures, double>, ezy::strong_type<double, struct Tag, ezy::features::addable, ezy::features::subtractable, ezy::features::equal_comparable>>);
 
   // TODO it will not work in any case (eg. derived features)
   /*
-  static_assert(has_feature_v<Simple, addable> == false);
-  static_assert(has_feature_v<SimpleRef, addable> == false);
-  static_assert(has_feature_v<OneFeature, addable> == true);
-  static_assert(has_feature_v<OneFeature, equal_comparable> == false);
+  static_assert(ezy::has_feature_v<Simple, addable> == false);
+  static_assert(ezy::has_feature_v<SimpleRef, addable> == false);
+  static_assert(ezy::has_feature_v<OneFeature, addable> == true);
+  static_assert(ezy::has_feature_v<OneFeature, equal_comparable> == false);
   */
 
   // TODO feature_cast => when type and tags are the same and only features are different, casting should be allowed
@@ -1496,7 +1496,7 @@ SCENARIO("compilation tests")
   /**
    * TODO what about derivation?
    *
-   * struct S : strong_type<...>
+   * struct S : ezy::strong_type<...>
    * { ... };
    *
    */

@@ -6,28 +6,31 @@
 #include "../overloaded.h"
 #include <variant>
 
-template <typename T>
-struct visitable : crtp<T, visitable>
+namespace ezy::features
 {
-  template <typename... Visitors>
-  decltype(auto) visit(Visitors&&... visitors) &
+  template <typename T>
+  struct visitable : crtp<T, visitable>
   {
-    return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, this->that().get());
-  }
+    template <typename... Visitors>
+    decltype(auto) visit(Visitors&&... visitors) &
+    {
+      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, this->that().get());
+    }
 
-  template <typename... Visitors>
-  decltype(auto) visit(Visitors&&... visitors) const &
-  {
-    return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, this->that().get());
-  }
+    template <typename... Visitors>
+    decltype(auto) visit(Visitors&&... visitors) const &
+    {
+      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, this->that().get());
+    }
 
-  // TODO check it
-  template <typename... Visitors>
-  decltype(auto) visit(Visitors&&... visitors) &&
-  {
-    return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, std::move(*this).that().get());
-  }
-};
+    // TODO check it
+    template <typename... Visitors>
+    decltype(auto) visit(Visitors&&... visitors) &&
+    {
+      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, std::move(*this).that().get());
+    }
+  };
+}
 
 // TODO support for std::get?
 

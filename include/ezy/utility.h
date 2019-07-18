@@ -73,15 +73,15 @@ namespace ezy
 
   template <typename T>
   using optional = strong_type<std::optional<T>, notag_t,
-        result_interface<optional_adapter>::continuation,
+        features::result_interface<features::optional_adapter>::continuation,
         features::inherit_std_optional
       >;
 
   template <typename... Ts>
-  using variant = strong_type<std::variant<Ts...>, notag_t, visitable>;
+  using variant = strong_type<std::variant<Ts...>, notag_t, features::visitable>;
 
   template <typename Success, typename Error>
-  using result = strong_type<std::variant<Success, Error>, notag_t, visitable, result_like_continuation>;
+  using result = strong_type<std::variant<Success, Error>, notag_t, features::visitable, features::result_like_continuation>;
 }
 
 #endif
