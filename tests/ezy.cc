@@ -292,18 +292,17 @@ SCENARIO("strong type extensions")
       }
     }
 
-    // TODO rename find to find_if
     // TODO find should take sg that is equal comparable with contained type
-    WHEN("find existing")
+    WHEN("find_if existing")
     {
-      const auto result = numbers.find(less_than(5));
+      const auto result = numbers.find_if(less_than(5));
       REQUIRE(result.has_value());
       REQUIRE(result.value_or(99) == 1);
     }
 
-    WHEN("find non existing")
+    WHEN("find_if non existing")
     {
-      const auto result = numbers.find(less_than(0));
+      const auto result = numbers.find_if(less_than(0));
       REQUIRE(!result.has_value());
       REQUIRE(result.value_or(99) == 99);
     }

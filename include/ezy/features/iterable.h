@@ -81,7 +81,7 @@ struct algo_iterable : crtp<T, algo_iterable>
   }
 
   template <typename Predicate>
-  auto find(Predicate&& predicate) const
+  auto find_if(Predicate&& predicate) const
   {
     using range_type = typename std::remove_reference<typename T::type>::type;
     using result_type = ezy::optional<typename range_type::value_type>;
@@ -95,7 +95,7 @@ struct algo_iterable : crtp<T, algo_iterable>
   template <typename Element> // TODO contained element should be accepted (or at least comparable)
   bool contains(Element&& needle) const
   {
-    return find([&](const auto& element) { return element == needle; }).has_value();
+    return find_if([&](const auto& element) { return element == needle; }).has_value();
   }
 
   template <typename Type>
