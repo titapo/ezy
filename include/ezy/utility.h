@@ -61,12 +61,21 @@ namespace ezy
       template <typename U>
       constexpr decltype(auto) value_or(U&& default_value) &&
       { return std::move(*this).that().get().value_or(std::forward<U>(default_value)); }
+
+      // TODO consider to add
+      // operator=
+      // swap (alongside std::swap specialization)
+      // reset
+      // emplace
     };
 
   }
 
   template <typename T>
-  using optional = strong_type<std::optional<T>, notag_t, result_interface<optional_adapter>::continuation>;
+  using optional = strong_type<std::optional<T>, notag_t,
+        result_interface<optional_adapter>::continuation,
+        features::inherit_std_optional
+      >;
 
   template <typename... Ts>
   using variant = strong_type<std::variant<Ts...>, notag_t, visitable>;

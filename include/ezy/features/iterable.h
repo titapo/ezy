@@ -6,7 +6,7 @@
 #include <numeric> // for accumulate and reduce
 
 #include "../range.h"
-#include "../Enumeration.h" // deprecated
+#include "../utility.h" // for ezy::optional
 
 template <typename T>
 struct has_iterator : crtp<T, has_iterator>
@@ -84,7 +84,7 @@ struct algo_iterable : crtp<T, algo_iterable>
   auto find(Predicate&& predicate) const
   {
     using range_type = typename std::remove_reference<typename T::type>::type;
-    using result_type = Optional<typename range_type::value_type>;
+    using result_type = ezy::optional<typename range_type::value_type>;
     const auto found = std::find_if(this->that().get().begin(), this->that().get().end(), std::forward<Predicate>(predicate));
     if (found != this->that().get().end())
       return result_type(*found);

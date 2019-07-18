@@ -292,6 +292,8 @@ SCENARIO("strong type extensions")
       }
     }
 
+    // TODO rename find to find_if
+    // TODO find should take sg that is equal comparable with contained type
     WHEN("find existing")
     {
       const auto result = numbers.find(less_than(5));
