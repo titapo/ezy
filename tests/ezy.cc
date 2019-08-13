@@ -3,7 +3,6 @@
 #include <catch.hpp>
 
 #include "../include/ezy/strong_type"
-#include "../include/ezy/Enumeration.h"
 
 /**
  * strong type features: iterable
@@ -439,88 +438,7 @@ TEST_CASE(".none() is eager evaluated")
   check_eager_evaluation_with_value([&](const auto& range) { return range.none(biggerThan20); });
 }
 
-// optional
-
-SCENARIO("optional")
-{
-  GIVEN("some optionals")
-  {
-    Optional<int> opt_0 = 0;
-    Optional<int> opt_1 = 1;
-    Optional<int> opt_n = std::nullopt;
-
-    WHEN("asked has_value")
-    {
-      THEN("proper values returned")
-      {
-        REQUIRE(opt_0.has_value() == true);
-        REQUIRE(opt_1.has_value() == true);
-        REQUIRE(opt_n.has_value() == false);
-      }
-    }
-
-    WHEN("asked value_or")
-    {
-      THEN("proper values returned")
-      {
-        REQUIRE(opt_0.value_or(123) == 0);
-        REQUIRE(opt_1.value_or(123) == 1);
-        REQUIRE(opt_n.value_or(123) == 123);
-      }
-    }
-
-    WHEN("they are matched")
-    {
-      const auto matcher = ezy::overloaded{
-        [](int i) -> std::string { return std::to_string(1000 + i);},
-        [](std::nullopt_t) -> std::string { return "none";},
-      };
-      THEN("proper values returned")
-      {
-        REQUIRE(opt_0.match(matcher) == "1000");
-        REQUIRE(opt_1.match(matcher) == "1001");
-        REQUIRE(opt_n.match(matcher) == "none");
-      }
-    }
-
-    WHEN("they are mapped")
-    {
-      const auto stringify = [](int i) { return std::to_string(i);}; // just lifting
-
-      THEN("positive values are mapped actually")
-      {
-        REQUIRE(opt_0.map(stringify).value_or("FAILED") == "0");
-        REQUIRE(opt_1.map(stringify).value_or("FAILED") == "1");
-        REQUIRE(opt_n.map(stringify).has_value() == false);
-      }
-    }
-
-    WHEN("they are map_or-ed")
-    {
-      const auto stringify = [](int i) { return std::to_string(i);}; // just lifting
-
-      THEN("positive values are mapped actually")
-      {
-        // TODO (usability) std::string shouldn't be written here
-        // moreover string should not be created if contains Some
-        REQUIRE(opt_0.map_or(stringify, std::string("a")) == "0");
-        REQUIRE(opt_1.map_or(stringify, std::string("a")) == "1");
-        REQUIRE(opt_n.map_or(stringify, std::string("a")) == "a");
-      }
-    }
-
-    WHEN("they are iterated through")
-    {
-      THEN("they are ok")
-      {
-        COMPARE_RANGES(opt_0, (std::initializer_list<int>{0}));
-        COMPARE_RANGES(opt_1, (std::initializer_list<int>{1}));
-        COMPARE_RANGES(opt_n, (std::initializer_list<int>{}));
-      }
-    }
-
-  }
-}
+// TODO think of: making ezy::optional and ezy::result iterable?
 
 #include "../include/ezy/utility.h"
 
@@ -768,6 +686,7 @@ SCENARIO("result-like continuation")
     const R r2{"hoo"};
     REQUIRE(r2.map_or(twice, 2) == 2);
   }
+  //
 
   GIVEN("map_or -- move")
   {
@@ -949,6 +868,22 @@ SCENARIO("result like interface for std::optional")
     REQUIRE(result.i == 10);
   }
 
+  // TODO (usability) std::string shouldn't be written here
+  // moreover string should not be created if contains Some
+  WHEN("map_or called on it")
+  THEN("string not need to be passed on parameter side") // not created internally
+  {
+using O = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    const auto to_string = [](auto i) { return std::to_string(i); };
+    auto result = O{std::nullopt}.map_or(to_string, "foo");
+    static_assert(std::is_same_v<decltype(result), std::string>);
+    REQUIRE(result == "foo");
+  }
+
+  //GIVEN("a type which is constructible from more than one parameter")
+  // THEN current recommendation is: use *_or_else and pass a callable that constructs it for you
+
+
   GIVEN("map_or_else")
   {
     REQUIRE(O{10}.map_or_else(twice, [](std::nullopt_t){ return 4; }) == 20);
@@ -980,61 +915,6 @@ SCENARIO("result like interface for std::optional")
     REQUIRE(result.i == 10);
   }
 
-}
-
-template <typename ... Ts>
-using variant = Enumeration<Ts...>;
-
-struct Field
-{
-  std::string name;
-  std::string value;
-};
-
-struct Valid {};
-struct Invalid {};
-using ValidField = ezy::strong_type<Field, Valid>;
-using InvalidField = ezy::strong_type<Field, Invalid>;
-
-const auto fieldValidity = ezy::overloaded{
-  [](const ValidField&) -> std::string { return "valid"; },
-  [](const InvalidField&) -> std::string { return "invalid"; }
-};
-
-
-template <template <typename...> class VariantType>
-void variant_feature_parity()
-{
-  using Fld = VariantType<ValidField, InvalidField>;
-
-  Fld f = ValidField{"asd", "bsd"};
-
-
-  /*
-  std::visit(ezy::overloaded{
-      [](const ValidField& f) {std::cout << "valid"},
-      [](const InvalidField& f) {std::cout << "invalid"}
-      }, std::static_cast<std::variant<ValidField, InvalidField>>(f));
-      */
-}
-
-
-SCENARIO("learning tests")
-{
-  variant_feature_parity<std::variant>();
-  variant_feature_parity<Enumeration>();
-
-  using Fld = Enumeration<ValidField, InvalidField>;
-  Fld valid = ValidField{"name", "xxx"};
-  Fld invalid = InvalidField{"age", "thirty"};
-
-  REQUIRE(valid.match(fieldValidity) == "valid");
-  REQUIRE(invalid.match(fieldValidity) == "invalid");
-}
-
-SCENARIO("result type")
-{
-  // TODO
 }
 
 /**
