@@ -454,6 +454,18 @@ struct move_only
   move_only& operator=(move_only&&) = default;
 };
 
+struct non_transferable
+{
+  int i;
+  explicit non_transferable(int i) : i(i) {}
+
+  non_transferable(const non_transferable&) = delete;
+  non_transferable& operator=(const non_transferable&) = delete;
+
+  non_transferable(non_transferable&&) = delete;
+  non_transferable& operator=(non_transferable&&) = delete;
+};
+
 
 SCENARIO("feature: inherit_std_optional")
 {
@@ -604,6 +616,17 @@ SCENARIO("result-like continuation")
     REQUIRE(R{"alma"}.is_error());
   }
 
+  /*
+  GIVEN("ctor works with non_transferable")
+  {
+    using R = ezy::strong_type<std::variant<non_transferable, std::string>, void, ezy::features::result_like_continuation>;
+    using V = ezy::extract_underlying_type_t<R>;
+    REQUIRE(!R{V(std::in_place_index_t<0>{}, 10)}.is_error());
+  }
+  //TODO GIVEN("make_success works with non_transferable")
+  //TODO GIVEN("make_error works with non_transferable")
+  */
+
   GIVEN("success_or")
   {
     using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
@@ -638,8 +661,8 @@ SCENARIO("result-like continuation")
   {
     using R = ezy::strong_type<std::variant<int, int>, void, ezy::features::result_like_continuation>;
     using V = ezy::extract_underlying_type_t<R>;
-    REQUIRE(std::get<0>(R{V(std::in_place_index_t<0>{}, 10)}.map(twice).map(twice).get()) == 40);
-    REQUIRE(std::get<1>(R{V(std::in_place_index_t<1>{}, 15)}.map(twice).map(twice).get()) == 15);
+    REQUIRE(std::get<0>(R::make_success(10).map(twice).map(twice).get()) == 40);
+    REQUIRE(std::get<1>(R::make_error(15).map(twice).map(twice).get()) == 15);
   }
   GIVEN("map -- changing type")
   {
@@ -783,14 +806,13 @@ SCENARIO("result-like continuation")
     using R = ezy::strong_type<std::variant<int, int>, void, ezy::features::result_like_continuation>;
     auto half = [](int i) -> R {
       if (i % 2 == 0)
-        return R{std::in_place_index_t<0>{}, i / 2}; // TODO helper in strong type. eg R::make_success(i / 2)
+        return R::make_success(i / 2);
       else
-        return R{std::in_place_index_t<1>{}, 100};
+        return R::make_error(100);
     };
-    using V = ezy::extract_underlying_type_t<R>;
-    REQUIRE(std::get<1>(R{V(std::in_place_index_t<0>{}, 10)}.and_then(half).and_then(half).get()) == 100);
-    REQUIRE(std::get<0>(R{V(std::in_place_index_t<0>{}, 64)}.and_then(half).and_then(half).get()) == 16);
-    REQUIRE(std::get<1>(R{V(std::in_place_index_t<1>{}, 64)}.and_then(half).and_then(half).get()) == 64);
+    REQUIRE(std::get<1>(R::make_success(10).and_then(half).and_then(half).get()) == 100);
+    REQUIRE(std::get<0>(R::make_success(64).and_then(half).and_then(half).get()) == 16);
+    REQUIRE(std::get<1>(R::make_error(64).and_then(half).and_then(half).get()) == 64);
   }
 
   GIVEN("and_then -- changing type")

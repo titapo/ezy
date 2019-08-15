@@ -39,13 +39,13 @@ namespace ezy::features
     }
 
     template <typename... Ts>
-    static decltype(auto) make_success(Ts&&... ts)
+    static decltype(auto) make_underlying_success(Ts&&... ts)
     {
       return type{std::in_place_index_t<success>{}, std::forward<Ts>(ts)...};
     }
 
     template <typename... Ts>
-    static decltype(auto) make_error(Ts&&... ts)
+    static decltype(auto) make_underlying_error(Ts&&... ts)
     {
       return type{std::in_place_index_t<error>{}, std::forward<Ts>(ts)...};
     }
@@ -90,13 +90,13 @@ namespace ezy::features
     }
 
     template <typename... Ts>
-    static decltype(auto) make_success(Ts&&... ts)
+    static decltype(auto) make_underlying_success(Ts&&... ts)
     {
       return type{std::in_place_t{}, std::forward<Ts>(ts)...};
     }
 
     template <typename... Ts>
-    static decltype(auto) make_error(Ts&&... ts)
+    static decltype(auto) make_underlying_error(Ts&&... ts)
     {
       return type{error_value};
     }
@@ -148,6 +148,19 @@ namespace ezy::features
       { return trait_type::get_error(std::move(*this).that()); }
       */
 
+      // TODO it seems those factory functions do not work with non_transferable types, since T (strong type) does not work.
+      template <typename... Ts>
+      static decltype(auto) make_success(Ts&&... ts)
+      {
+        return T{Adapter<typename T::type>::make_underlying_success(std::forward<Ts>(ts)...)};
+      }
+
+      template <typename... Ts>
+      static decltype(auto) make_error(Ts&&... ts)
+      {
+        return T{Adapter<typename T::type>::make_underlying_error(std::forward<Ts>(ts)...)};
+      }
+
       struct impl
       {
         template <typename ST, typename Alternative>
@@ -178,11 +191,11 @@ namespace ezy::features
           using return_type = rebind_strong_type_t<dST, R>;
 
           if (trait::is_success(t.get()))
-            return return_type(new_trait::make_success(
+            return return_type(new_trait::make_underlying_success(
                   std::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get()))
                 ));
           else
-            return return_type(new_trait::make_error(trait::get_error(std::forward<ST>(t).get())));
+            return return_type(new_trait::make_underlying_error(trait::get_error(std::forward<ST>(t).get())));
         }
 
         template <typename ST, typename Fn, typename Alternative>
@@ -210,7 +223,7 @@ namespace ezy::features
           if (trait::is_success(t.get()))
             return return_type(std::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get())));
           else
-            return return_type(new_trait::make_error(trait::get_error(std::forward<ST>(t).get())));
+            return return_type(new_trait::make_underlying_error(trait::get_error(std::forward<ST>(t).get())));
         }
 
         template <typename ST, typename FnSucc, typename FnErr>
