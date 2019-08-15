@@ -868,8 +868,6 @@ SCENARIO("result like interface for std::optional")
     REQUIRE(result.i == 10);
   }
 
-  // TODO (usability) std::string shouldn't be written here
-  // moreover string should not be created if contains Some
   WHEN("map_or called on it")
   THEN("string not need to be passed on parameter side") // not created internally
   {
@@ -879,10 +877,6 @@ using O = ezy::strong_type<std::optional<int>, void, ezy::features::result_inter
     static_assert(std::is_same_v<decltype(result), std::string>);
     REQUIRE(result == "foo");
   }
-
-  //GIVEN("a type which is constructible from more than one parameter")
-  // THEN current recommendation is: use *_or_else and pass a callable that constructs it for you
-
 
   GIVEN("map_or_else")
   {
