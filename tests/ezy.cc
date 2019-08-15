@@ -328,7 +328,6 @@ SCENARIO("strong type extensions")
     }
     */
    
-    // TODO flatten
     WHEN("flattened")
     {
       // FIXME it seems that MyNumbers has no const_iterator
@@ -1365,7 +1364,6 @@ SCENARIO("compilation tests")
   static_assert(std::is_same_v<ezy::plain_type_t<OneFeature>, int>);
   static_assert(std::is_same_v<ezy::plain_type_t<MoreFeatures>, int>);
 
-  // TODO rename: extract_underlying_type
   //static_assert(std::is_same_v<ezy::extract_underlying_type_t<int>, int>); // must fail
   static_assert(std::is_same_v<ezy::extract_underlying_type_t<Simple>, int>);
   static_assert(std::is_same_v<ezy::extract_underlying_type_t<SimpleRef>, int&>);
