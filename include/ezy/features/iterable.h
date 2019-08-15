@@ -94,6 +94,17 @@ namespace ezy::features
         return result_type();
     }
 
+    bool empty() const
+    {
+      return !(this->that().get().begin() != this->that().get().end());
+    }
+
+    auto size() const
+    {
+      // TODO this should fall back to this->that().get().size() if available
+      return std::distance(this->that().get().begin(), this->that().get().end());
+    }
+
     template <typename Element> // TODO contained element should be accepted (or at least comparable)
     bool contains(Element&& needle) const
     {

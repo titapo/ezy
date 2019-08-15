@@ -356,6 +356,21 @@ SCENARIO("strong type extensions")
     }
     */
 
+    WHEN("checked for empty")
+    {
+      REQUIRE(MyNumbers{}.empty());
+      REQUIRE(!MyNumbers{1}.empty());
+      REQUIRE(!MyNumbers{1, 2}.empty());
+    }
+
+    WHEN("checked for size")
+    {
+      REQUIRE(MyNumbers{}.size() == 0);
+      REQUIRE(MyNumbers{1}.size() == 1);
+      REQUIRE(MyNumbers{1, 2}.size() == 2);
+      REQUIRE(numbers.size() == 10);
+    }
+
     //
     // TODO fold
     // TODO span(unary): similar to partition, just splitting at first !unary(element)
@@ -368,7 +383,6 @@ SCENARIO("strong type extensions")
     // TODO unzip
     // TODO grouping?
     // TODO collect?
-    // TODO empty
     //
 
     // TODO this does not work. Some weird iteration invalidation is suspected
