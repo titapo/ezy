@@ -637,7 +637,7 @@ SCENARIO("result-like continuation")
   GIVEN("map -- same types")
   {
     using R = ezy::strong_type<std::variant<int, int>, void, ezy::features::result_like_continuation>;
-    using V = typename ezy::get_underlying_type<R>::type;
+    using V = ezy::extract_underlying_type_t<R>;
     REQUIRE(std::get<0>(R{V(std::in_place_index_t<0>{}, 10)}.map(twice).map(twice).get()) == 40);
     REQUIRE(std::get<1>(R{V(std::in_place_index_t<1>{}, 15)}.map(twice).map(twice).get()) == 15);
   }
@@ -787,7 +787,7 @@ SCENARIO("result-like continuation")
       else
         return R{std::in_place_index_t<1>{}, 100};
     };
-    using V = typename ezy::get_underlying_type<R>::type;
+    using V = ezy::extract_underlying_type_t<R>;
     REQUIRE(std::get<1>(R{V(std::in_place_index_t<0>{}, 10)}.and_then(half).and_then(half).get()) == 100);
     REQUIRE(std::get<0>(R{V(std::in_place_index_t<0>{}, 64)}.and_then(half).and_then(half).get()) == 16);
     REQUIRE(std::get<1>(R{V(std::in_place_index_t<1>{}, 64)}.and_then(half).and_then(half).get()) == 64);
@@ -1330,11 +1330,11 @@ SCENARIO("compilation tests")
   static_assert(std::is_same_v<ezy::plain_type_t<MoreFeatures>, int>);
 
   // TODO rename: extract_underlying_type
-  //static_assert(std::is_same_v<ezy::get_underlying_type<int>::type, int>); // must fail
-  static_assert(std::is_same_v<ezy::get_underlying_type<Simple>::type, int>);
-  static_assert(std::is_same_v<ezy::get_underlying_type<SimpleRef>::type, int&>);
-  static_assert(std::is_same_v<ezy::get_underlying_type<OneFeature>::type, int>);
-  static_assert(std::is_same_v<ezy::get_underlying_type<MoreFeatures>::type, int>);
+  //static_assert(std::is_same_v<ezy::extract_underlying_type_t<int>, int>); // must fail
+  static_assert(std::is_same_v<ezy::extract_underlying_type_t<Simple>, int>);
+  static_assert(std::is_same_v<ezy::extract_underlying_type_t<SimpleRef>, int&>);
+  static_assert(std::is_same_v<ezy::extract_underlying_type_t<OneFeature>, int>);
+  static_assert(std::is_same_v<ezy::extract_underlying_type_t<MoreFeatures>, int>);
 
   //static_assert(std::is_same_v<extract_tag_t<int>, struct Tag>); // must fail
   static_assert(std::is_same_v<ezy::extract_tag_t<Simple>, struct Tag>);
