@@ -328,10 +328,12 @@ namespace ezy
 
   using notag_t = void;
 
-  /*
-  template <typename... T>
-  struct print_type;
-  */
+  namespace detail
+  {
+    // for debugging
+    template <typename... T>
+    struct print_type;
+  }
 }
 
 
