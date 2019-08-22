@@ -291,7 +291,18 @@ SCENARIO("strong type extensions")
       }
     }
 
-    // TODO find should take sg that is equal comparable with contained type
+    WHEN("finding element works with different type")
+    {
+      struct S
+      {
+        int i;
+        bool operator==(int j) const { return i == j; }
+      };
+
+      const auto svec = numbers.map([](int i) {return S{i};}).to_iterable<std::vector<S>>();
+      REQUIRE(svec.find(3).has_value());
+      REQUIRE(!svec.find(-3).has_value());
+    }
 
     WHEN("find existing")
     {
