@@ -82,6 +82,18 @@ namespace ezy::features
       return algo_iterable_range_view(result_range_type(this->that().get(), std::forward<Predicate>(predicate)));
     }
 
+    template <typename Element>
+    auto find(Element&& element) const
+    {
+      using range_type = typename std::remove_reference<typename T::type>::type;
+      using result_type = ezy::optional<typename range_type::value_type>;
+      const auto found = std::find(this->that().get().begin(), this->that().get().end(), std::forward<Element>(element));
+      if (found != this->that().get().end())
+        return result_type(*found);
+      else
+        return result_type();
+    }
+
     template <typename Predicate>
     auto find_if(Predicate&& predicate) const
     {
@@ -108,7 +120,7 @@ namespace ezy::features
     template <typename Element> // TODO contained element should be accepted (or at least comparable)
     bool contains(Element&& needle) const
     {
-      return find_if([&](const auto& element) { return element == needle; }).has_value();
+      return find(std::forward<Element>(needle)).has_value();
     }
 
     template <typename Type>

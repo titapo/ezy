@@ -292,6 +292,21 @@ SCENARIO("strong type extensions")
     }
 
     // TODO find should take sg that is equal comparable with contained type
+
+    WHEN("find existing")
+    {
+      const auto result = numbers.find(5);
+      REQUIRE(result.has_value());
+      REQUIRE(result.value_or(99) == 5);
+    }
+
+    WHEN("find non existing")
+    {
+      const auto result = numbers.find(15);
+      REQUIRE(!result.has_value());
+      REQUIRE(result.value_or(99) == 99);
+    }
+
     WHEN("find_if existing")
     {
       const auto result = numbers.find_if(less_than(5));
