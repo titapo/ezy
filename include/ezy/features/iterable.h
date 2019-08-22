@@ -8,6 +8,11 @@
 #include "../range.h"
 #include "../utility.h" // for ezy::optional
 
+#include <experimental/type_traits>
+
+template <typename Range, typename Key>
+using find_mem_fn_t = decltype(std::declval<Range>().find(std::declval<Key>()));
+
 namespace ezy::features
 {
   template <typename T>
@@ -87,11 +92,23 @@ namespace ezy::features
     {
       using range_type = typename std::remove_reference<typename T::type>::type;
       using result_type = ezy::optional<typename range_type::value_type>;
-      const auto found = std::find(this->that().get().begin(), this->that().get().end(), std::forward<Element>(element));
-      if (found != this->that().get().end())
-        return result_type(*found);
+
+      if constexpr (std::experimental::is_detected<find_mem_fn_t, typename T::type, Element>::value)
+      {
+        const auto found = this->that().get().find(std::forward<Element>(element));
+        if (found != this->that().get().end())
+          return result_type(*found);
+        else
+          return result_type();
+      }
       else
-        return result_type();
+      {
+        const auto found = std::find(this->that().get().begin(), this->that().get().end(), std::forward<Element>(element));
+        if (found != this->that().get().end())
+          return result_type(*found);
+        else
+          return result_type();
+      }
     }
 
     template <typename Predicate>
@@ -117,7 +134,7 @@ namespace ezy::features
       return std::distance(this->that().get().begin(), this->that().get().end());
     }
 
-    template <typename Element> // TODO contained element should be accepted (or at least comparable)
+    template <typename Element>
     bool contains(Element&& needle) const
     {
       return find(std::forward<Element>(needle)).has_value();

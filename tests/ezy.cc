@@ -307,6 +307,24 @@ SCENARIO("strong type extensions")
       REQUIRE(result.value_or(99) == 99);
     }
 
+    WHEN("find works on map")
+    {
+      using StrongMap = ezy::strong_type<std::map<std::string, int>, struct notag, ezy::features::iterable>;
+      StrongMap sm = StrongMap{std::map<std::string, int>{{"Alpha", 10}, {"Beta", 20}}}; // TODO this is ugly
+
+      const auto alpha = sm.find("Alpha");
+      REQUIRE(alpha.has_value());
+      REQUIRE(alpha.value().first == "Alpha");
+      REQUIRE(alpha.value().second == 10);
+
+      const auto beta = sm.find("Beta");
+      REQUIRE(beta.has_value());
+      REQUIRE(beta.value().first == "Beta");
+      REQUIRE(beta.value().second == 20);
+
+      REQUIRE(!sm.find("Gamma").has_value());
+    }
+
     WHEN("find_if existing")
     {
       const auto result = numbers.find_if(less_than(5));
@@ -325,6 +343,28 @@ SCENARIO("strong type extensions")
     {
       REQUIRE(numbers.contains(3));
       REQUIRE(!numbers.contains(-3));
+    }
+
+    WHEN("contains element works with different type")
+    {
+      struct S
+      {
+        int i;
+        bool operator==(int j) const { return i == j; }
+      };
+
+      const auto svec = numbers.map([](int i) {return S{i};}).to_iterable<std::vector<S>>();
+      REQUIRE(svec.contains(3));
+      REQUIRE(!svec.contains(-3));
+    }
+
+    WHEN("contains works on map")
+    {
+      using StrongMap = ezy::strong_type<std::map<std::string, int>, struct notag, ezy::features::iterable>;
+      StrongMap sm = StrongMap{std::map<std::string, int>{{"Alpha", 10}, {"Beta", 20}}}; // TODO this is ugly
+      REQUIRE(sm.contains("Alpha"));
+      REQUIRE(sm.contains("Beta"));
+      REQUIRE(!sm.contains("Gamma"));
     }
 
     WHEN("accumulated")
