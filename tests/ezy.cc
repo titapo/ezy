@@ -1063,8 +1063,41 @@ SCENARIO("strong type for integer")
     }
   }
 
-  // TODO (feature) features -> callable: inherits operator()
 }
+
+SCENARIO("invocable feature")
+{
+  struct FunctionObject
+  {
+    int operator()(int i, int j) const &
+    { return i + j; }
+
+    int operator()(int i, int j) &
+    { return i - j; }
+
+    int operator()(int i, int j) &&
+    { return i * j; }
+  };
+
+  using CallableFnObj = ezy::strong_type<FunctionObject, struct callable, ezy::features::invocable>;
+  WHEN("called")
+  {
+    const CallableFnObj fn;
+    REQUIRE(fn(1, 2) == 3);
+  }
+
+  WHEN("called mutable")
+  {
+    CallableFnObj fn;
+    REQUIRE(fn(1, 2) == -1);
+  }
+
+  WHEN("called rvalue")
+  {
+    REQUIRE(CallableFnObj{}(1, 2) == 2);
+  }
+}
+
 
 SCENARIO("strong type for struct")
 {

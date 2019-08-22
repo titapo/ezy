@@ -7,5 +7,6 @@
 #include "features/iterable.h"
 #include "features/visitable.h"
 #include "features/result_interface.h"
+#include "features/invocable.h"
 
 #endif
