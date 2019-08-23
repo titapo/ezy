@@ -200,15 +200,22 @@ namespace ezy
   template <typename... Args>
   using extract_features_t = typename extract_features<Args...>::type;
 
-  template <typename ST>
-  struct strip_strong_type
+  template <typename ST, template <typename> class... NewFeatures>
+  struct rebind_features
   {};
 
-  template <typename T, typename Tag, template <typename> class... Features>
-  struct strip_strong_type<strong_type<T, Tag, Features...>>
+  template <typename T, typename Tag, template <typename> class... OldFeatures, template <typename> class... NewFeatures>
+  struct rebind_features<strong_type<T, Tag, OldFeatures...>, NewFeatures...>
   {
-    using type = strong_type<T, Tag>;
+    using type = strong_type<T, Tag, NewFeatures...>;
   };
+
+  template <typename ST, template <typename> class... NewFeatures>
+  using rebind_features_t = typename rebind_features<ST, NewFeatures...>::type;
+
+  template <typename ST>
+  struct strip_strong_type : rebind_features<ST>
+  {};
 
   template <typename ST>
   using strip_strong_type_t = typename strip_strong_type<ST>::type;

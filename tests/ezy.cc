@@ -1498,7 +1498,16 @@ SCENARIO("compilation tests")
   static_assert(ezy::has_feature_v<OneFeature, equal_comparable> == false);
   */
 
-  // TODO feature_cast => when type and tags are the same and only features are different, casting should be allowed
+  static_assert(std::is_same_v<ezy::rebind_features_t<Simple>, Simple>);
+  static_assert(std::is_same_v<ezy::rebind_features_t<OneFeature>, Simple>);
+  static_assert(std::is_same_v<ezy::rebind_features_t<MoreFeatures>, Simple>);
+
+  static_assert(std::is_same_v<ezy::rebind_features_t<Simple, ezy::features::addable>, OneFeature>);
+  static_assert(std::is_same_v<ezy::rebind_features_t<OneFeature, ezy::features::addable>, OneFeature>);
+  static_assert(std::is_same_v<ezy::rebind_features_t<MoreFeatures, ezy::features::addable>, OneFeature>);
+
+  // TODO works with tuple
+  // static_assert(std::is_same_v<ezy::rebind_features_t<Simple, ezy::extract_features_t<MoreFeatures>>, MoreFeatures>);
 
   /**
    * TODO what about derivation?
