@@ -1508,14 +1508,29 @@ SCENARIO("compilation tests")
 
   // TODO works with tuple
   // static_assert(std::is_same_v<ezy::rebind_features_t<Simple, ezy::extract_features_t<MoreFeatures>>, MoreFeatures>);
+}
 
-  /**
-   * TODO what about derivation?
-   *
-   * struct S : ezy::strong_type<...>
-   * { ... };
-   *
-   */
+
+
+
+SCENARIO("derived strong type")
+{
+
+  struct DerivedSimple : ezy::strong_type<int, DerivedSimple, ezy::features::addable>
+  {
+    // TODO is it required?
+    using strong_type::strong_type;
+  };
+
+  static_assert(!ezy::is_strong_type_v<DerivedSimple>); //it fails // should be accepted?
+  static_assert(ezy::is_strong_type_v<ezy::strong_type_base_t<DerivedSimple>>);
+
+  static_assert(std::is_same_v<ezy::strong_type_base_t<DerivedSimple>, ezy::strong_type<int, DerivedSimple, ezy::features::addable>>);
+  static_assert(std::is_same_v<ezy::strong_type_base_t<ezy::strong_type_base_t<DerivedSimple>>, ezy::strong_type<int, DerivedSimple, ezy::features::addable>>);
+
+  DerivedSimple s{3};
+
+  REQUIRE((s + s).get() == 6);
 }
 
 #include <ezy/experimental/function>

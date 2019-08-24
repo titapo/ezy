@@ -233,6 +233,25 @@ namespace ezy
   template <typename ST, typename U>
   using rebind_strong_type_t = typename rebind_strong_type<ST, U>::type;
 
+  /**
+   *
+   */
+  namespace detail
+  {
+    template <typename T, typename Tag, template <typename> class... Features>
+    auto strong_type_base_fn(const ezy::strong_type<T, Tag, Features...>*) -> ezy::strong_type<T, Tag, Features...>;
+  }
+
+  template <typename ST>
+  struct strong_type_base
+  {
+    using type = decltype(detail::strong_type_base_fn(std::declval<ST*>()));
+  };
+
+  template <typename ST>
+  using strong_type_base_t = typename strong_type_base<ST>::type;
+
+
   /*
   template <typename ST, typename Feature>
   struct has_feature : std::false_type
