@@ -1490,13 +1490,12 @@ SCENARIO("compilation tests")
   static_assert(std::is_same_v<ezy::rebind_strong_type_t<OneFeature, double>, ezy::strong_type<double, struct Tag, ezy::features::addable>>);
   static_assert(std::is_same_v<ezy::rebind_strong_type_t<MoreFeatures, double>, ezy::strong_type<double, struct Tag, ezy::features::addable, ezy::features::subtractable, ezy::features::equal_comparable>>);
 
-  // TODO it will not work in any case (eg. derived features)
-  /*
-  static_assert(ezy::has_feature_v<Simple, addable> == false);
-  static_assert(ezy::has_feature_v<SimpleRef, addable> == false);
-  static_assert(ezy::has_feature_v<OneFeature, addable> == true);
-  static_assert(ezy::has_feature_v<OneFeature, equal_comparable> == false);
-  */
+  static_assert(ezy::has_feature_v<Simple, ezy::features::addable> == false);
+  static_assert(ezy::has_feature_v<SimpleRef, ezy::features::addable> == false);
+  static_assert(ezy::has_feature_v<OneFeature, ezy::features::addable> == true);
+  static_assert(ezy::has_feature_v<OneFeature, ezy::features::equal_comparable> == false);
+  static_assert(ezy::has_feature_v<MoreFeatures, ezy::features::equal_comparable> == true);
+  // TODO it will not work in any case (eg. derived/composed features)
 
   static_assert(std::is_same_v<ezy::rebind_features_t<Simple>, Simple>);
   static_assert(std::is_same_v<ezy::rebind_features_t<OneFeature>, Simple>);

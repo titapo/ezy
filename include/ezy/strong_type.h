@@ -251,24 +251,29 @@ namespace ezy
   template <typename ST>
   using strong_type_base_t = typename strong_type_base<ST>::type;
 
-
-  /*
-  template <typename ST, typename Feature>
-  struct has_feature : std::false_type
+  namespace detail::tuple_traits
   {
-  };
+    template <typename Tuple, typename T>
+    struct contains;
 
-  template <typename T, typename Tag, template <typename> class... NeedleFeature, template <typename> class... Features>
-  struct has_feature<strong_type<T, Tag, Features...>, NeedleFeature<strong_type<T, Tag, Features...>>>
-  {
-    static constexpr bool value = std::is_same_v<
-      Feature<T, Tag, Features...>, Features<T, Tag, Features...>>...;
-    //using type = std::tuple<Features<strong_type<T, Tag, Features...>>...>;
-  };
+    template <typename T>
+    struct contains<std::tuple<>, T> : std::false_type {};
 
-  template <typename ST, typename NeedleFeature>
-  using has_feature_t = typename has_feature<ST, NeedleFeature>::type;
-  */
+    template <typename T, typename Head, typename... Tail>
+    struct contains<std::tuple<Head, Tail...>, T> : contains<std::tuple<Tail...>, T> {};
+
+    template <typename T, typename... Tail>
+    struct contains<std::tuple<T, Tail...>, T> : std::true_type {};
+
+    template <typename Tuple, typename T>
+    inline constexpr bool contains_v = contains<Tuple, T>::value;
+  }
+
+  template <typename ST, template <typename> class Feature>
+  using has_feature = detail::tuple_traits::contains<extract_features_t<ST>, Feature<ST>>;
+
+  template <typename ST, template <typename> class Feature>
+  inline constexpr bool has_feature_v = has_feature<ST, Feature>::value;
 }
 
 namespace ezy::features
