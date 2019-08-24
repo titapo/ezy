@@ -13,6 +13,12 @@
 template <typename Range, typename Key>
 using find_mem_fn_t = decltype(std::declval<Range>().find(std::declval<Key>()));
 
+template <typename Range>
+using size_mem_fn_t = decltype(std::declval<Range>().size());
+
+template <typename Range>
+using empty_mem_fn_t = decltype(std::declval<Range>().empty());
+
 namespace ezy::features
 {
   template <typename T>
@@ -123,15 +129,28 @@ namespace ezy::features
         return result_type();
     }
 
-    bool empty() const
+    auto empty() const
     {
-      return !(this->that().get().begin() != this->that().get().end());
+      if constexpr (std::experimental::is_detected<empty_mem_fn_t, typename T::type>::value)
+      {
+        return this->that().get().empty();
+      }
+      else
+      {
+        return !(this->that().get().begin() != this->that().get().end());
+      }
     }
 
     auto size() const
     {
-      // TODO this should fall back to this->that().get().size() if available
-      return std::distance(this->that().get().begin(), this->that().get().end());
+      if constexpr (std::experimental::is_detected<size_mem_fn_t, typename T::type>::value)
+      {
+        return this->that().get().size();
+      }
+      else
+      {
+        return std::distance(this->that().get().begin(), this->that().get().end());
+      }
     }
 
     template <typename Element>

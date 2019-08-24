@@ -477,6 +477,29 @@ SCENARIO("strong type extensions")
     */
   }
 
+  GIVEN("a special type")
+  {
+    struct Spec
+    {
+      constexpr int size() const noexcept { return 42; }
+      constexpr bool empty() const noexcept { return false; }
+    };
+
+    using StrongSpec = ezy::strong_type<Spec, void, ezy::features::iterable>;
+
+    WHEN("size is called on it")
+    {
+      StrongSpec s;
+      REQUIRE(s.size() == 42);
+    }
+
+    WHEN("empty is called on it")
+    {
+      StrongSpec s;
+      REQUIRE(s.empty() == false);
+    }
+  }
+
 }
 
 // lazily evaluated
