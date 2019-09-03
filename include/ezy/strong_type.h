@@ -252,11 +252,22 @@ namespace ezy
   template <typename ST>
   using strong_type_base_t = typename strong_type_base<ST>::type;
 
+  namespace detail
+  {
+    template <typename T>
+    struct is_derived_from
+    {
+      template <typename U>
+      struct impl : std::is_base_of<T, U> {};
+    };
+  };
   /**
    * has_feature
    */
   template <typename ST, template <typename> class Feature>
   using has_feature = ezy::tuple_traits::contains<extract_features_t<ST>, Feature<ST>>;
+  //using has_feature = ezy::tuple_traits::any_of<extract_features_t<ST>, detail::is_derived_from<Feature<ST>>::impl>;
+  // TODO features are different within ST
 
   template <typename ST, template <typename> class Feature>
   inline constexpr bool has_feature_v = has_feature<ST, Feature>::value;

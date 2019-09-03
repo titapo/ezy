@@ -1473,6 +1473,7 @@ SCENARIO("compilation tests")
   using SimpleRef = ezy::strong_type_reference<int, struct Tag>;
   using OneFeature = ezy::strong_type<int, struct Tag, ezy::features::addable>;
   using MoreFeatures = ezy::strong_type<int, struct Tag, ezy::features::addable, ezy::features::subtractable, ezy::features::equal_comparable>;
+  using ComposedFeature = ezy::strong_type<int, struct Tag, ezy::features::additive>;
 
   static_assert(ezy::is_strong_type_v<int> == false);
   static_assert(ezy::is_strong_type_v<Simple> == true);
