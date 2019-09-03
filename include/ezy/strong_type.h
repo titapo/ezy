@@ -128,6 +128,7 @@ namespace ezy
   };
 }
 
+#include "tuple_traits.hh" // for contains
 namespace ezy
 {
   /**
@@ -234,7 +235,7 @@ namespace ezy
   using rebind_strong_type_t = typename rebind_strong_type<ST, U>::type;
 
   /**
-   *
+   * strong_type_base
    */
   namespace detail
   {
@@ -251,26 +252,11 @@ namespace ezy
   template <typename ST>
   using strong_type_base_t = typename strong_type_base<ST>::type;
 
-  namespace detail::tuple_traits
-  {
-    template <typename Tuple, typename T>
-    struct contains;
-
-    template <typename T>
-    struct contains<std::tuple<>, T> : std::false_type {};
-
-    template <typename T, typename Head, typename... Tail>
-    struct contains<std::tuple<Head, Tail...>, T> : contains<std::tuple<Tail...>, T> {};
-
-    template <typename T, typename... Tail>
-    struct contains<std::tuple<T, Tail...>, T> : std::true_type {};
-
-    template <typename Tuple, typename T>
-    inline constexpr bool contains_v = contains<Tuple, T>::value;
-  }
-
+  /**
+   * has_feature
+   */
   template <typename ST, template <typename> class Feature>
-  using has_feature = detail::tuple_traits::contains<extract_features_t<ST>, Feature<ST>>;
+  using has_feature = ezy::tuple_traits::contains<extract_features_t<ST>, Feature<ST>>;
 
   template <typename ST, template <typename> class Feature>
   inline constexpr bool has_feature_v = has_feature<ST, Feature>::value;
