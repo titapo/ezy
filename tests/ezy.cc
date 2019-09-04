@@ -1652,6 +1652,18 @@ SCENARIO("tuple_traits")
 
   GIVEN("head")
   {
+    //static_assert(std::is_same_v<ett::head_t<std::tuple<>>, void>); // OK: it does not compile
+    static_assert(std::is_same_v<ett::head_t<std::tuple<int>>, int>);
+    static_assert(std::is_same_v<ett::head_t<std::tuple<double, int>>, double>);
+    static_assert(std::is_same_v<ett::head_t<std::tuple<double, bool, int>>, double>);
+  }
+
+  GIVEN("tail")
+  {
+    //static_assert(std::is_same_v<ett::tail_t<std::tuple<>>, void>); // OK: it does not compile
+    static_assert(std::is_same_v<ett::tail_t<std::tuple<int>>, std::tuple<>>);
+    static_assert(std::is_same_v<ett::tail_t<std::tuple<double, int>>, std::tuple<int>>);
+    static_assert(std::is_same_v<ett::tail_t<std::tuple<double, bool, int>>, std::tuple<bool, int>>);
   }
 
   GIVEN("remove")

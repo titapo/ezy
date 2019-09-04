@@ -4,10 +4,6 @@
 #include <tuple>
 #include <type_traits>
 
-// TODO separate tests
-#include <vector> // for testing purposes only!
-#include <variant> // for testing purposes only!
-
 namespace ezy::tuple_traits
 {
   template <typename>
@@ -82,7 +78,7 @@ namespace ezy::tuple_traits
   /**
    * head
    */
-  template <typename Head, typename... Tail>
+  template <typename Tuple>
   struct head;
 
   template <typename Head, typename... Tail>
@@ -91,10 +87,13 @@ namespace ezy::tuple_traits
     using type = Head;
   };
 
+  template <typename Tuple>
+  using head_t = typename head<Tuple>::type;
+
   /**
    * head
    */
-  template <typename Head, typename... Tail>
+  template <typename Tuple>
   struct tail;
 
   template <typename Head, typename... Tail>
@@ -102,6 +101,9 @@ namespace ezy::tuple_traits
   {
     using type = std::tuple<Tail...>;
   };
+
+  template <typename Tuple>
+  using tail_t = typename tail<Tuple>::type;
 
   /**
    * remove
