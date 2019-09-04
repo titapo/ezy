@@ -201,6 +201,21 @@ namespace ezy
   template <typename... Args>
   using extract_features_t = typename extract_features<Args...>::type;
 
+  namespace detail
+  {
+    template <typename Feature, typename T>
+    struct rebind_feature;
+
+    template <template <typename> class Feature, typename ST, typename T>
+    struct rebind_feature<Feature<ST>, T>
+    {
+      using type = Feature<T>;
+    };
+
+    template <typename Feature, typename T>
+    using rebind_feature_t = typename rebind_feature<Feature, T>::type;
+  }
+
   template <typename ST, template <typename> class... NewFeatures>
   struct rebind_features
   {};
@@ -267,16 +282,7 @@ namespace ezy
     struct impersonal {};
 
     template <typename Feature>
-    struct impersonalize;
-
-    template <template <typename> class Feature, typename ST>
-    struct impersonalize<Feature<ST>>
-    {
-      using type = Feature<impersonal>;
-    };
-
-    template <typename Feature>
-    using impersonalize_t = typename impersonalize<Feature>::type;
+    using impersonalize_t = detail::rebind_feature_t<Feature, impersonal>;
 
     template <typename ST>
     struct extract_impersonalized_features
