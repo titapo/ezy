@@ -1519,7 +1519,12 @@ SCENARIO("compilation tests")
   static_assert(ezy::has_feature_v<OneFeature, ezy::features::addable> == true);
   static_assert(ezy::has_feature_v<OneFeature, ezy::features::equal_comparable> == false);
   static_assert(ezy::has_feature_v<MoreFeatures, ezy::features::equal_comparable> == true);
-  // TODO it will not work in any case (eg. derived/composed features)
+  // (eg. derived/composed features)
+  // It may be nicer to check those requirements as concepts (structured), but there is a way to support named
+  // features
+  static_assert(ezy::has_feature_v<ComposedFeature, ezy::features::equal_comparable> == false);
+  static_assert(ezy::has_feature_v<ComposedFeature, ezy::features::addable> == true);
+  static_assert(ezy::has_feature_v<ComposedFeature, ezy::features::additive> == true);
 
   static_assert(std::is_same_v<ezy::rebind_features_t<Simple>, Simple>);
   static_assert(std::is_same_v<ezy::rebind_features_t<OneFeature>, Simple>);

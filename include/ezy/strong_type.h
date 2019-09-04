@@ -252,6 +252,9 @@ namespace ezy
   template <typename ST>
   using strong_type_base_t = typename strong_type_base<ST>::type;
 
+  /**
+   * has_feature
+   */
   namespace detail
   {
     template <typename T>
@@ -260,14 +263,38 @@ namespace ezy
       template <typename U>
       struct impl : std::is_base_of<T, U> {};
     };
+
+    struct impersonal {};
+
+    template <typename Feature>
+    struct impersonalize;
+
+    template <template <typename> class Feature, typename ST>
+    struct impersonalize<Feature<ST>>
+    {
+      using type = Feature<impersonal>;
+    };
+
+    template <typename Feature>
+    using impersonalize_t = typename impersonalize<Feature>::type;
+
+    template <typename ST>
+    struct extract_impersonalized_features
+    {
+      using type = ezy::tuple_traits::map_t< ezy::extract_features_t<ST>, ezy::detail::impersonalize_t>;
+    };
+
+    template <typename ST>
+    using extract_impersonalized_features_t = typename extract_impersonalized_features<ST>::type;
+
   };
-  /**
-   * has_feature
-   */
+
   template <typename ST, template <typename> class Feature>
-  using has_feature = ezy::tuple_traits::contains<extract_features_t<ST>, Feature<ST>>;
-  //using has_feature = ezy::tuple_traits::any_of<extract_features_t<ST>, detail::is_derived_from<Feature<ST>>::impl>;
-  // TODO features are different within ST
+  using has_feature =
+  ezy::tuple_traits::any_of<
+    detail::extract_impersonalized_features_t<ST>,
+    detail::is_derived_from<Feature<detail::impersonal>>::template impl
+  >;
 
   template <typename ST, template <typename> class Feature>
   inline constexpr bool has_feature_v = has_feature<ST, Feature>::value;
