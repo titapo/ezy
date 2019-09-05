@@ -2,8 +2,16 @@
 #define EZY_FEATURES_ARITHMETIC_H_INCLUDED
 #include "../strong_type.h"
 
+#include <experimental/type_traits>
+
 namespace ezy::features
 {
+
+  namespace detail
+  {
+    template <typename T>
+    using operator_ne_t = decltype(std::declval<T>() != std::declval<T>());
+  }
 
   template <typename T>
   struct addable : crtp<T, addable>
@@ -40,7 +48,50 @@ namespace ezy::features
 
     bool operator!=(const T& rhs) const
     {
-      return !(this->that() == rhs);
+      if constexpr (std::experimental::is_detected_v<ezy::features::detail::operator_ne_t, typename T::type>)
+      {
+        return this->that().get() != rhs.get();
+      }
+      else
+      {
+        return !(this->that() == rhs);
+      }
+    }
+  };
+
+  template <typename T>
+  struct greater : crtp<T, greater>
+  {
+    bool operator>(const T& rhs) const
+    {
+      return this->that().get() > rhs.get();
+    }
+  };
+
+  template <typename T>
+  struct greater_equal : crtp<T, greater_equal>
+  {
+    bool operator>=(const T& rhs) const
+    {
+      return this->that().get() >= rhs.get();
+    }
+  };
+
+  template <typename T>
+  struct less : crtp<T, less>
+  {
+    bool operator<(const T& rhs) const
+    {
+      return this->that().get() < rhs.get();
+    }
+  };
+
+  template <typename T>
+  struct less_equal : crtp<T, less_equal>
+  {
+    bool operator<=(const T& rhs) const
+    {
+      return this->that().get() <= rhs.get();
     }
   };
 

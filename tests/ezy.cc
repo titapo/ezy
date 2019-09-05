@@ -1464,6 +1464,84 @@ SCENARIO("strong type integer arithmetic")
   }
 }
 
+SCENARIO("strong type comparisons")
+{
+  WHEN("equal_comparable")
+  {
+    using EqCmp = ezy::strong_type<int, struct Tag, ezy::features::equal_comparable, ezy::features::printable>;
+    THEN("eq works")
+    {
+      EqCmp a(5);
+      EqCmp b(6);
+      EqCmp c(5);
+
+      REQUIRE(a == a);
+      REQUIRE(a != b);
+      REQUIRE(a == c);
+    }
+
+  }
+
+  GIVEN("a type without != operator")
+  {
+    struct EqOpOnly
+    {
+      constexpr bool operator==(const EqOpOnly&) const noexcept
+      { return false; }
+    };
+
+    // TODO check noexcept propagation
+    using EqCmpOnly = ezy::strong_type<EqOpOnly, struct Tag, ezy::features::equal_comparable>;
+    WHEN("not equal called")
+    THEN("it's generated automagically")
+    {
+      REQUIRE((EqCmpOnly{} != EqCmpOnly{}));
+    }
+
+  }
+
+  GIVEN("a type with explicitt!= operator")
+  {
+    struct SpecNotEq
+    {
+      constexpr bool operator==(const SpecNotEq&) const noexcept
+      { return false; }
+
+      constexpr bool operator!=(const SpecNotEq&) const noexcept
+      { return false; }
+    };
+
+    using EqSpecNotEq = ezy::strong_type<SpecNotEq, struct Tag, ezy::features::equal_comparable>;
+    WHEN("not equal called")
+    THEN("invoked the original one")
+    {
+      REQUIRE(!(EqSpecNotEq{} == EqSpecNotEq{}));
+      REQUIRE(!(EqSpecNotEq{} != EqSpecNotEq{}));
+    }
+  }
+
+  GIVEN("greater")
+  {
+    using G = ezy::strong_type<int, struct Tag, ezy::features::greater, ezy::features::printable>;
+
+    REQUIRE(G{5} > G{4});
+    REQUIRE(!(G{5} > G{5}));
+
+    using GE = ezy::strong_type<int, struct Tag, ezy::features::greater_equal, ezy::features::printable>;
+    REQUIRE(GE{5} >= GE{4});
+    REQUIRE(GE{5} >= GE{5});
+
+    using L = ezy::strong_type<int, struct Tag, ezy::features::less, ezy::features::printable>;
+
+    REQUIRE(L{4} < L{5});
+    REQUIRE(!(L{5} < L{5}));
+
+    using LE = ezy::strong_type<int, struct Tag, ezy::features::less_equal, ezy::features::printable>;
+    REQUIRE(LE{4} <= LE{5});
+    REQUIRE(LE{5} <= LE{5});
+  }
+}
+
 /**
  * strong type traits
  */
