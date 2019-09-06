@@ -258,7 +258,6 @@
 
         bool operator==(const iterator_concatenator& rhs) const
         {
-          static int cntr = 0;
           if (auto [it, end] = tracking_info<0>(); it != end)
           {
             if (auto [r_it, r_end] = rhs.tracking_info<0>(); r_it != r_end)

@@ -762,7 +762,6 @@ SCENARIO("result-like continuation")
   GIVEN("map -- same types")
   {
     using R = ezy::strong_type<std::variant<int, int>, void, ezy::features::result_like_continuation>;
-    using V = ezy::extract_underlying_type_t<R>;
     REQUIRE(std::get<0>(R::make_success(10).map(twice).map(twice).get()) == 40);
     REQUIRE(std::get<1>(R::make_error(15).map(twice).map(twice).get()) == 15);
   }

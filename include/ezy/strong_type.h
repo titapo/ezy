@@ -293,7 +293,7 @@ namespace ezy
     template <typename ST>
     using extract_impersonalized_features_t = typename extract_impersonalized_features<ST>::type;
 
-  };
+  }
 
   template <typename ST, template <typename> class Feature>
   using has_feature =
