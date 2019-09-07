@@ -556,6 +556,17 @@ struct move_only
   move_only& operator=(move_only&&) = default;
 };
 
+static_assert(!std::is_copy_constructible_v<move_only>);
+static_assert(!std::is_trivially_copy_constructible_v<move_only>);
+static_assert(!std::is_copy_assignable_v<move_only>);
+static_assert(!std::is_trivially_copy_assignable_v<move_only>);
+
+static_assert(std::is_move_constructible_v<move_only>);
+static_assert(std::is_trivially_move_constructible_v<move_only>);
+static_assert(std::is_move_assignable_v<move_only>);
+static_assert(std::is_trivially_move_assignable_v<move_only>);
+
+
 struct non_transferable
 {
   int i;
@@ -568,6 +579,15 @@ struct non_transferable
   non_transferable& operator=(non_transferable&&) = delete;
 };
 
+static_assert(!std::is_copy_constructible_v<non_transferable>);
+static_assert(!std::is_trivially_copy_constructible_v<non_transferable>);
+static_assert(!std::is_copy_assignable_v<non_transferable>);
+static_assert(!std::is_trivially_copy_assignable_v<non_transferable>);
+
+static_assert(!std::is_move_constructible_v<non_transferable>);
+static_assert(!std::is_trivially_move_constructible_v<non_transferable>);
+static_assert(!std::is_move_assignable_v<non_transferable>);
+static_assert(!std::is_trivially_move_assignable_v<non_transferable>);
 
 SCENARIO("feature: inherit_std_optional")
 {
