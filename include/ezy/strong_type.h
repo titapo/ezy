@@ -49,20 +49,13 @@ namespace ezy
       using type = T;
       using self_type = strong_type;
 
-      strong_type(const strong_type& rhs)
-        : _value(rhs.get()) {}
+      strong_type() = default;
 
-      strong_type& operator=(const strong_type& rhs)
-      {
-        _value = rhs.get();
-        return *this;
-      }
+      strong_type(const strong_type&) = default;
+      strong_type& operator=(const strong_type&) = default;
 
-      strong_type& operator=(strong_type&& rhs)
-      {
-        _value = std::move(rhs.get());
-        return *this;
-      }
+      strong_type(strong_type&&) = default;
+      strong_type& operator=(strong_type&&) = default;
 
       template <typename... Args>
       /*explicit*/ strong_type(Args&&... args
@@ -71,13 +64,6 @@ namespace ezy
           //, std::enable_if_t<(sizeof...(Args) != 1) || (!std::is_same_v<std::decay_t<typename detail::headof<Args...>::type>, strong_type>)>* = nullptr
           )
         : _value{std::forward<Args>(args)...}
-      {}
-
-      // construction from other
-      strong_type(strong_type&& rhs
-          , std::enable_if_t<std::is_move_constructible_v<T> || std::is_trivially_move_constructible_v<T>>* = nullptr
-          )
-        : _value(std::move(rhs).get()) // will it be copied?
       {}
 
       //strong_type(const strong_type& rhs) = default;
