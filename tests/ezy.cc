@@ -566,6 +566,21 @@ static_assert(std::is_trivially_move_constructible_v<move_only>);
 static_assert(std::is_move_assignable_v<move_only>);
 static_assert(std::is_trivially_move_assignable_v<move_only>);
 
+SCENARIO("stong type preserves move_only's construction attributes")
+{
+  using Strengthten = ezy::strong_type<move_only, struct Tag>;
+
+  static_assert(!std::is_copy_constructible_v<Strengthten>);
+  static_assert(!std::is_trivially_copy_constructible_v<Strengthten>);
+  static_assert(!std::is_copy_assignable_v<Strengthten>);
+  static_assert(!std::is_trivially_copy_assignable_v<Strengthten>);
+
+  static_assert(std::is_move_constructible_v<Strengthten>);
+  static_assert(std::is_trivially_move_constructible_v<Strengthten>);
+  static_assert(std::is_move_assignable_v<Strengthten>);
+  static_assert(std::is_trivially_move_assignable_v<Strengthten>);
+}
+
 
 struct non_transferable
 {
@@ -583,6 +598,7 @@ static_assert(!std::is_copy_constructible_v<non_transferable>);
 static_assert(!std::is_trivially_copy_constructible_v<non_transferable>);
 static_assert(!std::is_copy_assignable_v<non_transferable>);
 static_assert(!std::is_trivially_copy_assignable_v<non_transferable>);
+
 
 static_assert(!std::is_move_constructible_v<non_transferable>);
 static_assert(!std::is_trivially_move_constructible_v<non_transferable>);
