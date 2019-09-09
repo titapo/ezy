@@ -1,8 +1,6 @@
-//#define CATCH_CONFIG_MAIN
-
 #include <catch.hpp>
 
-#include "../include/ezy/strong_type"
+#include <ezy/strong_type>
 
 #include <sstream>
 #include <map>
@@ -545,19 +543,9 @@ TEST_CASE(".none() is eager evaluated")
 
 // TODO think of: making ezy::optional and ezy::result iterable?
 
-#include "../include/ezy/utility.h"
+#include <ezy/utility.h>
 
-struct move_only
-{
-  int i;
-  explicit move_only(int i) : i(i) {}
-
-  move_only(const move_only&) = delete;
-  move_only& operator=(const move_only&) = delete;
-
-  move_only(move_only&&) = default;
-  move_only& operator=(move_only&&) = default;
-};
+#include "common.h"
 
 static_assert(!std::is_copy_constructible_v<move_only>);
 static_assert(!std::is_trivially_copy_constructible_v<move_only>);
@@ -584,18 +572,6 @@ SCENARIO("stong type preserves move_only's construction attributes")
   static_assert(std::is_trivially_move_assignable_v<Strengthten>);
 }
 
-
-struct non_transferable
-{
-  int i;
-  explicit non_transferable(int i) : i(i) {}
-
-  non_transferable(const non_transferable&) = delete;
-  non_transferable& operator=(const non_transferable&) = delete;
-
-  non_transferable(non_transferable&&) = delete;
-  non_transferable& operator=(non_transferable&&) = delete;
-};
 
 static_assert(!std::is_copy_constructible_v<non_transferable>);
 static_assert(!std::is_trivially_copy_constructible_v<non_transferable>);
@@ -1580,103 +1556,6 @@ SCENARIO("strong type comparisons")
   }
 }
 
-/**
- * strong type traits
- */
-SCENARIO("compilation tests")
-{
-  using Simple = ezy::strong_type<int, struct Tag>;
-  using SimpleRef = ezy::strong_type_reference<int, struct Tag>;
-  using OneFeature = ezy::strong_type<int, struct Tag, ezy::features::addable>;
-  using MoreFeatures = ezy::strong_type<int, struct Tag, ezy::features::addable, ezy::features::subtractable, ezy::features::equal_comparable>;
-  using ComposedFeature = ezy::strong_type<int, struct Tag, ezy::features::additive>;
-
-  static_assert(ezy::is_strong_type_v<int> == false);
-  static_assert(ezy::is_strong_type_v<Simple> == true);
-  static_assert(ezy::is_strong_type_v<SimpleRef> == true);
-  static_assert(ezy::is_strong_type_v<OneFeature> == true);
-  static_assert(ezy::is_strong_type_v<MoreFeatures> == true);
-
-  static_assert(std::is_same_v<ezy::plain_type_t<int>, int>);
-  static_assert(std::is_same_v<ezy::plain_type_t<Simple>, int>);
-  static_assert(std::is_same_v<ezy::plain_type_t<SimpleRef>, int&>);
-  static_assert(std::is_same_v<ezy::plain_type_t<OneFeature>, int>);
-  static_assert(std::is_same_v<ezy::plain_type_t<MoreFeatures>, int>);
-
-  //static_assert(std::is_same_v<ezy::extract_underlying_type_t<int>, int>); // must fail
-  static_assert(std::is_same_v<ezy::extract_underlying_type_t<Simple>, int>);
-  static_assert(std::is_same_v<ezy::extract_underlying_type_t<SimpleRef>, int&>);
-  static_assert(std::is_same_v<ezy::extract_underlying_type_t<OneFeature>, int>);
-  static_assert(std::is_same_v<ezy::extract_underlying_type_t<MoreFeatures>, int>);
-
-  //static_assert(std::is_same_v<extract_tag_t<int>, struct Tag>); // must fail
-  static_assert(std::is_same_v<ezy::extract_tag_t<Simple>, struct Tag>);
-  static_assert(std::is_same_v<ezy::extract_tag_t<SimpleRef>, struct Tag>);
-  static_assert(std::is_same_v<ezy::extract_tag_t<OneFeature>, struct Tag>);
-  static_assert(std::is_same_v<ezy::extract_tag_t<MoreFeatures>, struct Tag>);
-
-  static_assert(std::is_same_v<ezy::extract_features_t<Simple>, std::tuple<>>);
-  static_assert(std::is_same_v<ezy::extract_features_t<SimpleRef>, std::tuple<>>);
-  static_assert(std::is_same_v<ezy::extract_features_t<OneFeature>, std::tuple<ezy::features::addable<OneFeature>>>);
-  static_assert(std::is_same_v<ezy::extract_features_t<MoreFeatures>, std::tuple<ezy::features::addable<MoreFeatures>, ezy::features::subtractable<MoreFeatures>, ezy::features::equal_comparable<MoreFeatures>>>);
-
-  static_assert(std::is_same_v<ezy::strip_strong_type_t<Simple>, Simple>);
-  static_assert(std::is_same_v<ezy::strip_strong_type_t<SimpleRef>, SimpleRef>);
-  static_assert(std::is_same_v<ezy::strip_strong_type_t<OneFeature>, Simple>);
-  static_assert(std::is_same_v<ezy::strip_strong_type_t<MoreFeatures>, Simple>);
-
-  static_assert(std::is_same_v<ezy::rebind_strong_type_t<Simple, double>, ezy::strong_type<double, struct Tag>>);
-  static_assert(std::is_same_v<ezy::rebind_strong_type_t<SimpleRef, double>, ezy::strong_type<double, struct Tag>>); // TODO think: not a estrong_type_reference
-  static_assert(std::is_same_v<ezy::rebind_strong_type_t<OneFeature, double>, ezy::strong_type<double, struct Tag, ezy::features::addable>>);
-  static_assert(std::is_same_v<ezy::rebind_strong_type_t<MoreFeatures, double>, ezy::strong_type<double, struct Tag, ezy::features::addable, ezy::features::subtractable, ezy::features::equal_comparable>>);
-
-  static_assert(ezy::has_feature_v<Simple, ezy::features::addable> == false);
-  static_assert(ezy::has_feature_v<SimpleRef, ezy::features::addable> == false);
-  static_assert(ezy::has_feature_v<OneFeature, ezy::features::addable> == true);
-  static_assert(ezy::has_feature_v<OneFeature, ezy::features::equal_comparable> == false);
-  static_assert(ezy::has_feature_v<MoreFeatures, ezy::features::equal_comparable> == true);
-  // (eg. derived/composed features)
-  // It may be nicer to check those requirements as concepts (structured), but there is a way to support named
-  // features
-  static_assert(ezy::has_feature_v<ComposedFeature, ezy::features::equal_comparable> == false);
-  static_assert(ezy::has_feature_v<ComposedFeature, ezy::features::addable> == true);
-  static_assert(ezy::has_feature_v<ComposedFeature, ezy::features::additive> == true);
-
-  static_assert(std::is_same_v<ezy::rebind_features_t<Simple>, Simple>);
-  static_assert(std::is_same_v<ezy::rebind_features_t<OneFeature>, Simple>);
-  static_assert(std::is_same_v<ezy::rebind_features_t<MoreFeatures>, Simple>);
-
-  static_assert(std::is_same_v<ezy::rebind_features_t<Simple, ezy::features::addable>, OneFeature>);
-  static_assert(std::is_same_v<ezy::rebind_features_t<OneFeature, ezy::features::addable>, OneFeature>);
-  static_assert(std::is_same_v<ezy::rebind_features_t<MoreFeatures, ezy::features::addable>, OneFeature>);
-
-  // TODO works with tuple
-  //static_assert(std::is_same_v<ezy::rebind_features_t<Simple, ezy::extract_features_t<MoreFeatures>>, MoreFeatures>);
-}
-
-
-
-
-SCENARIO("derived strong type")
-{
-
-  struct DerivedSimple : ezy::strong_type<int, DerivedSimple, ezy::features::addable>
-  {
-    // TODO is it required?
-    using strong_type::strong_type;
-  };
-
-  static_assert(!ezy::is_strong_type_v<DerivedSimple>); //it fails // should be accepted?
-  static_assert(ezy::is_strong_type_v<ezy::strong_type_base_t<DerivedSimple>>);
-
-  static_assert(std::is_same_v<ezy::strong_type_base_t<DerivedSimple>, ezy::strong_type<int, DerivedSimple, ezy::features::addable>>);
-  static_assert(std::is_same_v<ezy::strong_type_base_t<ezy::strong_type_base_t<DerivedSimple>>, ezy::strong_type<int, DerivedSimple, ezy::features::addable>>);
-
-  DerivedSimple s{3};
-
-  REQUIRE((s + s).get() == 6);
-}
-
 #include <ezy/experimental/function>
 
 const auto str_plus_int = [](const std::string& s, const int i)
@@ -1740,116 +1619,3 @@ SCENARIO("compose")
   }
 }
 
-#include "../include/ezy/tuple_traits"
-
-SCENARIO("tuple_traits")
-{
-  namespace ett = ezy::tuple_traits;
-
-  GIVEN("tuplify")
-  {
-    static_assert(std::is_same_v<ett::tuplify_t<std::tuple<>>, std::tuple<>>);
-    static_assert(std::is_same_v<ett::tuplify_t<std::tuple<int>>, std::tuple<int>>);
-    static_assert(std::is_same_v<ett::tuplify_t<std::tuple<int, double>>, std::tuple<int, double>>);
-    static_assert(std::is_same_v<ett::tuplify_t<int>, std::tuple<int>>);
-    static_assert(std::is_same_v<ett::tuplify_t<void>, std::tuple<>>);
-  }
-
-  GIVEN("append")
-  {
-    static_assert(std::is_same_v<ett::append_t<std::tuple<>, int>, std::tuple<int>>);
-    static_assert(std::is_same_v<ett::append_t<std::tuple<int>, double>, std::tuple<int, double>>);
-  }
-
-  GIVEN("extend")
-  {
-    static_assert(std::is_same_v<ett::extend_t<>, std::tuple<>>);
-    static_assert(std::is_same_v<ett::extend_t<std::tuple<int, int>>, std::tuple<int, int>>);
-    static_assert(std::is_same_v<ett::extend_t<std::tuple<int, int>, std::tuple<double>>, std::tuple<int, int, double>>);
-    static_assert(std::is_same_v<ett::extend_t<std::tuple<int, int>, std::tuple<double>, std::tuple<bool>>,
-        std::tuple<int, int, double, bool>>
-        );
-  }
-
-  GIVEN("head")
-  {
-    //static_assert(std::is_same_v<ett::head_t<std::tuple<>>, void>); // OK: it does not compile
-    static_assert(std::is_same_v<ett::head_t<std::tuple<int>>, int>);
-    static_assert(std::is_same_v<ett::head_t<std::tuple<double, int>>, double>);
-    static_assert(std::is_same_v<ett::head_t<std::tuple<double, bool, int>>, double>);
-  }
-
-  GIVEN("tail")
-  {
-    //static_assert(std::is_same_v<ett::tail_t<std::tuple<>>, void>); // OK: it does not compile
-    static_assert(std::is_same_v<ett::tail_t<std::tuple<int>>, std::tuple<>>);
-    static_assert(std::is_same_v<ett::tail_t<std::tuple<double, int>>, std::tuple<int>>);
-    static_assert(std::is_same_v<ett::tail_t<std::tuple<double, bool, int>>, std::tuple<bool, int>>);
-  }
-
-  GIVEN("remove")
-  {
-    static_assert(std::is_same_v<ett::remove_t<std::tuple<>, int>, std::tuple<>>);
-    static_assert(std::is_same_v<ett::remove_t<std::tuple<int>, int>, std::tuple<>>);
-    static_assert(std::is_same_v<ett::remove_t<std::tuple<int>, double>, std::tuple<int>>);
-    static_assert(std::is_same_v<ett::remove_t<std::tuple<int, double, int, double>, double>, std::tuple<int, int>>);
-  }
-
-  GIVEN("any_of")
-  {
-    static_assert(ett::any_of_v<std::tuple<>, std::is_reference> == false);
-    static_assert(ett::any_of_v<std::tuple<int>, std::is_reference> == false);
-    static_assert(ett::any_of_v<std::tuple<int, bool&>, std::is_reference> == true);
-
-  }
-
-  GIVEN("contains")
-  {
-    static_assert(ett::contains_v<std::tuple<>, int> == false);
-    static_assert(ett::contains_v<std::tuple<int>, int> == true);
-    static_assert(ett::contains_v<std::tuple<double, int>, int> == true);
-    static_assert(ett::contains_v<std::tuple<double, int>, char> == false);
-  }
-
-  GIVEN("unique")
-  {
-    static_assert(std::is_same_v<ett::unique_t<std::tuple<>>, std::tuple<>>);
-    static_assert(std::is_same_v<ett::unique_t<std::tuple<int, double>>, std::tuple<int, double>>);
-    static_assert(std::is_same_v<ett::unique_t<std::tuple<int, int>>, std::tuple<int>>);
-    static_assert(std::is_same_v<ett::unique_t<std::tuple<int, double, double, int, char, int>>, std::tuple<int, double, char>>);
-  }
-
-  GIVEN("flatten")
-  {
-    static_assert(std::is_same_v<ett::flatten_t<std::tuple<std::tuple<>>>, std::tuple<>>);
-    static_assert(std::is_same_v<ett::flatten_t<std::tuple<std::tuple<int>, std::tuple<bool>>>, std::tuple<int, bool>>);
-    static_assert(std::is_same_v<ett::flatten_t<std::tuple<std::tuple<int, double>, std::tuple<bool, int>>>, std::tuple<int, double, bool, int>>);
-  }
-
-  GIVEN("subtract")
-  {
-    static_assert(std::is_same_v<ett::subtract_t<std::tuple<>, std::tuple<>>, std::tuple<>>);
-    static_assert(std::is_same_v<ett::subtract_t<std::tuple<int>, std::tuple<>>, std::tuple<int>>);
-    static_assert(std::is_same_v<ett::subtract_t<std::tuple<int>, std::tuple<int>>, std::tuple<>>);
-    static_assert(std::is_same_v<ett::subtract_t<std::tuple<>, std::tuple<int>>, std::tuple<>>);
-  }
-
-  GIVEN("map")
-  {
-    static_assert(std::is_same_v<ett::map_t<std::tuple<>, std::vector>, std::tuple<>>);
-    static_assert(std::is_same_v<ett::map_t<std::tuple<int>, std::vector>, std::tuple<std::vector<int>>>);
-    static_assert(std::is_same_v<ett::map_t<std::tuple<int, char, int>, std::vector>,
-        std::tuple<std::vector<int>, std::vector<char>, std::vector<int>>
-        >);
-  }
-
-  GIVEN("rebind") // or rewrap?
-  {
-    static_assert(std::is_same_v<ett::rebind_t<std::tuple<int>, std::variant>, std::variant<int> >);
-  }
-
-  GIVEN("extract")
-  {
-    static_assert(std::is_same_v<ett::extract_t<std::tuple<int, double, bool>>, std::tuple<int, double, bool>>);
-  }
-}
