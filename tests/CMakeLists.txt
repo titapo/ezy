@@ -1,4 +1,4 @@
-add_executable(unit_test ezy.cc)
+add_executable(unit_test main.cc ezy.cc)
 
 include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/thirdparty/catch/include)
 

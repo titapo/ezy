@@ -1,8 +1,11 @@
-#define CATCH_CONFIG_MAIN
+//#define CATCH_CONFIG_MAIN
 
 #include <catch.hpp>
 
 #include "../include/ezy/strong_type"
+
+#include <sstream>
+#include <map>
 
 /**
  * strong type features: iterable
