@@ -1,4 +1,4 @@
-add_executable(unit_test main.cc ezy.cc strong_type_traits.cc tuple_traits.cc)
+add_executable(unit_test main.cc ezy.cc strong_type_traits.cc tuple_traits.cc iterable_feature.cc)
 
 # include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/thirdparty/catch/include)
 target_include_directories(unit_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/thirdparty/catch/include)
