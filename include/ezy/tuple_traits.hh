@@ -163,7 +163,6 @@ namespace ezy::tuple_traits
   /**
    * none_of
    */
-
   template <typename Tuple, template <typename> class Predicate>
   struct none_of;
 
@@ -181,6 +180,29 @@ namespace ezy::tuple_traits
 
   template <typename Tuple, template <typename> class Predicate>
   inline constexpr bool none_of_v = none_of<Tuple, Predicate>::value;
+
+  /**
+   * all_of
+   */
+
+  template <typename Tuple, template <typename> class Predicate>
+  struct all_of;
+
+  template <template <typename> class Predicate>
+  struct all_of<std::tuple<>, Predicate> : std::true_type {};
+
+  template <template <typename> class Predicate, typename Head, typename... Tail>
+  struct all_of<std::tuple<Head, Tail...>, Predicate> :
+    std::conditional_t<
+      !Predicate<Head>::value,
+      std::false_type,
+      all_of<std::tuple<Tail...>, Predicate>
+    >
+  {};
+
+  template <typename Tuple, template <typename> class Predicate>
+  inline constexpr bool all_of_v = all_of<Tuple, Predicate>::value;
+
 
   /**
    * contains

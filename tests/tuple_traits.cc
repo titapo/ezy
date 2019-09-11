@@ -62,6 +62,7 @@ SCENARIO("tuple_traits")
     static_assert(ett::any_of_v<std::tuple<>, std::is_reference> == false);
     static_assert(ett::any_of_v<std::tuple<int>, std::is_reference> == false);
     static_assert(ett::any_of_v<std::tuple<int, bool&>, std::is_reference> == true);
+    static_assert(ett::any_of_v<std::tuple<int&>, std::is_reference> == true);
   }
 
   GIVEN("none_of")
@@ -69,6 +70,15 @@ SCENARIO("tuple_traits")
     static_assert(ett::none_of_v<std::tuple<>, std::is_reference> == true);
     static_assert(ett::none_of_v<std::tuple<int>, std::is_reference> == true);
     static_assert(ett::none_of_v<std::tuple<int, bool&>, std::is_reference> == false);
+    static_assert(ett::none_of_v<std::tuple<int&>, std::is_reference> == false);
+  }
+
+  GIVEN("all_of")
+  {
+    static_assert(ett::all_of_v<std::tuple<>, std::is_reference> == true);
+    static_assert(ett::all_of_v<std::tuple<int>, std::is_reference> == false);
+    static_assert(ett::all_of_v<std::tuple<int, bool&>, std::is_reference> == false);
+    static_assert(ett::all_of_v<std::tuple<int&>, std::is_reference> == true);
   }
 
   GIVEN("contains")
