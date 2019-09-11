@@ -178,6 +178,33 @@ namespace ezy::tuple_traits
   template <typename Tuple, typename T>
   inline constexpr bool contains_v = contains<Tuple, T>::value;
 
+  /**
+   * filter
+   */
+  template <typename Tuple, template <typename> class Predicate>
+  struct filter;
+
+  template <template <typename> class Predicate>
+  struct filter<std::tuple<>, Predicate>
+  {
+    using type = std::tuple<>;
+  };
+
+  template <typename Head, typename... Tail, template <typename> class Predicate>
+  struct filter<std::tuple<Head, Tail...>, Predicate>
+  {
+    using type = extend_t<
+        std::conditional_t<
+          Predicate<Head>::value,
+          std::tuple<Head>,
+          std::tuple<>
+        >,
+        typename filter<std::tuple<Tail...>, Predicate>::type
+      >;
+  };
+
+  template <typename Tuple, template <typename> class Predicate>
+  using filter_t = typename filter<Tuple, Predicate>::type;
 
   /**
    * unique

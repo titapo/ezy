@@ -73,6 +73,12 @@ SCENARIO("tuple_traits")
     static_assert(ett::contains_v<std::tuple<double, int>, char> == false);
   }
 
+  GIVEN("filter")
+  {
+    static_assert(std::is_same_v<ett::filter_t<std::tuple<>, std::is_reference>, std::tuple<>>);
+    static_assert(std::is_same_v<ett::filter_t<std::tuple<char&, int, int&>, std::is_reference>, std::tuple<char&, int&>>);
+  }
+
   GIVEN("unique")
   {
     static_assert(std::is_same_v<ett::unique_t<std::tuple<>>, std::tuple<>>);
