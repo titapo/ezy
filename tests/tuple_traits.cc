@@ -127,6 +127,30 @@ SCENARIO("tuple_traits")
         >);
   }
 
+  GIVEN("zip")
+  {
+    static_assert(std::is_same_v<ett::zip_t<std::tuple<>, std::tuple<>>, std::tuple<>>);
+    static_assert(std::is_same_v<ett::zip_t<std::tuple<int>, std::tuple<bool>>,
+        std::tuple<std::tuple<int, bool>>>);
+
+    static_assert(std::is_same_v<ett::zip_t<std::tuple<int, double>, std::tuple<char, bool>>,
+        std::tuple<std::tuple<int, char>, std::tuple<double, bool>>>);
+  }
+
+  GIVEN("enumerate")
+  {
+    static_assert(std::is_same_v<ett::enumerate_t<std::tuple<>>, std::tuple<>>);
+    static_assert(std::is_same_v<ett::enumerate_t<std::tuple<int>>,
+        std::tuple< std::tuple<std::integral_constant<size_t, 0>, int> >>);
+
+    static_assert(std::is_same_v<ett::enumerate_t<std::tuple<int, double, int>>,
+        std::tuple<
+          std::tuple<std::integral_constant<size_t, 0>, int>,
+          std::tuple<std::integral_constant<size_t, 1>, double>,
+          std::tuple<std::integral_constant<size_t, 2>, int>
+        >>);
+  }
+
   GIVEN("rebind") // or rewrap?
   {
     static_assert(std::is_same_v<ett::rebind_t<std::tuple<int>, std::variant>, std::variant<int> >);

@@ -337,6 +337,66 @@ namespace ezy::tuple_traits
   template <typename Tuple, template <typename> class Metafunction>
   using map_t = typename map<Tuple, Metafunction>::type;
 
+  /**
+   * zip
+   */
+  template <typename Tuple1, typename Tuple2>
+  struct zip;
+
+  template <>
+  struct zip<std::tuple<>, std::tuple<>>
+  {
+    using type = std::tuple<>;
+  };
+
+  template <typename Head1, typename... Tail1, typename Head2, typename... Tail2>
+  struct zip<std::tuple<Head1, Tail1...>, std::tuple<Head2, Tail2...>>
+  {
+    static_assert(std::tuple_size_v<std::tuple<Head1, Tail1...>> == std::tuple_size_v<std::tuple<Head2, Tail2...>>,
+        "zipped tuples must have the same size");
+
+    using type = extend_t<
+      std::tuple<std::tuple<Head1, Head2>>,
+      typename zip<std::tuple<Tail1...>, std::tuple<Tail2...>>::type
+    >;
+  };
+
+  template <typename Tuple1, typename Tuple2>
+  using zip_t = typename zip<Tuple1, Tuple2>::type;
+
+  /**
+   * enumerate
+   */
+
+  namespace detail
+  {
+    template <typename IndexSequence>
+    struct to_tuple;
+
+    template <typename T, T... Is>
+    struct to_tuple<std::integer_sequence<T, Is...>>
+    {
+      using type = std::tuple<std::integral_constant<T, Is>...>;
+    };
+
+    template <typename IndexSequence>
+    using to_tuple_t = typename to_tuple<IndexSequence>::type;
+  }
+
+  template <typename Tuple>
+  struct enumerate;
+
+  template <typename... Ts>
+  struct enumerate<std::tuple<Ts...>>
+  {
+    using type = zip_t<
+      detail::to_tuple_t<std::index_sequence_for<Ts...>>,
+      std::tuple<Ts...>
+    >;
+  };
+
+  template <typename Tuple>
+  using enumerate_t = typename enumerate<Tuple>::type;
 
   /**
    * rebind
