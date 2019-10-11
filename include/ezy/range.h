@@ -185,6 +185,18 @@
           return std::pair<it_type, const end_it_type>(std::get<N>(current), std::get<N>(ranges).get().end());
         }
 
+        template <unsigned N, typename ItT>
+        void set_to(ItT it)
+        {
+          std::get<N>(current) = it;
+        }
+
+        template <unsigned N>
+        void set_to_end()
+        {
+          set_to<N>(std::get<N>(ranges).get().end());
+        }
+
         template <unsigned N>
         auto next()
         {
@@ -518,6 +530,60 @@
         typename RangeType::size_type n;
     };
 
+    template <typename RangeType, typename Predicate>
+    struct take_while_iterator
+    {
+      public:
+        using difference_type = typename RangeType::const_iterator::difference_type;
+        using value_type = typename RangeType::const_iterator::value_type;
+        using pointer = typename RangeType::const_iterator::pointer;
+        using reference = typename RangeType::const_iterator::reference;
+        using iterator_category = std::forward_iterator_tag; // ??
+
+
+      explicit take_while_iterator(const RangeType& range, Predicate p)
+        : tracker(range)
+        , predicate(std::move(p))
+      {
+        if (auto [it, end] = tracker.template get<0>(); it != end && !predicate(*it))
+          tracker.template set_to<0>(end);
+      }
+
+      explicit take_while_iterator(const RangeType& range, Predicate p, end_marker_t)
+        : tracker(range)
+        , predicate(std::move(p))
+      {
+        const auto [it, end] = tracker.template get<0>();
+        tracker.template set_to<0>(end);
+      }
+
+      inline take_while_iterator& operator++()
+      {
+        tracker.template next<0>();
+        const auto [it, end] = tracker.template get<0>();
+        if (!predicate(*it))
+          tracker.template set_to<0>(end);
+
+        return *this;
+      }
+
+      decltype(auto) operator*()
+      {
+        return *(tracker.template get<0>().first);
+      }
+
+      bool operator!=(const take_while_iterator&) const
+      {
+        // TODO fix it
+        const auto [it, end] = tracker.template get<0>();
+        return it != end;
+      }
+
+      private:
+        range_tracker<RangeType> tracker;
+        Predicate predicate;
+    };
+
 #include <cstddef>
 #include <tuple>
 
@@ -783,6 +849,33 @@
 
         const RangeType& range;
         size_type n;
+    };
+
+    template <typename RangeType, typename Predicate>
+    struct take_while_range_view
+    {
+      public:
+        using const_iterator = take_while_iterator<RangeType, Predicate>;
+        using size_type = typename RangeType::size_type;
+
+        template <typename PredT>
+        explicit take_while_range_view(const RangeType& range, PredT&& p_pred)
+          : range(range)
+          , pred(std::forward<PredT>(p_pred))
+        {}
+
+        const_iterator begin() const
+        {
+          return const_iterator(range, pred);
+        }
+
+        const_iterator end() const
+        {
+          return const_iterator(range, pred, end_marker_t{});
+        }
+
+        const RangeType& range;
+        Predicate pred;
     };
 
 #endif

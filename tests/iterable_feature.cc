@@ -442,6 +442,14 @@ SCENARIO("strong type extensions")
       COMPARE_RANGES(numbers.take(15), (std::initializer_list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
     }
 
+    WHEN("take_while")
+    {
+      COMPARE_RANGES(numbers.take_while([](int i) {return i < 5;}), (std::initializer_list{1, 2, 3, 4}));
+      COMPARE_RANGES(numbers.take_while([](int i) {return i > 5;}), (std::initializer_list<int>{}));
+      COMPARE_RANGES(numbers.take_while([](int i) {return i < 15;}), (std::initializer_list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+    }
+    // take until?
+
     //
     // TODO fold
     // TODO span(unary): similar to partition, just splitting at first !unary(element)
@@ -449,7 +457,6 @@ SCENARIO("strong type extensions")
     // TODO drop(n: index): removes the first n elements
     // TODO split_at(index)
     // TODO head/tail
-    // TODO take_while(predicate)
     // TODO unzip
     // TODO grouping?
     // TODO collect?
