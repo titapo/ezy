@@ -258,6 +258,15 @@ namespace ezy::features
       return algo_iterable_range_view(result_range_type(this->that().get()));
     }
 
+    auto take(size_t n) const
+    {
+      using this_range = std::remove_reference_t<typename T::type>;
+      using result_range = take_n_range_view<this_range>;
+      using algo_iterable_range_view = strong_type<result_range, notag_t, has_iterator, algo_iterable>;
+      return algo_iterable_range_view(result_range(this->that().get(), n));
+
+    }
+
     template <typename ResultContainer>
     ResultContainer to() const
     {

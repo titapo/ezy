@@ -469,6 +469,54 @@
     }
     */
 
+    template <typename RangeType>
+    struct take_iterator
+    {
+      public:
+        using difference_type = typename RangeType::const_iterator::difference_type;
+        using value_type = typename RangeType::const_iterator::value_type;
+        using pointer = typename RangeType::const_iterator::pointer;
+        using reference = typename RangeType::const_iterator::reference;
+        using iterator_category = std::forward_iterator_tag; // ??
+
+
+      static typename RangeType::size_type
+      minimum_n(typename RangeType::size_type n, const RangeType& range)
+      {
+        return std::min<decltype(n)>(n, std::distance(std::begin(range), std::end(range)));
+      }
+
+      explicit take_iterator(const RangeType& range, typename RangeType::size_type n)
+        : tracker(range)
+        , n(minimum_n(n, range))
+      {}
+
+      explicit take_iterator(const RangeType& range, end_marker_t)
+        : tracker(range)
+        , n(0)
+      {}
+
+      inline take_iterator& operator++()
+      {
+        tracker.template next<0>();
+        --n;
+        return *this;
+      }
+
+      decltype(auto) operator*()
+      {
+        return *(tracker.template get<0>().first);
+      }
+
+      bool operator!=(const take_iterator&) const
+      {
+        return n != 0;
+      }
+
+      private:
+        range_tracker<RangeType> tracker;
+        typename RangeType::size_type n;
+    };
 
 #include <cstddef>
 #include <tuple>
@@ -710,5 +758,31 @@
 
     using pick_first = pick_nth_t<0>;
     using pick_second = pick_nth_t<1>;
+
+    template <typename RangeType>
+    struct take_n_range_view
+    {
+      public:
+        using const_iterator = take_iterator<RangeType>;
+        using size_type = typename RangeType::size_type;
+
+        explicit take_n_range_view(const RangeType& range, size_type n)
+          : range(range)
+          , n(n)
+        {}
+
+        const_iterator begin() const
+        {
+          return const_iterator(range, n);
+        }
+
+        const_iterator end() const
+        {
+          return const_iterator(range, end_marker_t{});
+        }
+
+        const RangeType& range;
+        size_type n;
+    };
 
 #endif

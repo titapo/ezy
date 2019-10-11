@@ -21,7 +21,7 @@ template <typename RangeType>
 std::ostream& range_to_stream(std::ostream& ostr, const RangeType& range)
 {
   ostr << "[";
-  for (const auto e : range)
+  for (const auto& e : range)
     element_to_stream(ostr, e) << ", ";
 
   return ostr << "]";
@@ -433,15 +433,23 @@ SCENARIO("strong type extensions")
       REQUIRE(numbers.size() == 10);
     }
 
+    WHEN("take")
+    {
+      COMPARE_RANGES(numbers.take(1), (std::initializer_list{1}));
+      COMPARE_RANGES(numbers.take(2), (std::initializer_list{1, 2}));
+      COMPARE_RANGES(numbers.take(5), (std::initializer_list{1, 2, 3, 4, 5}));
+      COMPARE_RANGES(numbers.take(10), (std::initializer_list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+      COMPARE_RANGES(numbers.take(15), (std::initializer_list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+    }
+
     //
     // TODO fold
     // TODO span(unary): similar to partition, just splitting at first !unary(element)
     // TODO break(unary): span with inverted condition
-    // TODO drop(n: index): drop (and return) the first n elements <-- what is the difference between this and take
-    //                     (mutability?)
+    // TODO drop(n: index): removes the first n elements
     // TODO split_at(index)
     // TODO head/tail
-    // TODO take(n)?, take_while(predicate)
+    // TODO take_while(predicate)
     // TODO unzip
     // TODO grouping?
     // TODO collect?
