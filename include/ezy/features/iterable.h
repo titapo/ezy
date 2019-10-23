@@ -7,17 +7,12 @@
 
 #include "../range.h"
 #include "../utility.h" // for ezy::optional
+#include "../algorithm.h"
 
 #include <experimental/type_traits>
 
 template <typename Range, typename Key>
 using find_mem_fn_t = decltype(std::declval<Range>().find(std::declval<Key>()));
-
-template <typename Range>
-using size_mem_fn_t = decltype(std::declval<Range>().size());
-
-template <typename Range>
-using empty_mem_fn_t = decltype(std::declval<Range>().empty());
 
 namespace ezy::features
 {
@@ -129,28 +124,14 @@ namespace ezy::features
         return result_type();
     }
 
-    auto empty() const
+    [[nodiscard]] constexpr auto empty() const
     {
-      if constexpr (std::experimental::is_detected<empty_mem_fn_t, typename T::type>::value)
-      {
-        return this->that().get().empty();
-      }
-      else
-      {
-        return !(this->that().get().begin() != this->that().get().end());
-      }
+      return ezy::empty(this->that().get());
     }
 
-    auto size() const
+    [[nodiscard]] constexpr auto size() const
     {
-      if constexpr (std::experimental::is_detected<size_mem_fn_t, typename T::type>::value)
-      {
-        return this->that().get().size();
-      }
-      else
-      {
-        return std::distance(this->that().get().begin(), this->that().get().end());
-      }
+      return ezy::size(this->that().get());
     }
 
     template <typename Element>
