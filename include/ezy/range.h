@@ -1,6 +1,8 @@
 #ifndef STASH_RANGE_H_INCLUDED
 #define STASH_RANGE_H_INCLUDED
 
+#include "experimental/apply_each.h"
+
 #include <type_traits>
 #include <utility>
 #include <iterator>
@@ -154,7 +156,6 @@
     struct end_marker_t
     {};
 
-    // TODO generalize to N
     template <typename... Ranges>
     struct range_tracker
     {
@@ -205,9 +206,7 @@
 
         void next_all()
         {
-          // TODO TODO FIXME
-          ++std::get<0>(current);
-          ++std::get<1>(current);
+          ezy::experimental::apply_each([](auto& it){ ++it; }, current);
         }
 
       private:
