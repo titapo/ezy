@@ -1108,3 +1108,10 @@ SCENARIO("tuple_map")
   REQUIRE(result == std::tuple{2, 'c', 4.4});
 }
 
+SCENARIO("tuple_fold")
+{
+  const std::tuple<int, double, int> t{1, 3.4, 2};
+  const auto result = ezy::experimental::tuple_fold(t, 0, [](auto i, auto j) -> int {return i + j;});
+  REQUIRE(result == 6);
+}
+

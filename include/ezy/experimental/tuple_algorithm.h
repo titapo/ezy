@@ -30,6 +30,13 @@ namespace ezy::experimental
         std::make_index_sequence<std::tuple_size_v<std::decay_t<Tuple>>>{}
       );
   }
+
+  template <typename Tuple, typename T, typename Op>
+  [[nodiscard]] T tuple_fold(Tuple&& t, T init, Op&& op)
+  {
+    tuple_for_each(std::forward<Tuple>(t), [&init, &op](auto&& e){ init = std::invoke(op, init, e); });
+    return init;
+  }
 }
 
 #endif
