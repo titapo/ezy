@@ -1,13 +1,13 @@
-#ifndef EZY_EXPERIMENTAL_APPLY_EACH_H_INCLUDED
-#define EZY_EXPERIMENTAL_APPLY_EACH_H_INCLUDED
+#ifndef EZY_EXPERIMENTAL_TUPLE_ALGORITHM_H_INCLUDED
+#define EZY_EXPERIMENTAL_TUPLE_ALGORITHM_H_INCLUDED
 
 #include <utility>
 #include <tuple>
 
 namespace ezy::experimental
 {
-  template <typename Fn, typename Tuple>
-  void apply_each(Fn&& fn, Tuple&& t)
+  template <typename Tuple, typename Fn>
+  void tuple_for_each(Tuple&& t, Fn&& fn)
   {
     std::apply([&fn](auto&&... e) { (fn(std::forward<decltype(e)>(e)), ...);}, std::forward<Tuple>(t));
   }

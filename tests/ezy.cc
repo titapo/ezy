@@ -1080,13 +1080,13 @@ SCENARIO("compose")
   }
 }
 
-#include <ezy/experimental/apply_each.h>
+#include <ezy/experimental/tuple_algorithm.h>
 
-SCENARIO("apply_each")
+SCENARIO("tuple_for_each")
 {
   std::tuple<int, char, double> t{1, 'b', 3.4};
   std::string result;
-  ezy::experimental::apply_each([&result](auto&& e)
+  ezy::experimental::tuple_for_each(t, [&result](auto&& e)
       {
         using decayed_t = std::decay_t<decltype(e)>;
         if constexpr (std::is_same_v<decayed_t, int>)
@@ -1097,7 +1097,7 @@ SCENARIO("apply_each")
           result += "double ";
         else
           result += "else ";
-      }, t);
+      });
   REQUIRE(result == "int char double ");
 }
 

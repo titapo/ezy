@@ -1,7 +1,7 @@
 #ifndef STASH_RANGE_H_INCLUDED
 #define STASH_RANGE_H_INCLUDED
 
-#include "experimental/apply_each.h"
+#include "experimental/tuple_algorithm.h"
 
 #include <type_traits>
 #include <utility>
@@ -206,7 +206,7 @@
 
         void next_all()
         {
-          ezy::experimental::apply_each([](auto& it){ ++it; }, current);
+          ezy::experimental::tuple_for_each(current, [](auto& it){ ++it; });
         }
 
       private:
