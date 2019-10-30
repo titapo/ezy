@@ -1099,6 +1099,12 @@ SCENARIO("apply_each")
           result += "else ";
       }, t);
   REQUIRE(result == "int char double ");
+}
 
+SCENARIO("tuple_map")
+{
+  const std::tuple<int, char, double> t{1, 'b', 3.4};
+  const auto result = ezy::experimental::tuple_map(t, [](auto i) -> decltype(i) {return i + 1;});
+  REQUIRE(result == std::tuple{2, 'c', 4.4});
 }
 
