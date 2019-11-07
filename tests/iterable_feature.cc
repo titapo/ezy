@@ -442,11 +442,23 @@ SCENARIO("strong type extensions")
       COMPARE_RANGES(numbers.take(15), (std::initializer_list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
     }
 
-    WHEN("take_while")
+    WHEN("take_while (<5)")
     {
       COMPARE_RANGES(numbers.take_while([](int i) {return i < 5;}), (std::initializer_list{1, 2, 3, 4}));
-      COMPARE_RANGES(numbers.take_while([](int i) {return i > 5;}), (std::initializer_list<int>{}));
-      COMPARE_RANGES(numbers.take_while([](int i) {return i < 15;}), (std::initializer_list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+    }
+    WHEN("take_while (>5)")
+    {
+      THEN("nothing returned")
+      {
+        COMPARE_RANGES(numbers.take_while([](int i) {return i > 5;}), (std::initializer_list<int>{}));
+      }
+    }
+    WHEN("take_while (<15)")
+    {
+      THEN("the whole range returned")
+      {
+        COMPARE_RANGES(numbers.take_while([](int i) {return i < 15;}), (std::initializer_list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+      }
     }
     // take until?
 

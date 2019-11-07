@@ -560,6 +560,9 @@
       {
         tracker.template next<0>();
         const auto [it, end] = tracker.template get<0>();
+        if (it == end)
+          return *this;
+
         if (!predicate(*it))
           tracker.template set_to<0>(end);
 
