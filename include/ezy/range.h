@@ -55,6 +55,73 @@
             orig_type orig;
     };
 
+    // tag for mark end iterator - experimental
+    struct end_marker_t
+    {};
+
+    template <typename... Ranges>
+    struct range_tracker
+    {
+      public:
+        range_tracker(const Ranges&... ranges)
+          : ranges(ranges...)
+          , current(std::begin(ranges)...)
+        {}
+
+        range_tracker(const Ranges&... ranges, end_marker_t&&)
+          : ranges(ranges...)
+          , current(std::end(ranges)...)
+        {}
+
+        template <unsigned N>
+        auto get()
+        {
+          using it_type = decltype(std::get<N>(current));
+          using end_it_type = decltype(std::get<N>(ranges).get().end());
+          return std::pair<it_type, const end_it_type>(std::get<N>(current), std::get<N>(ranges).get().end());
+        }
+
+        template <unsigned N>
+        auto get() const
+        {
+          using it_type = decltype(std::get<N>(current));
+          using end_it_type = decltype(std::get<N>(ranges).get().end());
+          return std::pair<it_type, const end_it_type>(std::get<N>(current), std::get<N>(ranges).get().end());
+        }
+
+        template <unsigned N, typename ItT>
+        void set_to(ItT it)
+        {
+          std::get<N>(current) = it;
+        }
+
+        template <unsigned N>
+        void set_to_end()
+        {
+          set_to<N>(std::get<N>(ranges).get().end());
+        }
+
+        template <unsigned N>
+        auto next()
+        {
+          return ++std::get<N>(current);
+        }
+
+        void next_all()
+        {
+          ezy::experimental::tuple_for_each(current, [](auto& it){ ++it; });
+        }
+
+      private:
+      public:
+        template <typename RangeType>
+        using const_it_type = typename RangeType::const_iterator;
+
+        std::tuple<const std::reference_wrapper<const Ranges>...> ranges;
+        std::tuple<const_it_type<Ranges>...> current;
+    };
+
+
     template <typename orig_type,
              typename converter_type
              // , typename = IsFunction<converter_type>
@@ -150,72 +217,6 @@
         private:
             predicate_type predicate;
             const orig_type end_iterator;
-    };
-
-    // tag for mark end iterator - experimental
-    struct end_marker_t
-    {};
-
-    template <typename... Ranges>
-    struct range_tracker
-    {
-      public:
-        range_tracker(const Ranges&... ranges)
-          : ranges(ranges...)
-          , current(std::begin(ranges)...)
-        {}
-
-        range_tracker(const Ranges&... ranges, end_marker_t&&)
-          : ranges(ranges...)
-          , current(std::end(ranges)...)
-        {}
-
-        template <unsigned N>
-        auto get()
-        {
-          using it_type = decltype(std::get<N>(current));
-          using end_it_type = decltype(std::get<N>(ranges).get().end());
-          return std::pair<it_type, const end_it_type>(std::get<N>(current), std::get<N>(ranges).get().end());
-        }
-
-        template <unsigned N>
-        auto get() const
-        {
-          using it_type = decltype(std::get<N>(current));
-          using end_it_type = decltype(std::get<N>(ranges).get().end());
-          return std::pair<it_type, const end_it_type>(std::get<N>(current), std::get<N>(ranges).get().end());
-        }
-
-        template <unsigned N, typename ItT>
-        void set_to(ItT it)
-        {
-          std::get<N>(current) = it;
-        }
-
-        template <unsigned N>
-        void set_to_end()
-        {
-          set_to<N>(std::get<N>(ranges).get().end());
-        }
-
-        template <unsigned N>
-        auto next()
-        {
-          return ++std::get<N>(current);
-        }
-
-        void next_all()
-        {
-          ezy::experimental::tuple_for_each(current, [](auto& it){ ++it; });
-        }
-
-      private:
-      public:
-        template <typename RangeType>
-        using const_it_type = typename RangeType::const_iterator;
-
-        std::tuple<const std::reference_wrapper<const Ranges>...> ranges;
-        std::tuple<const_it_type<Ranges>...> current;
     };
 
     template <typename first_range_type, typename second_range_type>
