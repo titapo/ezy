@@ -19,15 +19,15 @@ namespace ezy::features
   template <typename T>
   struct has_iterator : crtp<T, has_iterator>
   {
-    auto begin() { return std::begin(this->that().get()); }
-    auto begin() const { return std::begin(this->that().get()); }
-    auto cbegin() { return std::cbegin(this->that().get()); }
-    auto cbegin() const { return std::cbegin(this->that().get()); }
+    constexpr auto begin() { return std::begin(this->that().get()); }
+    constexpr auto begin() const { return std::begin(this->that().get()); }
+    constexpr auto cbegin() { return std::cbegin(this->that().get()); }
+    constexpr auto cbegin() const { return std::cbegin(this->that().get()); }
 
-    auto end() { return std::end(this->that().get()); }
-    auto end() const { return std::end(this->that().get()); }
-    auto cend() { return std::cend(this->that().get()); }
-    auto cend() const { return std::cend(this->that().get()); }
+    constexpr auto end() { return std::end(this->that().get()); }
+    constexpr auto end() const { return std::end(this->that().get()); }
+    constexpr auto cend() { return std::cend(this->that().get()); }
+    constexpr auto cend() const { return std::cend(this->that().get()); }
   };
 
   template <typename T>

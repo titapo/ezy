@@ -58,7 +58,7 @@ namespace ezy
       strong_type& operator=(strong_type&&) = default;
 
       template <typename... Args>
-      /*explicit*/ strong_type(Args&&... args
+      constexpr /*explicit*/ strong_type(Args&&... args
           //, std::enable_if_t<std::is_constructible_v<type, Args...>>* = nullptr
           //, std::enable_if_t<detail::is_braces_constructible<T, Args...>::value>* = nullptr
           //, std::enable_if_t<(sizeof...(Args) != 1) || (!std::is_same_v<std::decay_t<typename detail::headof<Args...>::type>, strong_type>)>* = nullptr
@@ -68,8 +68,8 @@ namespace ezy
 
       //strong_type(const strong_type& rhs) = default;
 
-      T& get() & { return _value; }
-      decltype(auto) get() &&
+      constexpr T& get() & { return _value; }
+      constexpr decltype(auto) get() &&
       {
         if constexpr (std::is_lvalue_reference_v<T>)
           return _value;
@@ -94,9 +94,9 @@ namespace ezy
   struct crtp
   {
     using that_type = T;
-    T& that() & { return static_cast<T&>(*this); }
-    const T& that() const & { return static_cast<const T&>(*this); }
-    T&& that() && { return static_cast<T&&>(*this); }
+    constexpr T& that() & { return static_cast<T&>(*this); }
+    constexpr const T& that() const & { return static_cast<const T&>(*this); }
+    constexpr T&& that() && { return static_cast<T&&>(*this); }
   };
 
   template <typename T, template<typename> class crtp_type>
