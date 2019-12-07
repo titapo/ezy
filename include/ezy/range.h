@@ -22,34 +22,34 @@
             using reference = typename orig_type::reference;
             using iterator_category = typename orig_type::iterator_category;
 
-            explicit basic_iterator_adaptor(orig_type original)
+            constexpr explicit basic_iterator_adaptor(orig_type original)
                 : orig(original)
             {}
 
-            inline basic_iterator_adaptor& operator++()
+            inline constexpr basic_iterator_adaptor& operator++()
             {
                 ++orig;
                 return *this;
             }
 
-            inline auto operator*()
+            inline constexpr auto operator*()
             {
               return *orig;
             }
 
-            inline bool operator==(const basic_iterator_adaptor& rhs) const
+            inline constexpr bool operator==(const basic_iterator_adaptor& rhs) const
             { return orig == rhs.orig; }
 
-            inline bool operator!=(const basic_iterator_adaptor& rhs) const
+            inline constexpr bool operator!=(const basic_iterator_adaptor& rhs) const
             { return orig != rhs.orig; }
 
-            inline auto operator+=(difference_type diff)
+            inline constexpr auto operator+=(difference_type diff)
             { return orig += diff; }
 
-            inline auto operator-(const orig_type& rhs)
+            inline constexpr auto operator-(const orig_type& rhs)
             { return orig - rhs; }
 
-            inline auto operator-(const basic_iterator_adaptor& rhs)
+            inline constexpr auto operator-(const basic_iterator_adaptor& rhs)
             { return orig - rhs.orig; }
 
             orig_type orig;
@@ -143,21 +143,21 @@
             {}
             */
 
-            iterator_adaptor(orig_type original, const converter_type& c)
+            constexpr iterator_adaptor(orig_type original, const converter_type& c)
               : base(original)
               , converter(c)
             {}
 
-            inline iterator_adaptor operator+(int increment) const
+            inline constexpr iterator_adaptor operator+(int increment) const
             { return iterator_adaptor(base::orig + increment); }
 
-            inline iterator_adaptor& operator++()
+            inline constexpr iterator_adaptor& operator++()
             {
               ++base::orig;
               return *this;
             }
 
-            result_type operator*()
+            constexpr result_type operator*()
             {
               return converter(*(base::orig));
             }
@@ -605,7 +605,7 @@
     {
       using const_iterator = basic_iterator_adaptor<typename Range::const_iterator>;
 
-      basic_range_view(const Range& orig)
+      constexpr basic_range_view(const Range& orig)
         : orig_range(orig)
       {}
       
@@ -620,17 +620,17 @@
     {
       using base = basic_range_view<Range>;
 
-      range_view(const Range& orig, const Transformation& tr)
+      constexpr range_view(const Range& orig, const Transformation& tr)
         : orig_range(orig)
         , transformation(tr)
       {}
 
       using const_iterator = iterator_adaptor<typename Range::const_iterator, Transformation>;
 
-      const_iterator begin() const
+      constexpr const_iterator begin() const
       { return const_iterator(orig_range.begin(), transformation); }
 
-      const_iterator end() const
+      constexpr const_iterator end() const
       { return const_iterator(orig_range.end(), transformation); }
       
       const Range& orig_range;

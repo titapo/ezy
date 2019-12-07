@@ -93,6 +93,30 @@ void check_eager_evaluation_with_value(ActionType&& action)
   check_evaluation<ActionType, ResultIs::Value, Evaluated::Eager>(std::forward<ActionType>(action));
 }
 
+template <typename Range1, typename Range2>
+constexpr bool equal(const Range1& r1, const Range2& r2)
+{
+  auto it1 = std::begin(r1);
+  auto it2 = std::begin(r2);
+  const auto end1 = std::end(r1);
+  for (;it1 != end1; ++it1, ++it2)
+  {
+    if (!(*it1 == *it2))
+      return false;
+  }
+  return true;
+}
+
+constexpr bool consteval_check()
+{
+  using Array = ezy::strong_type<std::array<int, 10>, struct ArrayTag, ezy::features::iterable>;
+  Array arr{1,2,3,4,5,6,7,8,9,10};
+  // equal(arr.map([](int i) { return i + 1; }), std::array{2,3,4,5,6,7,8,9,10,11}); TODO this should work
+
+  return true;
+}
+
+static_assert(consteval_check());
 
 SCENARIO("strong type extensions")
 {

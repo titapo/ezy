@@ -76,7 +76,7 @@ namespace ezy
         else
           return std::move(_value);
       }
-      const T& get() const & { return _value; }
+      constexpr const T& get() const & { return _value; }
 
       explicit operator T() { return _value; }
       explicit operator T() const { return _value; }
