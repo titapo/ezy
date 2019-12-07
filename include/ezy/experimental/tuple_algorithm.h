@@ -6,6 +6,16 @@
 
 namespace ezy::experimental
 {
+  /**
+   * for_each for tuple-like objects
+   *
+   * pseudo code:
+   *
+   * for...(auto&& element : t)
+   * {
+   *    fn(element);
+   * }
+   */
   template <typename Tuple, typename Fn>
   void tuple_for_each(Tuple&& t, Fn&& fn)
   {
@@ -21,6 +31,11 @@ namespace ezy::experimental
     }
   }
 
+  /**
+   * mapping for tuple-like objects
+   *
+   * result is always an std::tuple (this may be relaxed)
+   */
   template <typename Tuple, typename Fn>
   [[nodiscard]] decltype(auto) tuple_map(Tuple&& t, Fn&& fn)
   {
@@ -31,6 +46,9 @@ namespace ezy::experimental
       );
   }
 
+  /**
+   * folding for tuple-like objects
+   */
   template <typename Tuple, typename T, typename Op>
   [[nodiscard]] T tuple_fold(Tuple&& t, T init, Op&& op)
   {
