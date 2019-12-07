@@ -1115,3 +1115,26 @@ SCENARIO("tuple_fold")
   REQUIRE(result == 6);
 }
 
+SCENARIO("tuple_for_each_enumerate")
+{
+  using namespace std::string_literals;
+  const std::tuple<int, unsigned, int> t{1, 20, 2};
+  std::string result;
+  ezy::experimental::tuple_for_each_enumerate(t,
+      [&result](size_t i, auto&& e) { result += " "s + std::to_string(i) + ":" + std::to_string(e); });
+  REQUIRE(result == " 0:1 1:20 2:2");
+}
+
+SCENARIO("tuple_for_each_enumerate as constexpr")
+{
+  using namespace std::string_literals;
+  const std::tuple<int, unsigned, int> t{1, 20, 2};
+  std::string result;
+  static constexpr auto characters = std::tuple{'a', 'b', 'c', 'd'};
+  ezy::experimental::tuple_for_each_enumerate(t,
+      [&result](auto i, auto&& e) {
+      result += " "s + std::to_string(i) + ":" + std::to_string(e) + "-" + std::get<i>(characters);
+      });
+  REQUIRE(result == " 0:1-a 1:20-b 2:2-c");
+}
+

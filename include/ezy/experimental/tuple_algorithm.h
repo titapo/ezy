@@ -31,6 +31,31 @@ namespace ezy::experimental
     }
   }
 
+  namespace detail
+  {
+    template <typename Tuple, typename Fn, size_t... Is>
+    auto tuple_for_each_enumerate_helper(Tuple&& t, Fn&& fn, std::index_sequence<Is...>)
+    {
+      (
+        std::invoke(
+          std::forward<Fn>(fn),
+          std::integral_constant<size_t, Is>{},
+          std::get<Is>(std::forward<Tuple>(t))
+        ), ...
+      );
+    }
+  }
+
+  template <typename Tuple, typename Fn>
+  auto tuple_for_each_enumerate(Tuple&& t, Fn &&fn)
+  {
+    detail::tuple_for_each_enumerate_helper(
+        std::forward<Tuple>(t),
+        std::forward<Fn>(fn),
+        std::make_index_sequence<std::tuple_size_v<std::decay_t<Tuple>>>()
+    );
+  }
+
   /**
    * mapping for tuple-like objects
    *
