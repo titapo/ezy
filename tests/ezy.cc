@@ -1082,6 +1082,7 @@ SCENARIO("compose")
 
 #include <ezy/experimental/tuple_algorithm.h>
 
+// TODO those things are implemented as strong type features
 SCENARIO("tuple_for_each")
 {
   std::tuple<int, char, double> t{1, 'b', 3.4};
@@ -1136,5 +1137,18 @@ SCENARIO("tuple_for_each_enumerate as constexpr")
       result += " "s + std::to_string(i) + ":" + std::to_string(e) + "-" + std::get<i>(characters);
       });
   REQUIRE(result == " 0:1-a 1:20-b 2:2-c");
+}
+
+SCENARIO("tuple_zip_for_each")
+{
+  using namespace std::string_literals;
+  const std::tuple<int, unsigned, int> t1{1, 20, 2};
+  const std::tuple<char, char, char> t2{'a', 'b', 'c'};
+  std::string result;
+  ezy::experimental::tuple_zip_for_each(t1, t2,
+      [&result](auto e1, auto e2) {
+      result += " "s + std::to_string(e1) + "-" + e2;
+      });
+  REQUIRE(result == " 1-a 20-b 2-c");
 }
 
