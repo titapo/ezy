@@ -1083,11 +1083,11 @@ SCENARIO("compose")
 #include <ezy/experimental/tuple_algorithm.h>
 
 // TODO those things are implemented as strong type features
-SCENARIO("tuple_for_each")
+SCENARIO("static_for")
 {
   std::tuple<int, char, double> t{1, 'b', 3.4};
   std::string result;
-  ezy::experimental::tuple_for_each(t, [&result](auto&& e)
+  ezy::experimental::static_for(t, [&result](auto&& e)
       {
         using decayed_t = std::decay_t<decltype(e)>;
         if constexpr (std::is_same_v<decayed_t, int>)

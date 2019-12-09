@@ -17,7 +17,7 @@ namespace ezy::experimental
    * }
    */
   template <typename Tuple, typename Fn>
-  void tuple_for_each(Tuple&& t, Fn&& fn)
+  void static_for(Tuple&& t, Fn&& fn)
   {
     std::apply([&fn](auto&&... e) { (fn(std::forward<decltype(e)>(e)), ...);}, std::forward<Tuple>(t));
   }
@@ -77,7 +77,7 @@ namespace ezy::experimental
   template <typename Tuple, typename T, typename Op>
   [[nodiscard]] T tuple_fold(Tuple&& t, T init, Op&& op)
   {
-    tuple_for_each(std::forward<Tuple>(t), [&init, &op](auto&& e){ init = std::invoke(op, init, e); });
+    static_for(std::forward<Tuple>(t), [&init, &op](auto&& e){ init = std::invoke(op, init, e); });
     return init;
   }
 
