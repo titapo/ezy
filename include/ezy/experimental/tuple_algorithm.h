@@ -24,6 +24,29 @@ namespace ezy::experimental
 
   namespace detail
   {
+    template <typename Fn, size_t... Is>
+    void static_for_index_helper(Fn&& fn, std::index_sequence<Is...>)
+    {
+      (
+        std::invoke(
+          std::forward<Fn>(fn),
+          std::integral_constant<size_t, Is>{}
+        ), ...
+      );
+    }
+  }
+
+  template <size_t Size, typename Fn>
+  constexpr void static_for_index(Fn&& fn)
+  {
+    detail::static_for_index_helper(
+        std::forward<Fn>(fn),
+        std::make_index_sequence<Size>()
+        );
+  }
+
+  namespace detail
+  {
     template <typename Fn, typename Tuple, size_t... Is>
     [[nodiscard]] decltype(auto) tuple_map_impl(Fn&& fn, Tuple&& t, std::index_sequence<Is...>)
     {

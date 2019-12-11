@@ -1152,3 +1152,17 @@ SCENARIO("tuple_zip_for_each")
   REQUIRE(result == " 1-a 20-b 2-c");
 }
 
+SCENARIO("static_for_index")
+{
+  using namespace std::string_literals;
+
+  const std::tuple<int, unsigned, int> t{1, 4u, 2};
+  std::string result;
+  ezy::experimental::static_for_index<3>([&](auto i)
+      {
+        result += " "s + std::to_string(i) + ":" + std::to_string(std::get<i>(t));
+      });
+
+   REQUIRE(result == " 0:1 1:4 2:2");
+}
+
