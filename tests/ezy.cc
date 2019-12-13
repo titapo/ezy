@@ -1087,17 +1087,12 @@ SCENARIO("static_for")
 {
   std::tuple<int, char, double> t{1, 'b', 3.4};
   std::string result;
-  ezy::experimental::static_for(t, [&result](auto&& e)
-      {
-        using decayed_t = std::decay_t<decltype(e)>;
-        if constexpr (std::is_same_v<decayed_t, int>)
-          result += "int ";
-        else if constexpr (std::is_same_v<decayed_t, char>)
-          result += "char ";
-        else if constexpr (std::is_same_v<decayed_t, double>)
-          result += "double ";
-        else
-          result += "else ";
+  ezy::experimental::static_for(t,
+      ezy::overloaded{
+        [&result] (int)    { result += "int ";},
+        [&result] (char)   { result += "char ";},
+        [&result] (double) { result += "double ";},
+        [&result] (auto)   { result += "else ";},
       });
   REQUIRE(result == "int char double ");
 }
