@@ -13,7 +13,7 @@ target_include_directories(unit_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${CMAKE
 set_property(TARGET unit_test PROPERTY CXX_STANDARD 17)
 
 target_compile_options(unit_test PRIVATE -pedantic -Wall -Werror)
-# target_compile_options(unit_test PRIVATE -D_GLIBCXX_DEBUG)
+target_compile_options(unit_test PRIVATE -D_GLIBCXX_DEBUG)
 
 
 # add_test(NAME unit_test COMMAND check)

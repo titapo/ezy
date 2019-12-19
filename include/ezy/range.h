@@ -109,7 +109,7 @@
 
         void next_all()
         {
-          ezy::experimental::static_for(current, [](auto& it){ ++it; });
+          ezy::experimental::static_for_each(current, [](auto& it){ ++it; });
         }
 
       private:

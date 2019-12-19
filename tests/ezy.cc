@@ -1083,11 +1083,11 @@ SCENARIO("compose")
 #include <ezy/experimental/tuple_algorithm.h>
 
 // TODO those things are implemented as strong type features
-SCENARIO("static_for")
+SCENARIO("static_for_each")
 {
   std::tuple<int, char, double> t{1, 'b', 3.4};
   std::string result;
-  ezy::experimental::static_for(t,
+  ezy::experimental::static_for_each(t,
       ezy::overloaded{
         [&result] (int)    { result += "int ";},
         [&result] (char)   { result += "char ";},
@@ -1147,17 +1147,33 @@ SCENARIO("tuple_zip_for_each")
   REQUIRE(result == " 1-a 20-b 2-c");
 }
 
-SCENARIO("static_for_index")
+SCENARIO("static_for")
 {
   using namespace std::string_literals;
 
   const std::tuple<int, unsigned, int> t{1, 4u, 2};
   std::string result;
-  ezy::experimental::static_for_index<3>([&](auto i)
+  ezy::experimental::static_for<3>([&](auto i)
       {
         result += " "s + std::to_string(i) + ":" + std::to_string(std::get<i>(t));
       });
 
    REQUIRE(result == " 0:1 1:4 2:2");
+}
+
+SCENARIO("handy size_of")
+{
+  using namespace std::string_literals;
+
+  const std::tuple t{1, 4u, 10, true};
+  static_assert(ezy::experimental::size_of(t) == 4);
+
+  std::string result;
+  ezy::experimental::static_for<ezy::experimental::size_of(t)>([&](auto i)
+      {
+        result += " "s + std::to_string(i) + ":" + std::to_string(std::get<i>(t));
+      });
+
+   REQUIRE(result == " 0:1 1:4 2:10 3:1");
 }
 
