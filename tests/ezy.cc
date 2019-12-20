@@ -707,6 +707,29 @@ SCENARIO("strong type for const struct")
   }
 }
 
+SCENARIO("strong type for a move only type")
+{
+  using ST = ezy::strong_type<move_only, struct DummyTag>;
+
+  WHEN("constructed from underlying type")
+  {
+    const ST st{move_only{1}};
+    THEN("it stores the proper value")
+    {
+      REQUIRE(st.get().i == 1);
+    }
+  }
+
+  WHEN("constructed as its underlying value")
+  {
+    const ST st{2};
+    THEN("it stores the proper value")
+    {
+      REQUIRE(st.get().i == 2);
+    }
+  }
+}
+
 SCENARIO("strong type reference for struct")
 {
   struct MyStruct
@@ -892,6 +915,8 @@ SCENARIO("strong type constructions")
       REQUIRE(st.get().d == 0.5);
     }
   }
+
+
   
 }
 
