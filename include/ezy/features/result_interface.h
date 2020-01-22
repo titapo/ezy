@@ -110,6 +110,32 @@ namespace ezy::features
     using rebind_success_t = typename rebind_success<NewValue>::type;
   };
 
+  /**
+   * Requirements for Adapter<T> (where T is the underlying type):
+   *
+   * Member functions:
+   * static is_success(T) -> bool
+   *   Returns: true if T holds success value, otherwise false
+   *
+   * static get_success(T) -> success_type
+   *   Expects: T holds success
+   *   Returns: success value
+   *
+   * static get_error(T) -> error_type
+   *   Expects: T does not hold success
+   *   Returns: error value
+   *
+   * static make_underlying_success(Ts&&...) -> T
+   *   Constructs a T instance storing success based on Ts...
+   *
+   * static make_underlying_error(Ts&&...) -> T
+   *   Constructs a T instance storing error
+   *
+   * Member alias templates
+   * template <typename U> rebind_success_t
+   *
+   * Gives back T' (same wrapper as T, but the changes its success type to U)
+   */
 
   template <template <typename...> class Adapter>
   struct result_interface
@@ -252,6 +278,9 @@ namespace ezy::features
 
       };
 
+      /**
+       * success_or(Alternative) -> success_type
+       */
       template <typename Alternative>
       decltype(auto) success_or(Alternative&& alternative) &
       {
@@ -270,6 +299,9 @@ namespace ezy::features
         return impl::success_or(std::move(*this).that(), std::forward<Alternative>(alternative));
       }
 
+      /**
+       * map_or(Fn, Alternative) -> success_type
+       */
       template <typename Fn, typename Alternative>
       decltype(auto) map_or(Fn&& fn, Alternative&& alternative) &
       {
@@ -288,6 +320,9 @@ namespace ezy::features
         return impl::map_or(std::move(*this).that(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
       }
 
+      /**
+       * map(Fn, Alternative) -> unspecified
+       */
       template <typename Fn>
       constexpr decltype(auto) map(Fn&& fn) &
       {
@@ -306,6 +341,9 @@ namespace ezy::features
         return impl::map(std::move(*this).that(), std::forward<Fn>(fn));
       }
 
+      /**
+       * map_or_else(FnSuccess, FnError) -> unspecified
+       */
       template <typename FnSucc, typename FnErr>
       constexpr decltype(auto) map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &
       {
@@ -324,6 +362,9 @@ namespace ezy::features
         return impl::map_or_else(std::move(*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
+      /**
+       * map_or_else<R>(FnSuccess, FnError) -> R
+       */
       template <typename Ret, typename FnSucc, typename FnErr>
       constexpr Ret map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &
       {
@@ -343,6 +384,9 @@ namespace ezy::features
       }
 
 
+      /**
+       * and_then(Fn) -> unspecified
+       */
       template <typename Fn>
       constexpr decltype(auto) and_then(Fn&& fn) &
       {
