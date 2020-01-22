@@ -10,7 +10,7 @@ namespace ezy
   namespace features
   {
     template <typename T>
-    struct inherit_std_optional : crtp<T, inherit_std_optional>
+    struct operator_arrow : crtp<T, operator_arrow>
     {
       /* operator-> */
       constexpr decltype(auto) operator->() const
@@ -18,7 +18,11 @@ namespace ezy
 
       constexpr decltype(auto) operator->()
       { return (*this).that().get().operator->(); }
+    };
 
+    template <typename T>
+    struct operator_star : crtp<T, operator_star>
+    {
       /* operator* */
       constexpr decltype(auto) operator*() const &
       { return (*this).that().get().operator*(); }
@@ -32,42 +36,57 @@ namespace ezy
       constexpr decltype(auto) operator*() const &&
       { return std::move(*this).that().get().operator*(); }
 
-      /* operator bool */
-      constexpr explicit operator bool() const noexcept
-      { return static_cast<bool>((*this).that().get()); }
-
-      /* has_value() */
-      constexpr bool has_value() const noexcept
-      { return (*this).that().get().has_value(); }
-
-      /* value() */
-      constexpr decltype(auto) value() &
-      { return (*this).that().get().value(); }
-
-      constexpr decltype(auto) value() const &
-      { return (*this).that().get().value(); }
-
-      constexpr decltype(auto) value() &&
-      { return std::move(*this).that().get().value(); }
-
-      constexpr decltype(auto) value() const &&
-      { return std::move(*this).that().get().value(); }
-
-      /* value_or() */
-      template <typename U>
-      constexpr decltype(auto) value_or(U&& default_value) const &
-      { return (*this).that().get().value_or(std::forward<U>(default_value)); }
-
-      template <typename U>
-      constexpr decltype(auto) value_or(U&& default_value) &&
-      { return std::move(*this).that().get().value_or(std::forward<U>(default_value)); }
-
-      // TODO consider to add
-      // operator=
-      // swap (alongside std::swap specialization)
-      // reset
-      // emplace
     };
+
+    namespace detail
+    {
+      template <typename T>
+      struct inherit_std_optional_helper : crtp<T, inherit_std_optional_helper>
+      {
+        /* operator bool */
+        constexpr explicit operator bool() const noexcept
+        { return static_cast<bool>((*this).that().get()); }
+
+        /* has_value() */
+        constexpr bool has_value() const noexcept
+        { return (*this).that().get().has_value(); }
+
+        /* value() */
+        constexpr decltype(auto) value() &
+        { return (*this).that().get().value(); }
+
+        constexpr decltype(auto) value() const &
+        { return (*this).that().get().value(); }
+
+        constexpr decltype(auto) value() &&
+        { return std::move(*this).that().get().value(); }
+
+        constexpr decltype(auto) value() const &&
+        { return std::move(*this).that().get().value(); }
+
+        /* value_or() */
+        template <typename U>
+        constexpr decltype(auto) value_or(U&& default_value) const &
+        { return (*this).that().get().value_or(std::forward<U>(default_value)); }
+
+        template <typename U>
+        constexpr decltype(auto) value_or(U&& default_value) &&
+        { return std::move(*this).that().get().value_or(std::forward<U>(default_value)); }
+
+        // TODO consider to add
+        // operator=
+        // swap (alongside std::swap specialization)
+        // reset
+        // emplace
+      };
+    }
+
+    template <typename T>
+    struct inherit_std_optional :
+      detail::inherit_std_optional_helper<T>,
+      operator_arrow<T>,
+      operator_star<T>
+    {};
 
   }
 
