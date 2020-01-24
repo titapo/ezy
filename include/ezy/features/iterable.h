@@ -17,17 +17,19 @@ using find_mem_fn_t = decltype(std::declval<Range>().find(std::declval<Key>()));
 namespace ezy::features
 {
   template <typename T>
-  struct has_iterator : crtp<T, has_iterator>
+  struct has_iterator : feature<T, has_iterator>
   {
-    constexpr auto begin() { return std::begin(this->that().get()); }
-    constexpr auto begin() const { return std::begin(this->that().get()); }
-    constexpr auto cbegin() { return std::cbegin(this->that().get()); }
-    constexpr auto cbegin() const { return std::cbegin(this->that().get()); }
+    using base = feature<T, has_iterator>;
 
-    constexpr auto end() { return std::end(this->that().get()); }
-    constexpr auto end() const { return std::end(this->that().get()); }
-    constexpr auto cend() { return std::cend(this->that().get()); }
-    constexpr auto cend() const { return std::cend(this->that().get()); }
+    constexpr auto begin() { return std::begin(base::underlying()); }
+    constexpr auto begin() const { return std::begin(base::underlying()); }
+    constexpr auto cbegin() { return std::cbegin(base::underlying()); }
+    constexpr auto cbegin() const { return std::cbegin(base::underlying()); }
+
+    constexpr auto end() { return std::end(base::underlying()); }
+    constexpr auto end() const { return std::end(base::underlying()); }
+    constexpr auto cend() { return std::cend(base::underlying()); }
+    constexpr auto cend() const { return std::cend(base::underlying()); }
   };
 
   template <typename T>
@@ -37,18 +39,20 @@ namespace ezy::features
   };
 
   template <typename T>
-  struct algo_iterable : crtp<T, algo_iterable>
+  struct algo_iterable : feature<T, algo_iterable>
   {
+    using base = feature<T, algo_iterable>;
+
     template < typename UnaryFunction >
     auto for_each(UnaryFunction f)
     {
-      return std::for_each(this->that().get().begin(), this->that().get().end(), f);
+      return std::for_each(base::underlying().begin(), base::underlying().end(), f);
     }
 
     template <typename UnaryFunction>
     auto for_each(UnaryFunction f) const
     {
-      return std::for_each(this->that().get().begin(), this->that().get().end(), f);
+      return std::for_each(base::underlying().begin(), base::underlying().end(), f);
     }
 
     template <typename UnaryFunction>
@@ -57,7 +61,7 @@ namespace ezy::features
       using range_type = typename std::remove_reference<typename T::type>::type;
       using result_range_type = range_view<range_type, UnaryFunction>;
       using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(this->that().get(), std::forward<UnaryFunction>(f)));
+      return algo_iterable_range_view(result_range_type(base::underlying(), std::forward<UnaryFunction>(f)));
     }
 
     template <typename UnaryFunction>
@@ -67,7 +71,7 @@ namespace ezy::features
       using range_type = typename std::remove_reference<typename T::type>::type;
       using result_range_type = range_view<range_type, UnaryFunction>;
       using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(this->that().get(), std::forward<UnaryFunction>(f)));
+      return algo_iterable_range_view(result_range_type(base::underlying(), std::forward<UnaryFunction>(f)));
     }
 
     template <typename RhsRange>
@@ -76,7 +80,7 @@ namespace ezy::features
       using range_type = typename std::remove_reference<typename T::type>::type;
       using result_range_type = concatenated_range_view<range_type, RhsRange>;
       using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(this->that().get(), rhs));
+      return algo_iterable_range_view(result_range_type(base::underlying(), rhs));
     }
 
     template <typename Predicate>
@@ -85,7 +89,7 @@ namespace ezy::features
       using range_type = typename std::remove_reference<typename T::type>::type;
       using result_range_type = range_view_filter<range_type, Predicate>;
       using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(this->that().get(), std::forward<Predicate>(predicate)));
+      return algo_iterable_range_view(result_range_type(base::underlying(), std::forward<Predicate>(predicate)));
     }
 
     template <typename Element>
@@ -96,16 +100,16 @@ namespace ezy::features
 
       if constexpr (std::experimental::is_detected<find_mem_fn_t, typename T::type, Element>::value)
       {
-        const auto found = this->that().get().find(std::forward<Element>(element));
-        if (found != this->that().get().end())
+        const auto found = base::underlying().find(std::forward<Element>(element));
+        if (found != base::underlying().end())
           return result_type(*found);
         else
           return result_type();
       }
       else
       {
-        const auto found = std::find(this->that().get().begin(), this->that().get().end(), std::forward<Element>(element));
-        if (found != this->that().get().end())
+        const auto found = std::find(base::underlying().begin(), base::underlying().end(), std::forward<Element>(element));
+        if (found != base::underlying().end())
           return result_type(*found);
         else
           return result_type();
@@ -117,8 +121,8 @@ namespace ezy::features
     {
       using range_type = typename std::remove_reference<typename T::type>::type;
       using result_type = ezy::optional<typename range_type::value_type>;
-      const auto found = std::find_if(this->that().get().begin(), this->that().get().end(), std::forward<Predicate>(predicate));
-      if (found != this->that().get().end())
+      const auto found = std::find_if(base::underlying().begin(), base::underlying().end(), std::forward<Predicate>(predicate));
+      if (found != base::underlying().end())
         return result_type(*found);
       else
         return result_type();
@@ -126,12 +130,12 @@ namespace ezy::features
 
     [[nodiscard]] constexpr auto empty() const
     {
-      return ezy::empty(this->that().get());
+      return ezy::empty(base::underlying());
     }
 
     [[nodiscard]] constexpr auto size() const
     {
-      return ezy::size(this->that().get());
+      return ezy::size(base::underlying());
     }
 
     template <typename Element>
@@ -143,13 +147,13 @@ namespace ezy::features
     template <typename Type>
     Type accumulate(Type init) 
     {
-      return std::accumulate(this->that().get().begin(), this->that().get().end(), init);
+      return std::accumulate(base::underlying().begin(), base::underlying().end(), init);
     }
 
     template <typename Type, typename BinaryOp>
     Type accumulate(Type init, BinaryOp op) 
     {
-      return std::accumulate(this->that().get().begin(), this->that().get().end(), init, op);
+      return std::accumulate(base::underlying().begin(), base::underlying().end(), init, op);
     }
 
     /*
@@ -157,7 +161,7 @@ namespace ezy::features
     template <typename Type>
     Type reduce(Type init) 
     {
-      return std::reduce(this->that().get().begin(), this->that().get().end(), init);
+      return std::reduce(base::underlying().begin(), base::underlying().end(), init);
     }
     */
 
@@ -176,8 +180,8 @@ namespace ezy::features
       };
 
       return std::make_tuple(
-          algo_iterable_range_view(result_range_type(this->that().get(), predicate)),
-          algo_iterable_range_view(result_range_type(this->that().get(), negate_result(predicate)))
+          algo_iterable_range_view(result_range_type(base::underlying(), predicate)),
+          algo_iterable_range_view(result_range_type(base::underlying(), negate_result(predicate)))
           );
     }
 
@@ -186,25 +190,25 @@ namespace ezy::features
       using range_type = typename std::remove_reference<typename T::type>::type;
       using result_range_type = range_view_slice<range_type>;
       using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(this->that().get(), from, until));
+      return algo_iterable_range_view(result_range_type(base::underlying(), from, until));
     }
 
     template <typename Predicate>
     bool all(Predicate&& predicate) const
     {
-      return std::all_of(this->that().get().begin(), this->that().get().end(), std::forward<Predicate>(predicate));
+      return std::all_of(base::underlying().begin(), base::underlying().end(), std::forward<Predicate>(predicate));
     }
 
     template <typename Predicate>
     bool any(Predicate&& predicate) const
     {
-      return std::any_of(this->that().get().begin(), this->that().get().end(), std::forward<Predicate>(predicate));
+      return std::any_of(base::underlying().begin(), base::underlying().end(), std::forward<Predicate>(predicate));
     }
 
     template <typename Predicate>
     bool none(Predicate&& predicate) const
     {
-      return std::none_of(this->that().get().begin(), this->that().get().end(), std::forward<Predicate>(predicate));
+      return std::none_of(base::underlying().begin(), base::underlying().end(), std::forward<Predicate>(predicate));
     }
 
     /*
@@ -216,7 +220,7 @@ namespace ezy::features
       using wrapper_range = basic_range_view<algo_iterable_group_type>;
       using algo_iterable_wrapper_range = strong_type<wrapper_range, notag_t, has_iterator, algo_iterable>;
       //using algo_iterable_range_view
-      return algo_iterable_wrapper_range(algo_iterable_group_type(this->that().get(), 0, group_size));
+      return algo_iterable_wrapper_range(algo_iterable_group_type(base::underlying(), 0, group_size));
     }
     */
 
@@ -227,7 +231,7 @@ namespace ezy::features
       using rhs_range_type = typename std::remove_reference<OtherRange>::type;
       using result_range_type = zip_range_view<lhs_range_type, rhs_range_type>;
       using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(this->that().get(), other_range));
+      return algo_iterable_range_view(result_range_type(base::underlying(), other_range));
     }
 
     //template <typename OtherRange> // TODO constrain to be a raised (flattenable) range
@@ -236,7 +240,7 @@ namespace ezy::features
       using ThisRange = typename std::remove_reference<typename T::type>::type;
       using result_range_type = flattened_range_view<ThisRange> ;
       using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(this->that().get()));
+      return algo_iterable_range_view(result_range_type(base::underlying()));
     }
 
     auto take(size_t n) const
@@ -244,7 +248,7 @@ namespace ezy::features
       using this_range = std::remove_reference_t<typename T::type>;
       using result_range = take_n_range_view<this_range>;
       using algo_iterable_range_view = strong_type<result_range, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range(this->that().get(), n));
+      return algo_iterable_range_view(result_range(base::underlying(), n));
     }
 
     template <typename Predicate>
@@ -253,20 +257,20 @@ namespace ezy::features
       using this_range = std::remove_reference_t<typename T::type>;
       using result_range = take_while_range_view<this_range, std::decay_t<Predicate>>;
       using algo_iterable_range_view = strong_type<result_range, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range(this->that().get(), std::forward<Predicate>(pred)));
+      return algo_iterable_range_view(result_range(base::underlying(), std::forward<Predicate>(pred)));
     }
 
     template <typename ResultContainer>
     constexpr ResultContainer to() const
     {
-      return ResultContainer(this->that().get().begin(), this->that().get().end());
+      return ResultContainer(base::underlying().begin(), base::underlying().end());
     }
 
     template <typename ResultContainer>
     constexpr auto to_iterable() const
     {
       using algo_iterable_container = strong_type<ResultContainer, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_container(this->that().get().begin(), this->that().get().end());
+      return algo_iterable_container(base::underlying().begin(), base::underlying().end());
     }
 
   };

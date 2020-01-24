@@ -141,37 +141,37 @@ namespace ezy::features
   struct result_interface
   {
     template <typename T>
-    struct continuation : crtp<T, continuation>
+    struct continuation : feature<T, continuation>
     {
-      using base = crtp<T, continuation>;
+      using base = feature<T, continuation>;
       using self_type = continuation;
 
       //using trait_type = Adapter<typename T::type>;
 
       bool is_success() const
-      { return Adapter<typename T::type>::is_success((*this).that().get()); }
+      { return Adapter<typename T::type>::is_success(base::underlying()); }
 
       bool is_error() const
       { return !is_success(); }
 
       /* TODO make it work
       decltype(auto) success() const &
-      { return trait_type::get_success((*this).that()); }
+      { return trait_type::get_success((*this).self()); }
 
       decltype(auto) success() &
-      { return trait_type::get_success((*this).that()); }
+      { return trait_type::get_success((*this).self()); }
 
       decltype(auto) success() &&
-      { return trait_type::get_success(std::move(*this).that()); }
+      { return trait_type::get_success(std::move(*this).self()); }
 
       decltype(auto) error() const &
-      { return trait_type::get_error((*this).that()); }
+      { return trait_type::get_error((*this).self()); }
 
       decltype(auto) error() &
-      { return trait_type::get_error((*this).that()); }
+      { return trait_type::get_error((*this).self()); }
 
       decltype(auto) error() &&
-      { return trait_type::get_error(std::move(*this).that()); }
+      { return trait_type::get_error(std::move(*this).self()); }
       */
 
       // TODO it seems those factory functions do not work with non_transferable types, since T (strong type) does not work.
@@ -284,19 +284,19 @@ namespace ezy::features
       template <typename Alternative>
       decltype(auto) success_or(Alternative&& alternative) &
       {
-        return impl::success_or((*this).that(), std::forward<Alternative>(alternative));
+        return impl::success_or(base::self(), std::forward<Alternative>(alternative));
       }
 
       template <typename Alternative>
       decltype(auto) success_or(Alternative&& alternative) const &
       {
-        return impl::success_or((*this).that(), std::forward<Alternative>(alternative));
+        return impl::success_or(base::self(), std::forward<Alternative>(alternative));
       }
 
       template <typename Alternative>
       decltype(auto) success_or(Alternative&& alternative) &&
       {
-        return impl::success_or(std::move(*this).that(), std::forward<Alternative>(alternative));
+        return impl::success_or(std::move(*this).self(), std::forward<Alternative>(alternative));
       }
 
       /**
@@ -305,19 +305,19 @@ namespace ezy::features
       template <typename Fn, typename Alternative>
       decltype(auto) map_or(Fn&& fn, Alternative&& alternative) &
       {
-        return impl::map_or((*this).that(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
+        return impl::map_or((*this).self(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
       }
 
       template <typename Fn, typename Alternative>
       decltype(auto) map_or(Fn&& fn, Alternative&& alternative) const &
       {
-        return impl::map_or((*this).that(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
+        return impl::map_or((*this).self(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
       }
 
       template <typename Fn, typename Alternative>
       decltype(auto) map_or(Fn&& fn, Alternative&& alternative) &&
       {
-        return impl::map_or(std::move(*this).that(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
+        return impl::map_or(std::move(*this).self(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
       }
 
       /**
@@ -326,19 +326,19 @@ namespace ezy::features
       template <typename Fn>
       constexpr decltype(auto) map(Fn&& fn) &
       {
-        return impl::map((*this).that(), std::forward<Fn>(fn));
+        return impl::map((*this).self(), std::forward<Fn>(fn));
       }
 
       template <typename Fn>
       constexpr decltype(auto) map(Fn&& fn) const &
       {
-        return impl::map((*this).that(), std::forward<Fn>(fn));
+        return impl::map((*this).self(), std::forward<Fn>(fn));
       }
 
       template <typename Fn>
       constexpr decltype(auto) map(Fn&& fn) &&
       {
-        return impl::map(std::move(*this).that(), std::forward<Fn>(fn));
+        return impl::map(std::move(*this).self(), std::forward<Fn>(fn));
       }
 
       /**
@@ -347,19 +347,19 @@ namespace ezy::features
       template <typename FnSucc, typename FnErr>
       constexpr decltype(auto) map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &
       {
-        return impl::map_or_else((*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+        return impl::map_or_else((*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
       template <typename FnSucc, typename FnErr>
       constexpr decltype(auto) map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) const &
       {
-        return impl::map_or_else((*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+        return impl::map_or_else((*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
       template <typename FnSucc, typename FnErr>
       constexpr decltype(auto) map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &&
       {
-        return impl::map_or_else(std::move(*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+        return impl::map_or_else(std::move(*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
       /**
@@ -368,19 +368,19 @@ namespace ezy::features
       template <typename Ret, typename FnSucc, typename FnErr>
       constexpr Ret map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &
       {
-        return impl::template map_or_else<Ret>((*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+        return impl::template map_or_else<Ret>((*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
       template <typename Ret, typename FnSucc, typename FnErr>
       constexpr Ret map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) const &
       {
-        return impl::template map_or_else<Ret>((*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+        return impl::template map_or_else<Ret>((*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
       template <typename Ret, typename FnSucc, typename FnErr>
       constexpr Ret map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &&
       {
-        return impl::template map_or_else<Ret>(std::move(*this).that(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+        return impl::template map_or_else<Ret>(std::move(*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
 
@@ -390,19 +390,19 @@ namespace ezy::features
       template <typename Fn>
       constexpr decltype(auto) and_then(Fn&& fn) &
       {
-        return impl::and_then((*this).that(), std::forward<Fn>(fn));
+        return impl::and_then((*this).self(), std::forward<Fn>(fn));
       }
 
       template <typename Fn>
       constexpr decltype(auto) and_then(Fn&& fn) const&
       {
-        return impl::and_then((*this).that(), std::forward<Fn>(fn));
+        return impl::and_then((*this).self(), std::forward<Fn>(fn));
       }
 
       template <typename Fn>
       constexpr decltype(auto) and_then(Fn&& fn) &&
       {
-        return impl::and_then(std::move(*this).that(), std::forward<Fn>(fn));
+        return impl::and_then(std::move(*this).self(), std::forward<Fn>(fn));
       }
     };
   };

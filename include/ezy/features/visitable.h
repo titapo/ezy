@@ -9,25 +9,27 @@
 namespace ezy::features
 {
   template <typename T>
-  struct visitable : crtp<T, visitable>
+  struct visitable : feature<T, visitable>
   {
+    using base = feature<T, visitable>;
+
     template <typename... Visitors>
     decltype(auto) visit(Visitors&&... visitors) &
     {
-      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, this->that().get());
+      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, base::underlying());
     }
 
     template <typename... Visitors>
     decltype(auto) visit(Visitors&&... visitors) const &
     {
-      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, this->that().get());
+      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, base::underlying());
     }
 
     // TODO check it
     template <typename... Visitors>
     decltype(auto) visit(Visitors&&... visitors) &&
     {
-      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, std::move(*this).that().get());
+      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, std::move(*this).underlying());
     }
   };
 }

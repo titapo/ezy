@@ -93,17 +93,18 @@ namespace ezy
   template <typename T, template<typename> class crtp_type>
   struct crtp
   {
-    using that_type = T;
-    constexpr T& that() & { return static_cast<T&>(*this); }
-    constexpr const T& that() const & { return static_cast<const T&>(*this); }
-    constexpr T&& that() && { return static_cast<T&&>(*this); }
+    constexpr T& self() & { return static_cast<T&>(*this); }
+    constexpr const T& self() const & { return static_cast<const T&>(*this); }
+    constexpr T&& self() && { return static_cast<T&&>(*this); }
   };
 
   template <typename T, template<typename> class crtp_type>
-  struct strong_crtp : crtp<T, crtp_type>
+  struct feature : crtp<T, crtp_type>
   {
-    auto& underlying() { return this->that().get(); }
-    const auto& underlying() const { return this->that().get(); }
+    using base = crtp<T, crtp_type>;
+    auto& underlying() & { return base::self().get(); }
+    const auto& underlying() const & { return base::self().get(); }
+    auto&& underlying() && { return std::move(*this).self().get(); }
   };
 
   template <typename T, template<typename...> class crtp_type>
@@ -298,11 +299,13 @@ namespace ezy::features
    * features
    */
   template <typename T>
-  struct printable : crtp<T, printable>
+  struct printable : feature<T, printable>
   {
+    using base = feature<T, printable>;
+
     std::ostream& print_to_stream(std::ostream& ostr) const
     {
-      return ostr << this->that().get();
+      return ostr << base::underlying();
     }
   };
 
@@ -313,28 +316,30 @@ namespace ezy::features
   }
 
   template <typename T>
-  struct clonable : crtp<T, clonable>
+  struct clonable : feature<T, clonable>
   {
+    using base = feature<T, clonable>;
+
     T clone() const
     {
-      return {this->that().get()};
+      return {base::underlying()};
     }
   };
 
-  template <typename strong_type_t>
-  struct implicit_convertible;
-
-  template <typename underlying_type, typename Tag, template <typename> class... Features>
-  struct implicit_convertible<strong_type<underlying_type, Tag, Features...>> : crtp<strong_type<underlying_type, Tag, Features...>, implicit_convertible>
+  template <typename T>
+  struct implicit_convertible : feature<T, implicit_convertible>
   {
+    using base = feature<T, implicit_convertible>;
+    using underlying_type = extract_underlying_type_t<T>;
+
     operator const underlying_type&() const
     {
-      return this->that().get();
+      return base::underlying();
     }
 
     operator underlying_type&()
     {
-      return this->that().get();
+      return base::underlying;
     }
   };
 }

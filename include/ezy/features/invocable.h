@@ -6,7 +6,7 @@
 namespace ezy::features
 {
   template <typename T>
-  struct invocable : crtp<T, invocable>
+  struct invocable : feature<T, invocable>
   {
     struct impl
     {
@@ -20,19 +20,19 @@ namespace ezy::features
     template <typename... Ts>
     decltype(auto) operator()(Ts&&...ts) &
     {
-      return impl::invoke((*this).that(), std::forward<Ts>(ts)...);
+      return impl::invoke((*this).self(), std::forward<Ts>(ts)...);
     }
 
     template <typename... Ts>
     decltype(auto) operator()(Ts&&...ts) const &
     {
-      return impl::invoke((*this).that(), std::forward<Ts>(ts)...);
+      return impl::invoke((*this).self(), std::forward<Ts>(ts)...);
     }
 
     template <typename... Ts>
     decltype(auto) operator()(Ts&&...ts) &&
     {
-      return impl::invoke(std::move(*this).that(), std::forward<Ts>(ts)...);
+      return impl::invoke(std::move(*this).self(), std::forward<Ts>(ts)...);
     }
   };
 }

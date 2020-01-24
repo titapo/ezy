@@ -14,24 +14,30 @@ namespace ezy::features
   }
 
   template <typename T>
-  struct addable : crtp<T, addable>
+  struct addable : feature<T, addable>
   {
-    T operator+(T const& other) const { return T(this->that().get() + other.get()); }
+    using base = feature<T, addable>;
+    using base::self;
+
+    T operator+(T const& other) const { return T(self().get() + other.get()); }
     T& operator+=(T const& other)
     {
-      this->that().get() += other.get();
-      return this->that();
+      self().get() += other.get();
+      return self();
     }
   };
 
   template <typename T>
-  struct subtractable : crtp<T, subtractable>
+  struct subtractable : feature<T, subtractable>
   {
-    T operator-(T const& other) const { return T(this->that().get() - other.get()); }
+    using base = feature<T, subtractable>;
+    using base::self;
+
+    T operator-(T const& other) const { return T(self().get() - other.get()); }
     T& operator-=(T const& other)
     {
-      this->that().get() -= other.get();
-      return this->that();
+      self().get() -= other.get();
+      return self();
     }
   };
 
@@ -39,59 +45,74 @@ namespace ezy::features
   struct additive : addable<T>, subtractable<T> {};
 
   template <typename T>
-  struct equal_comparable : crtp<T, equal_comparable>
+  struct equal_comparable : feature<T, equal_comparable>
   {
+    using base = feature<T, equal_comparable>;
+    using base::self;
+
     bool operator==(const T& rhs) const
     {
-      return this->that().get() == rhs.get();
+      return self().get() == rhs.get();
     }
 
     bool operator!=(const T& rhs) const
     {
       if constexpr (std::experimental::is_detected_v<ezy::features::detail::operator_ne_t, typename T::type>)
       {
-        return this->that().get() != rhs.get();
+        return self().get() != rhs.get();
       }
       else
       {
-        return !(this->that() == rhs);
+        return !(self() == rhs);
       }
     }
   };
 
   template <typename T>
-  struct greater : crtp<T, greater>
+  struct greater : feature<T, greater>
   {
+    using base = feature<T, greater>;
+    using base::self;
+
     bool operator>(const T& rhs) const
     {
-      return this->that().get() > rhs.get();
+      return self().get() > rhs.get();
     }
   };
 
   template <typename T>
-  struct greater_equal : crtp<T, greater_equal>
+  struct greater_equal : feature<T, greater_equal>
   {
+    using base = feature<T, greater_equal>;
+    using base::self;
+
     bool operator>=(const T& rhs) const
     {
-      return this->that().get() >= rhs.get();
+      return self().get() >= rhs.get();
     }
   };
 
   template <typename T>
-  struct less : crtp<T, less>
+  struct less : feature<T, less>
   {
+    using base = feature<T, less>;
+    using base::self;
+
     bool operator<(const T& rhs) const
     {
-      return this->that().get() < rhs.get();
+      return self().get() < rhs.get();
     }
   };
 
   template <typename T>
-  struct less_equal : crtp<T, less_equal>
+  struct less_equal : feature<T, less_equal>
   {
+    using base = feature<T, less_equal>;
+    using base::self;
+
     bool operator<=(const T& rhs) const
     {
-      return this->that().get() <= rhs.get();
+      return self().get() <= rhs.get();
     }
   };
 
@@ -100,14 +121,17 @@ namespace ezy::features
   struct multipliable_by
   {
     template <typename T>
-    struct internal : crtp<T, internal>
+    struct internal : feature<T, internal>
     {
+      using base = feature<T, internal>;
+      using base::self;
+
       using numtype = N;
-      T operator*(numtype other) const { return T(this->that().get() * other); }
+      T operator*(numtype other) const { return T(self().get() * other); }
       T& operator*=(numtype other)
       {
-        this->that().get() *= other;
-        return this->that();
+        self().get() *= other;
+        return self();
       }
     };
   };
@@ -116,14 +140,17 @@ namespace ezy::features
   struct divisible_by
   {
     template <typename T>
-    struct internal : crtp<T, internal>
+    struct internal : feature<T, internal>
     {
+      using base = feature<T, internal>;
+      using base::self;
+
       using numtype = N;
-      T operator/(numtype other) const { return T(this->that().get() / other); }
+      T operator/(numtype other) const { return T(self().get() / other); }
       T& operator/=(numtype other)
       {
-        this->that().get() /= other;
-        return this->that();
+        self().get() /= other;
+        return self();
       }
     };
   };
