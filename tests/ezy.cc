@@ -1,6 +1,7 @@
 #include <catch.hpp>
 
 #include <ezy/strong_type>
+#include <ezy/features/common.h>
 
 // TODO think of: making ezy::optional and ezy::result iterable?
 
@@ -829,6 +830,31 @@ SCENARIO("strong type for vector")
       REQUIRE(other.get().at(1) == 5);
       REQUIRE(other.get().at(2) == 7);
       REQUIRE(other.get().at(3) == 9);
+    }
+  }
+}
+
+SCENARIO("subscript operator")
+{
+  using ST = ezy::strong_type<std::vector<int>, struct DummyTag, ezy::features::operator_subscript>;
+
+  GIVEN("a mutable vector with 4 elements")
+  {
+    ST st{1,2,3,4};
+    THEN("accessed")
+    {
+      REQUIRE(st[2] == 3);
+      ++st[3];
+      REQUIRE(st[3] == 5);
+    }
+  }
+
+  GIVEN("a vector with 4 elements")
+  {
+    const ST st{2,3,4,5};
+    THEN("accessed")
+    {
+      REQUIRE(st[2] == 4);
     }
   }
 }
