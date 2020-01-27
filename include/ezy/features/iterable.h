@@ -6,7 +6,7 @@
 #include <numeric> // for accumulate and reduce
 
 #include "../range.h"
-#include "../utility.h" // for ezy::optional
+#include "../optional" // for ezy::optional
 #include "../algorithm.h"
 
 #include <experimental/type_traits>
