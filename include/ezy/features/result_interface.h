@@ -17,8 +17,8 @@ namespace ezy::features
     using type = Wrapper<Success, Error>;
     inline static constexpr size_t success = 0;
     inline static constexpr size_t error = 1;
-    using success_type = std::decay_t<decltype(std::get<success>(std::declval<type>()))>;
-    using error_type = std::decay_t<decltype(std::get<error>(std::declval<type>()))>;
+    using success_type = ezy::remove_cvref_t<decltype(std::get<success>(std::declval<type>()))>;
+    using error_type = ezy::remove_cvref_t<decltype(std::get<error>(std::declval<type>()))>;
 
     template <typename T>
     static bool is_success(T&& t) noexcept
@@ -192,7 +192,7 @@ namespace ezy::features
         template <typename ST, typename Alternative>
         static constexpr decltype(auto) success_or(ST&& t, Alternative&& alternative)
         {
-          using dST = std::decay_t<ST>;
+          using dST = ezy::remove_cvref_t<ST>;
           using trait = Adapter<typename dST::type>;
 
           using ReturnType = typename trait::success_type;
@@ -205,7 +205,7 @@ namespace ezy::features
         template <typename ST, typename Fn>
         static constexpr decltype(auto) map(ST&& t, Fn&& fn)
         {
-          using dST = std::decay_t<ST>;
+          using dST = ezy::remove_cvref_t<ST>;
           using trait = Adapter<typename dST::type>;
 
           // TODO static_assert(std::is_invocable_v<Fn(success_type)>, "Fn must be invocable with success_type");
@@ -234,7 +234,7 @@ namespace ezy::features
         template <typename ST, typename Fn>
         static constexpr decltype(auto) and_then(ST&& t, Fn&& fn)
         {
-          using dST = std::decay_t<ST>;
+          using dST = ezy::remove_cvref_t<ST>;
           using trait = Adapter<typename dST::type>;
 
           using fn_result_type = decltype(fn(std::declval<typename trait::success_type>()));
@@ -255,7 +255,7 @@ namespace ezy::features
         template <typename ST, typename FnSucc, typename FnErr>
         static constexpr decltype(auto) map_or_else(ST&& t, FnSucc&& fn_succ, FnErr&& fn_err)
         {
-          using dST = std::decay_t<ST>;
+          using dST = ezy::remove_cvref_t<ST>;
           using trait = Adapter<typename dST::type>;
 
           if (trait::is_success(t.get()))
@@ -267,7 +267,7 @@ namespace ezy::features
         template <typename Ret, typename ST, typename FnSucc, typename FnErr>
         static constexpr Ret map_or_else(ST&& t, FnSucc&& fn_succ, FnErr&& fn_err)
         {
-          using dST = std::decay_t<ST>;
+          using dST = ezy::remove_cvref_t<ST>;
           using trait = Adapter<typename dST::type>;
 
           if (trait::is_success(t.get()))

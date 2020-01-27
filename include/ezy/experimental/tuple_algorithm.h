@@ -1,6 +1,8 @@
 #ifndef EZY_EXPERIMENTAL_TUPLE_ALGORITHM_H_INCLUDED
 #define EZY_EXPERIMENTAL_TUPLE_ALGORITHM_H_INCLUDED
 
+#include "../type_traits.h"
+
 #include <utility>
 #include <tuple>
 
@@ -72,7 +74,7 @@ namespace ezy::experimental
     detail::tuple_for_each_enumerate_helper(
         std::forward<Tuple>(t),
         std::forward<Fn>(fn),
-        std::make_index_sequence<std::tuple_size_v<std::decay_t<Tuple>>>()
+        std::make_index_sequence<std::tuple_size_v<ezy::remove_cvref_t<Tuple>>>()
     );
   }
 
@@ -87,7 +89,7 @@ namespace ezy::experimental
     return detail::tuple_map_impl(
         std::forward<Fn>(fn),
         std::forward<Tuple>(t),
-        std::make_index_sequence<std::tuple_size_v<std::decay_t<Tuple>>>{}
+        std::make_index_sequence<std::tuple_size_v<ezy::remove_cvref_t<Tuple>>>{}
       );
   }
 
@@ -119,14 +121,14 @@ namespace ezy::experimental
   template <typename Tuple1, typename Tuple2, typename Fn>
   constexpr void tuple_zip_for_each(Tuple1&& t1, Tuple2&& t2, Fn&& fn)
   {
-    static_assert(std::tuple_size_v<std::decay_t<Tuple1>> == std::tuple_size_v<std::decay_t<Tuple1>>,
+    static_assert(std::tuple_size_v<ezy::remove_cvref_t<Tuple1>> == std::tuple_size_v<ezy::remove_cvref_t<Tuple1>>,
         "mismatching size");
 
     detail::tuple_zip_for_each_helper(
         std::forward<Tuple1>(t1),
         std::forward<Tuple2>(t2),
         std::forward<Fn>(fn),
-        std::make_index_sequence<std::tuple_size_v<std::decay_t<Tuple1>>>()
+        std::make_index_sequence<std::tuple_size_v<ezy::remove_cvref_t<Tuple1>>>()
         );
   }
 
