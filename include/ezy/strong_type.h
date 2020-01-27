@@ -102,9 +102,9 @@ namespace ezy
   struct feature : crtp<T, crtp_type>
   {
     using base = crtp<T, crtp_type>;
-    auto& underlying() & { return base::self().get(); }
-    const auto& underlying() const & { return base::self().get(); }
-    auto&& underlying() && { return std::move(*this).self().get(); }
+    constexpr auto& underlying() & { return base::self().get(); }
+    constexpr const auto& underlying() const & { return base::self().get(); }
+    constexpr auto&& underlying() && { return std::move(*this).self().get(); }
   };
 
   template <typename T, template<typename...> class crtp_type>
