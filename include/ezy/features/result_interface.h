@@ -8,108 +8,6 @@
 
 namespace ezy::features
 {
-  template <typename Type>
-  struct result_adapter;
-
-  template <template <typename...> class Wrapper, typename Success, typename Error>
-  struct result_adapter<Wrapper<Success, Error>>
-  {
-    using type = Wrapper<Success, Error>;
-    inline static constexpr size_t success = 0;
-    inline static constexpr size_t error = 1;
-    using success_type = ezy::remove_cvref_t<decltype(std::get<success>(std::declval<type>()))>;
-    using error_type = ezy::remove_cvref_t<decltype(std::get<error>(std::declval<type>()))>;
-
-    template <typename T>
-    static bool is_success(T&& t) noexcept
-    {
-      return t.index() == success;
-    }
-
-    template <typename T>
-    static decltype(auto) get_success(T&& t) noexcept
-    {
-      return std::get<success>(std::forward<T>(t));
-    }
-
-    template <typename T>
-    static decltype(auto) get_error(T&& t) noexcept
-    {
-      return std::get<error>(std::forward<T>(t));
-    }
-
-    template <typename... Ts>
-    static decltype(auto) make_underlying_success(Ts&&... ts)
-    {
-      return type{std::in_place_index_t<success>{}, std::forward<Ts>(ts)...};
-    }
-
-    template <typename... Ts>
-    static decltype(auto) make_underlying_error(Ts&&... ts)
-    {
-      return type{std::in_place_index_t<error>{}, std::forward<Ts>(ts)...};
-    }
-
-    template <typename NewSuccess>
-    struct rebind_success
-    {
-      using type = Wrapper<NewSuccess, error_type>;
-    };
-
-    template <typename NewSuccess>
-    using rebind_success_t = typename rebind_success<NewSuccess>::type;
-  };
-
-  template <typename Optional>
-  struct optional_adapter;
-
-  template <template <typename...> class Optional, typename Value>
-  struct optional_adapter<Optional<Value>>
-  {
-    using type = Optional<Value>;
-    using success_type = Value;
-    using error_type = std::nullopt_t;
-    inline static constexpr auto error_value = std::nullopt;
-
-    template <typename T>
-    static bool is_success(T&& t) noexcept
-    {
-      return t.has_value();
-    }
-
-    template <typename T>
-    static decltype(auto) get_success(T&& t) noexcept
-    {
-      return std::forward<T>(t).value();
-    }
-
-    template <typename T>
-    static decltype(auto) get_error(T&&) noexcept
-    {
-      return error_value;
-    }
-
-    template <typename... Ts>
-    static decltype(auto) make_underlying_success(Ts&&... ts)
-    {
-      return type{std::in_place_t{}, std::forward<Ts>(ts)...};
-    }
-
-    template <typename... Ts>
-    static decltype(auto) make_underlying_error(Ts&&... ts)
-    {
-      return type{error_value};
-    }
-
-    template <typename NewValue>
-    struct rebind_success
-    {
-      using type = Optional<NewValue>;
-    };
-    template <typename NewValue>
-    using rebind_success_t = typename rebind_success<NewValue>::type;
-  };
-
   /**
    * Requirements for Adapter<T> (where T is the underlying type):
    *
@@ -383,7 +281,6 @@ namespace ezy::features
         return impl::template map_or_else<Ret>(std::move(*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
-
       /**
        * and_then(Fn) -> unspecified
        */
@@ -406,10 +303,6 @@ namespace ezy::features
       }
     };
   };
-
-  template <typename T>
-  using result_like_continuation = typename result_interface<result_adapter>::continuation<T>;
-
 }
 
 #endif
