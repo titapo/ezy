@@ -338,6 +338,28 @@ namespace ezy::tuple_traits
   using map_t = typename map<Tuple, Metafunction>::type;
 
   /**
+   * fold
+   */
+  template <typename Tuple, typename Init, template <typename, typename> class Op>
+  struct fold;
+
+  template <typename Init, template <typename, typename> class Op>
+  struct fold<std::tuple<>, Init, Op>
+  {
+    using type = Init;
+  };
+
+  template <typename Head, typename... Tail, typename Init, template <typename, typename> class Op>
+  struct fold<std::tuple<Head, Tail...>, Init, Op>
+  {
+    using type = typename fold<std::tuple<Tail...>, Op<Init, Head>, Op>::type;
+  };
+
+  template <typename Tuple, typename Init, template <typename, typename> class Op>
+  using fold_t = typename fold<Tuple, Init, Op>::type;
+
+
+  /**
    * zip
    */
   template <typename Tuple1, typename Tuple2>

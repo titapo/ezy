@@ -4,6 +4,21 @@
 
 #include <variant>
 
+template <typename, typename>
+struct integral_constant_add;
+
+template <typename T, T N1, T N2>
+struct integral_constant_add<std::integral_constant<T, N1>, std::integral_constant<T, N2>>
+{
+  using type = std::integral_constant<T, N1 + N2>;
+};
+
+template <typename T1, typename T2>
+using integral_constant_add_t = typename integral_constant_add<T1, T2>::type;
+
+template <size_t N>
+using index_constant = std::integral_constant<size_t, N>;
+
 SCENARIO("tuple_traits")
 {
   namespace ett = ezy::tuple_traits;
@@ -125,6 +140,21 @@ SCENARIO("tuple_traits")
     static_assert(std::is_same_v<ett::map_t<std::tuple<int, char, int>, std::vector>,
         std::tuple<std::vector<int>, std::vector<char>, std::vector<int>>
         >);
+  }
+
+  GIVEN("fold")
+  {
+    static_assert(std::is_same_v<
+        ett::fold_t<std::tuple<>, index_constant<0>, integral_constant_add_t>,
+        index_constant<0>>);
+
+    static_assert(std::is_same_v<
+        ett::fold_t<std::tuple<index_constant<3>>, index_constant<0>, integral_constant_add_t>,
+        index_constant<3>>);
+
+    static_assert(std::is_same_v<
+        ett::fold_t<std::tuple<index_constant<3>, index_constant<5>>, index_constant<0>, integral_constant_add_t>,
+        index_constant<8>>);
   }
 
   GIVEN("zip")
