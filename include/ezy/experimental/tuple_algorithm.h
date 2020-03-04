@@ -137,8 +137,6 @@ namespace ezy::experimental
   {
     return std::tuple_size_v<std::remove_cv_t<std::remove_reference_t<T>>>;
   }
-
-
 }
 
 #endif

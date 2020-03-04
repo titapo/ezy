@@ -67,6 +67,16 @@ namespace
   {
     return {i.m_size};
   }
+
+  struct external_empty_check_t
+  {
+    size_t v{0};
+  };
+
+  bool empty(const external_empty_check_t& t)
+  {
+    return t.v == 0;
+  }
 }
 
 SCENARIO("empty")
@@ -83,6 +93,12 @@ SCENARIO("empty")
     REQUIRE(!ezy::empty(empty_t{false}));
   }
 
+  GIVEN("a type with external empty")
+  {
+    REQUIRE(ezy::empty(external_empty_check_t{0}));
+    REQUIRE(!ezy::empty(external_empty_check_t{1}));
+  }
+
   GIVEN("a type with begin and end")
   {
     REQUIRE(ezy::empty(iterable_t{}));
@@ -91,7 +107,7 @@ SCENARIO("empty")
 
   GIVEN("a type with external begin and end")
   {
-    REQUIRE(ezy::empty(external_iterable_t{}));
+    REQUIRE(ezy::empty(external_iterable_t{0}));
     REQUIRE(!ezy::empty(external_iterable_t{1}));
   }
 }
