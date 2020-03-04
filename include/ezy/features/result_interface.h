@@ -44,6 +44,8 @@ namespace ezy::features
       using base = feature<T, continuation>;
       using self_type = continuation;
 
+      template <typename... Ts>
+      using result_interface_adapter_t = Adapter<Ts...>;
       //using trait_type = Adapter<typename T::type>;
 
       bool is_success() const
@@ -100,6 +102,19 @@ namespace ezy::features
             return ReturnType{std::forward<Alternative>(alternative)};
         }
 
+        template <typename Result, typename ResultTrait, typename ST, typename Fn>
+        static constexpr Result map(ST&& t, Fn&& fn)
+        {
+          using SourceTrait = Adapter<typename ezy::remove_cvref_t<ST>::type>;
+
+          if (SourceTrait::is_success(t.get()))
+            return Result(ResultTrait::make_underlying_success(
+                  std::invoke(std::forward<Fn>(fn), SourceTrait::get_success(std::forward<ST>(t).get()))
+                ));
+          else
+            return Result(ResultTrait::make_underlying_error(SourceTrait::get_error(std::forward<ST>(t).get())));
+        }
+
         template <typename ST, typename Fn>
         static constexpr decltype(auto) map(ST&& t, Fn&& fn)
         {
@@ -114,12 +129,16 @@ namespace ezy::features
           using new_trait = Adapter<R>;
           using return_type = rebind_strong_type_t<dST, R>;
 
-          if (trait::is_success(t.get()))
-            return return_type(new_trait::make_underlying_success(
-                  std::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get()))
-                ));
-          else
-            return return_type(new_trait::make_underlying_error(trait::get_error(std::forward<ST>(t).get())));
+          return map<return_type, new_trait>(std::forward<ST>(t), std::forward<Fn>(fn));
+        }
+
+        template <typename Result, typename ST, typename Fn>
+        static constexpr decltype(auto) map(ST&& t, Fn&& fn)
+        {
+          //using fn_result_type = decltype(fn(std::declval<typename trait::success_type>()));
+          // fn_result_type should be checked if it is convertible to success
+          using new_trait = typename Result::template result_interface_adapter_t<typename Result::type>;
+          return map<Result, new_trait>(std::forward<ST>(t), std::forward<Fn>(fn));
         }
 
         template <typename ST, typename Fn, typename Alternative>
@@ -219,7 +238,7 @@ namespace ezy::features
       }
 
       /**
-       * map(Fn, Alternative) -> unspecified
+       * map(Fn) -> unspecified
        */
       template <typename Fn>
       constexpr decltype(auto) map(Fn&& fn) &
@@ -237,6 +256,27 @@ namespace ezy::features
       constexpr decltype(auto) map(Fn&& fn) &&
       {
         return impl::map(std::move(*this).self(), std::forward<Fn>(fn));
+      }
+
+      /**
+       * map<Result>(Fn) -> Result
+       */
+      template <typename Result, typename Fn>
+      constexpr decltype(auto) map(Fn&& fn) &
+      {
+        return impl::template map<Result>((*this).self(), std::forward<Fn>(fn));
+      }
+
+      template <typename Result, typename Fn>
+      constexpr decltype(auto) map(Fn&& fn) const &
+      {
+        return impl::template map<Result>((*this).self(), std::forward<Fn>(fn));
+      }
+
+      template <typename Result, typename Fn>
+      constexpr decltype(auto) map(Fn&& fn) &&
+      {
+        return impl::template map<Result>(std::move(*this).self(), std::forward<Fn>(fn));
       }
 
       /**

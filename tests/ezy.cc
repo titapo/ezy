@@ -181,6 +181,8 @@ SCENARIO("result-like continuation")
 {
 
   auto twice = [](int i) {return i*2;};
+  auto twice_mutable = [](int& i) {return i*2;};
+  auto twice_move = [](move_only&& m) {return move_only{m.i*2};};
   GIVEN("is_success")
   {
     using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
@@ -269,6 +271,29 @@ SCENARIO("result-like continuation")
     using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     const R r{10};
     REQUIRE(std::get<int>(r.map(twice).get()) == 20);
+  }
+
+  GIVEN("map<Result>")
+  {
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
+    using Opt = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    const R r{11};
+    REQUIRE(r.map<Opt>(twice).get().value() == 22);
+  }
+
+  GIVEN("map<Result> on mutable")
+  {
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
+    using Opt = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    R r{12};
+    REQUIRE(r.map<Opt>(twice_mutable).get().value() == 24);
+  }
+
+  GIVEN("map<Result> on rvalue-ref")
+  {
+    using R = ezy::strong_type<std::variant<move_only, std::string>, void, ezy::features::result_like_continuation>;
+    using Opt = ezy::strong_type<std::optional<move_only>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    REQUIRE(R{move_only{9}}.map<Opt>(twice_move).get().value().i == 18);
   }
 
   GIVEN("map_or")
