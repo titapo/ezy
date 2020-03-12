@@ -50,12 +50,12 @@ namespace ezy::features
     using base = feature<T, equal_comparable>;
     using base::self;
 
-    bool operator==(const T& rhs) const
+    constexpr bool operator==(const T& rhs) const
     {
       return self().get() == rhs.get();
     }
 
-    bool operator!=(const T& rhs) const
+    constexpr bool operator!=(const T& rhs) const
     {
       if constexpr (std::experimental::is_detected_v<ezy::features::detail::operator_ne_t, typename T::type>)
       {
