@@ -111,6 +111,14 @@ namespace ezy::features
     };
     template <typename NewValue>
     using rebind_success_t = typename rebind_success<NewValue>::type;
+
+    template <typename NewValue>
+    struct rebind_error
+    {
+      using type = Optional<Value>;
+    };
+    template <typename NewValue>
+    using rebind_error_t = typename rebind_error<NewValue>::type;
   };
 
 

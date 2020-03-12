@@ -31,9 +31,35 @@ namespace ezy::features
    *
    * Member alias templates
    * template <typename U> rebind_success_t
+   * template <typename U> rebind_error_t
    *
    * Gives back T' (same wrapper as T, but the changes its success type to U)
    */
+
+  namespace detail
+  {
+    template <typename Result, typename SourceTrait, typename ResultTrait, typename ST, typename Fn>
+    static constexpr Result map(ST&& t, Fn&& fn)
+    {
+      if (SourceTrait::is_success(t.get()))
+        return Result(ResultTrait::make_underlying_success(
+              std::invoke(std::forward<Fn>(fn), SourceTrait::get_success(std::forward<ST>(t).get()))
+            ));
+      else
+        return Result(ResultTrait::make_underlying_error(SourceTrait::get_error(std::forward<ST>(t).get())));
+    }
+
+    template <typename Result, typename SourceTrait, typename ResultTrait, typename ST, typename FnErr>
+    static constexpr Result map_error(ST&& t, FnErr&& fn_err)
+    {
+      if (SourceTrait::is_success(t.get()))
+        return Result(ResultTrait::make_underlying_success(SourceTrait::get_success(std::forward<ST>(t).get())));
+      else
+        return Result(ResultTrait::make_underlying_error(
+              std::invoke(std::forward<FnErr>(fn_err), SourceTrait::get_error(std::forward<ST>(t).get()))
+            ));
+    }
+  }
 
   template <template <typename...> class Adapter>
   struct result_interface
@@ -106,13 +132,7 @@ namespace ezy::features
         static constexpr Result map(ST&& t, Fn&& fn)
         {
           using SourceTrait = Adapter<typename ezy::remove_cvref_t<ST>::type>;
-
-          if (SourceTrait::is_success(t.get()))
-            return Result(ResultTrait::make_underlying_success(
-                  std::invoke(std::forward<Fn>(fn), SourceTrait::get_success(std::forward<ST>(t).get()))
-                ));
-          else
-            return Result(ResultTrait::make_underlying_error(SourceTrait::get_error(std::forward<ST>(t).get())));
+          return detail::map<Result, SourceTrait, ResultTrait>(std::forward<ST>(t), std::forward<Fn>(fn));
         }
 
         template <typename ST, typename Fn>
@@ -191,6 +211,18 @@ namespace ezy::features
             return static_cast<Ret>(std::invoke(std::forward<FnSucc>(fn_succ), trait::get_success(std::forward<ST>(t).get())));
           else
             return static_cast<Ret>(std::invoke(std::forward<FnErr>(fn_err), trait::get_error(std::forward<ST>(t).get())));
+        }
+
+        template <typename ST, typename FnErr>
+        static constexpr decltype(auto) map_error(ST&& t, FnErr&& fn_err)
+        {
+          using dST = ezy::remove_cvref_t<ST>;
+          using trait = Adapter<typename dST::type>;
+          using FnErrReturnType = decltype(std::invoke(std::forward<FnErr>(fn_err), trait::get_error(std::forward<ST>(t).get())));
+          using R = typename trait::template rebind_error_t<FnErrReturnType>;
+          using ReturnType = rebind_strong_type_t<dST, R>;
+          using ReturnTrait = Adapter<R>;
+          return detail::map_error<ReturnType, trait, ReturnTrait>(std::forward<ST>(t), std::forward<FnErr>(fn_err));
         }
 
       };
@@ -319,6 +351,27 @@ namespace ezy::features
       constexpr Ret map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &&
       {
         return impl::template map_or_else<Ret>(std::move(*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+      }
+
+      /**
+       * map_error(FnError: E1 -> E2) -> <T, E2>
+       */
+      template <typename FnErr>
+      constexpr decltype(auto) map_error(FnErr&& fn_err) &
+      {
+        return impl::map_error((*this).self(), std::forward<FnErr>(fn_err));
+      }
+
+      template <typename FnErr>
+      constexpr decltype(auto) map_error(FnErr&& fn_err) const &
+      {
+        return impl::map_error((*this).self(), std::forward<FnErr>(fn_err));
+      }
+
+      template <typename FnErr>
+      constexpr decltype(auto) map_error(FnErr&& fn_err) &&
+      {
+        return impl::map_error(std::move(*this).self(), std::forward<FnErr>(fn_err));
       }
 
       /**

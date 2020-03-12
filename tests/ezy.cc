@@ -296,6 +296,36 @@ SCENARIO("result-like continuation")
     REQUIRE(R{move_only{9}}.map<Opt>(twice_move).get().value().i == 18);
   }
 
+  GIVEN("map_error")
+  {
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
+    const R r{"error"};
+    auto res = r.map_error([](const std::string &s){ return s.size(); });
+    static_assert(std::is_same_v<
+        decltype(res),
+        ezy::strong_type<std::variant<int, size_t>, void, ezy::features::result_like_continuation>
+        >);
+    REQUIRE(std::get<size_t>(res.get()) == 5);
+  }
+
+  GIVEN("map_error on mutable")
+  {
+    using R = ezy::strong_type<std::variant<bool, int>, void, ezy::features::result_like_continuation>;
+    R r{12};
+    auto res = r.map_error(twice_mutable);
+    static_assert(std::is_same_v<
+        decltype(res),
+        R
+        >);
+    REQUIRE(std::get<int>(res.get()) == 24);
+  }
+
+  GIVEN("map_error on move-only rvalue")
+  {
+    using R = ezy::strong_type<std::variant<bool, move_only>, void, ezy::features::result_like_continuation>;
+    REQUIRE(std::get<move_only>(R{move_only{7}}.map_error(twice_move).get()).i == 14);
+  }
+
   GIVEN("map_or")
   {
     using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;

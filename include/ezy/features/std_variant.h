@@ -60,6 +60,15 @@ namespace ezy::features
 
     template <typename NewSuccess>
     using rebind_success_t = typename rebind_success<NewSuccess>::type;
+
+    template <typename NewError>
+    struct rebind_error
+    {
+      using type = Wrapper<success_type, NewError>;
+    };
+
+    template <typename NewError>
+    using rebind_error_t = typename rebind_error<NewError>::type;
   };
 
   template <typename T>
