@@ -326,6 +326,26 @@ SCENARIO("result-like continuation")
     REQUIRE(std::get<move_only>(R{move_only{7}}.map_error(twice_move).get()).i == 14);
   }
 
+  GIVEN("map_error<Result> from optional")
+  {
+    constexpr auto null_to_str = [](std::nullopt_t) { return "none"; };
+    using Opt = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
+    WHEN("called on {21}")
+    {
+      const Opt opt{21};
+      auto res = opt.map_error<R>(null_to_str);
+      REQUIRE(std::get<int>(res.get()) == 21);
+    }
+
+    WHEN("called on {nullopt}")
+    {
+      const Opt opt;
+      auto res = opt.map_error<R>(null_to_str);
+      REQUIRE(std::get<std::string>(res.get()) == "none");
+    }
+  }
+
   GIVEN("map_or")
   {
     using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;

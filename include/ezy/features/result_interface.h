@@ -225,6 +225,15 @@ namespace ezy::features
           return detail::map_error<ReturnType, trait, ReturnTrait>(std::forward<ST>(t), std::forward<FnErr>(fn_err));
         }
 
+        template <typename Ret, typename ST, typename FnErr>
+        static constexpr decltype(auto) map_error(ST&& t, FnErr&& fn_err)
+        {
+          using dST = ezy::remove_cvref_t<ST>;
+          using trait = Adapter<typename dST::type>;
+          using ReturnTrait = typename Ret::template result_interface_adapter_t<typename Ret::type>;
+          return detail::map_error<Ret, trait, ReturnTrait>(std::forward<ST>(t), std::forward<FnErr>(fn_err));
+        }
+
       };
 
       /**
@@ -372,6 +381,28 @@ namespace ezy::features
       constexpr decltype(auto) map_error(FnErr&& fn_err) &&
       {
         return impl::map_error(std::move(*this).self(), std::forward<FnErr>(fn_err));
+      }
+
+      /**
+       * map_error<Ret>(FnError: E1 -> E2) -> Ret<T, E2>
+       */
+      template <typename Ret, typename FnErr>
+      constexpr decltype(auto) map_error(FnErr&& fn_err) &
+      {
+        return impl::template map_error<Ret>((*this).self(), std::forward<FnErr>(fn_err));
+      }
+
+      template <typename Ret, typename FnErr>
+      constexpr decltype(auto) map_error(FnErr&& fn_err) const &
+      {
+        return impl::template map_error<Ret>((*this).self(), std::forward<FnErr>(fn_err));
+      }
+
+      // test needed
+      template <typename Ret, typename FnErr>
+      constexpr decltype(auto) map_error(FnErr&& fn_err) &&
+      {
+        return impl::template map_error<Ret>(std::move(*this).self(), std::forward<FnErr>(fn_err));
       }
 
       /**
