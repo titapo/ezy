@@ -2,6 +2,7 @@
 #define STASH_RANGE_H_INCLUDED
 
 #include "experimental/tuple_algorithm.h"
+#include "experimental/keeper.h"
 
 #include <type_traits>
 #include <utility>
@@ -652,25 +653,19 @@
     /**
      * range_view_filter
      */
-    template <typename Range, typename FilterPredicate>
+    template <typename KeeperCategory, typename Range, typename FilterPredicate>
     struct range_view_filter
     {
-      using base = basic_range_view<Range>;
-
-      range_view_filter(const Range& orig, const FilterPredicate& p)
-        : orig_range(orig)
-        , predicate(p)
-      {}
-
       using const_iterator = iterator_filter<typename Range::const_iterator, FilterPredicate>;
 
       const_iterator begin() const
-      { return const_iterator(orig_range.begin(), predicate, orig_range.end()); }
+      { return const_iterator(orig_range.get().begin(), predicate, orig_range.get().end()); }
 
       const_iterator end() const
-      { return const_iterator(orig_range.end(), predicate, orig_range.end()); }
+      { return const_iterator(orig_range.get().end(), predicate, orig_range.get().end()); }
 
-      const Range& orig_range;
+      //const Range& orig_range;
+      ezy::experimental::basic_keeper<KeeperCategory, const Range> orig_range;
       FilterPredicate predicate;
     };
 

@@ -84,12 +84,21 @@ namespace ezy::features
     }
 
     template <typename Predicate>
-    auto filter(Predicate&& predicate) const
+    auto filter(Predicate&& predicate) const &
     {
       using range_type = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = range_view_filter<range_type, Predicate>;
+      using result_range_type = range_view_filter<ezy::experimental::reference_category_tag, range_type, Predicate>;
       using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(base::underlying(), std::forward<Predicate>(predicate)));
+      return algo_iterable_range_view(result_range_type{ezy::experimental::make_keeper(base::underlying()), std::forward<Predicate>(predicate)});
+    }
+
+    template <typename Predicate>
+    auto filter(Predicate&& predicate) &&
+    {
+      using range_type = typename std::remove_reference<typename T::type>::type;
+      using result_range_type = range_view_filter<ezy::experimental::owner_category_tag, range_type, Predicate>;
+      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
+      return algo_iterable_range_view(result_range_type{ezy::experimental::make_keeper(std::move(*this).underlying()), std::forward<Predicate>(predicate)});
     }
 
     template <typename Element>
@@ -166,11 +175,11 @@ namespace ezy::features
     */
 
     template <typename Predicate>
-    auto partition(Predicate&& predicate) const
+    auto partition(Predicate&& predicate) const &
     {
       using range_type = typename std::remove_reference<typename T::type>::type;
       using concrete_predicate_type = std::function<bool(const typename range_type::value_type&)>;
-      using result_range_type = range_view_filter<range_type, concrete_predicate_type>;
+      using result_range_type = range_view_filter<ezy::experimental::reference_category_tag, range_type, concrete_predicate_type>;
       using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
 
       const auto negate_result = [](const Predicate& original_predicate)
@@ -180,10 +189,13 @@ namespace ezy::features
       };
 
       return std::make_tuple(
-          algo_iterable_range_view(result_range_type(base::underlying(), predicate)),
-          algo_iterable_range_view(result_range_type(base::underlying(), negate_result(predicate)))
+          algo_iterable_range_view(result_range_type{ezy::experimental::make_keeper(base::underlying()), predicate}),
+          algo_iterable_range_view(result_range_type{ezy::experimental::make_keeper(base::underlying()), negate_result(predicate)})
           );
     }
+
+    template <typename Predicate>
+    auto partition(Predicate&& predicate) && = delete;
 
     auto slice(const unsigned from, const unsigned until) const
     {
