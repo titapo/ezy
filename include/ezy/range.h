@@ -616,39 +616,20 @@
     /**
      * range_view
      */
-    template <typename Range, typename Transformation>
+    template <typename KeeperCategory, typename Range, typename Transformation>
     struct range_view
     {
-      using base = basic_range_view<Range>;
-
-      constexpr range_view(const Range& orig, const Transformation& tr)
-        : orig_range(orig)
-        , transformation(tr)
-      {}
-
       using const_iterator = iterator_adaptor<typename Range::const_iterator, Transformation>;
 
       constexpr const_iterator begin() const
-      { return const_iterator(orig_range.begin(), transformation); }
+      { return const_iterator(orig_range.get().begin(), transformation); }
 
       constexpr const_iterator end() const
-      { return const_iterator(orig_range.end(), transformation); }
+      { return const_iterator(orig_range.get().end(), transformation); }
       
-      const Range& orig_range;
+      ezy::experimental::basic_keeper<KeeperCategory, Range> orig_range;
       Transformation transformation;
     };
-
-    template <typename Range, typename Transformation>
-    auto make_range_view(const Range& range, Transformation&& transformation)
-    {
-      return range_view<Range, Transformation>(range, std::forward<Transformation>(transformation));
-    }
-
-    template <typename Range, typename Transformation>
-    auto operator|(const Range& range, Transformation&& transformation)
-    {
-      return make_range_view(range, std::forward<Transformation>(transformation));
-    }
 
     /**
      * range_view_filter
@@ -664,16 +645,9 @@
       const_iterator end() const
       { return const_iterator(orig_range.get().end(), predicate, orig_range.get().end()); }
 
-      //const Range& orig_range;
-      ezy::experimental::basic_keeper<KeeperCategory, const Range> orig_range;
+      ezy::experimental::basic_keeper<KeeperCategory, Range> orig_range;
       FilterPredicate predicate;
     };
-
-    template <typename Range, typename FilterPredicate>
-    auto make_range_view_filter(const Range& range, FilterPredicate&& predicate)
-    {
-      return range_view<Range, FilterPredicate>(range, std::forward<FilterPredicate>(predicate));
-    }
 
     /**
      * range_view_slice

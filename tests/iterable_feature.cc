@@ -507,7 +507,19 @@ SCENARIO("strong type extensions")
         .map(transform)
         .filter(is_even);
 
-      COMPARE_RANGES(result, (std::initializer_list<int>{12,14,16,18,20})); // this also segfaults
+      COMPARE_RANGES(result, (std::initializer_list<int>{12,14,16,18,20}));
+    }
+
+    WHEN("filtered then mapped")
+    {
+      auto transform = [](auto i) { return i + 10; };
+      auto is_even = [](auto i) { return (i % 2) == 0; };
+
+      const auto result = numbers
+        .filter(is_even)
+        .map(transform);
+
+      COMPARE_RANGES(result, (std::initializer_list<int>{12,14,16,18,20}));
     }
   }
 
