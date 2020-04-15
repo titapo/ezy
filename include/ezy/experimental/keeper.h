@@ -282,15 +282,24 @@ namespace ezy::experimental
         return std::forward<T>(t);
       }
     }
+
+    template <typename T>
+    struct infer_keeper
+    {
+      using category_type = detail::keeper_category_t<T>;
+      using value_type = detail::keeper_value_type_t<std::remove_reference_t<T>>;
+      using type = basic_keeper<category_type, value_type>;
+    };
+
+    template <typename T>
+    using infer_keeper_t = typename infer_keeper<T>::type;
   }
 
 
   template <typename T>
   [[nodiscard]] constexpr decltype(auto) make_keeper(T&& t)
   {
-    using ParameterCategory = detail::keeper_category_t<T>;
-    using ValueType = detail::keeper_value_type_t<std::remove_reference_t<T>>;
-    return basic_keeper<ParameterCategory, ValueType>{detail::get_keeper_value(std::forward<T>(t))};
+    return detail::infer_keeper_t<T>{detail::get_keeper_value(std::forward<T>(t))};
   }
 
   // make owner -> copies from reference
