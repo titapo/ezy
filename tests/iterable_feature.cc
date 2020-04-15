@@ -430,17 +430,16 @@ SCENARIO("strong type extensions")
           (std::initializer_list<int>{}));
     }
 
-    /*
     WHEN("elements flatmapped")
     {
-      const auto around = [](const auto& e) { return std::initializer_list{e - 1, e, e + 1}; };
-      const auto result = numbers.flat_map(around);
+      using Raised = ezy::strong_type< std::vector<std::vector<int>>, struct RaisedTag, ezy::features::iterable>;
+      const auto plus20 = [](int i) { return i + 20; };
+      const auto result = Raised{std::vector{1, 2, 3}, std::vector{100, 101, 102}}.flat_map(plus20);
       THEN("contains flat list")
       {
-        COMPARE_RANGES(result, (std::initializer_list{0, 1, 2, 1, 2, 3, 2, 3, 4, 3, 4, 5, 4, 5, 6}));
+        COMPARE_RANGES(result, (std::initializer_list{21, 22, 23, 120, 121, 122}));
       }
     }
-    */
 
     WHEN("checked for empty")
     {

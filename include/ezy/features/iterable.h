@@ -76,15 +76,14 @@ namespace ezy::features
     template <typename UnaryFunction>
     auto flat_map(UnaryFunction&& f) const &
     {
-      // FIXME
-      using range_type = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = range_view<ezy::experimental::reference_category_tag, range_type, UnaryFunction>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(base::underlying(), std::forward<UnaryFunction>(f)));
+      return (*this).flatten().map(std::forward<UnaryFunction>(f));
     }
 
     template <typename UnaryFunction>
-    auto flat_map(UnaryFunction&& f) && = delete;
+    auto flat_map(UnaryFunction&& f) &&
+    {
+      return std::move(*this).flatten().map(std::forward<UnaryFunction>(f));
+    }
 
     template <typename RhsRange>
     auto concatenate(const RhsRange& rhs) const
@@ -259,12 +258,20 @@ namespace ezy::features
     }
 
     //template <typename OtherRange> // TODO constrain to be a raised (flattenable) range
-    auto flatten() const
+    auto flatten() const &
     {
       using ThisRange = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = flattened_range_view<ThisRange> ;
+      using result_range_type = flattened_range_view<ezy::experimental::reference_category_tag, const ThisRange>;
       using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(base::underlying()));
+      return algo_iterable_range_view(result_range_type{ezy::experimental::reference_to<const ThisRange>(base::underlying())});
+    }
+
+    auto flatten() &&
+    {
+      using ThisRange = typename std::remove_reference<typename T::type>::type;
+      using result_range_type = flattened_range_view<ezy::experimental::owner_category_tag, ThisRange>;
+      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
+      return algo_iterable_range_view(result_range_type{ezy::experimental::owner<ThisRange>(std::move(*this).underlying())});
     }
 
     auto take(size_t n) const

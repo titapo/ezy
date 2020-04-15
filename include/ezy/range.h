@@ -751,7 +751,7 @@
         const RangeType2& range2;
     };
 
-    template <typename RangeType>
+    template <typename KeeperCategory, typename RangeType>
     struct flattened_range_view
     {
       public:
@@ -762,22 +762,18 @@
         using reference = typename const_iterator::reference;
         using difference_type = typename const_iterator::difference_type;
 
-        flattened_range_view(const RangeType& range)
-          : range(range)
-        {}
-
         const_iterator begin() const
         {
-          return const_iterator(range);
+          return const_iterator(range.get());
         }
 
         const_iterator end() const
         {
-          return const_iterator(range, end_marker_t{});
+          return const_iterator(range.get(), end_marker_t{});
         }
 
-      private:
-        const RangeType& range;
+      //private:
+        ezy::experimental::basic_keeper<KeeperCategory, RangeType> range;
     };
 
     // some common view adaptors
