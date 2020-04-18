@@ -1,5 +1,6 @@
-PROJECT(ezy_lib)
-INCLUDE_DIRECTORIES(
-  ./
-  ./ezy/experimental/
-  )
+add_library(ezy_lib INTERFACE)
+target_include_directories(ezy_lib
+  INTERFACE
+    ./
+    ./ezy/experimental/
+)

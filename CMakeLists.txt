@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-project(EZY)
+project(ezy LANGUAGES CXX)
 
 add_subdirectory(thirdparty/catch)
 add_subdirectory(include)
