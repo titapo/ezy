@@ -153,6 +153,16 @@ SCENARIO("strong type extensions")
       }
     }
 
+    WHEN("elements mapped twice")
+    {
+      const auto plusTwo = [](const int& e) { return e + 2; };
+      const auto &result = numbers.map(plusTwo).map(plusTwo);
+      THEN ("result contains all element incremented by 4")
+      {
+        COMPARE_RANGES(result, (std::initializer_list{5, 6, 7, 8, 9, 10, 11, 12, 13, 14}));
+      }
+    }
+
     WHEN("elements filtered")
     {
       const auto isEven = [](const auto& e) { return e % 2 == 0; };
@@ -160,6 +170,17 @@ SCENARIO("strong type extensions")
       THEN ("result contains even numbers")
       {
         COMPARE_RANGES(result, (std::initializer_list{2, 4, 6, 8, 10}));
+      }
+    }
+
+    WHEN("elements filtered twice")
+    {
+      const auto isEven = [](const auto& e) { return e % 2 == 0; };
+      const auto isNotDivisibleBy3 = [](const auto& e) { return e % 3 != 0; };
+      const auto &result = numbers.filter(isEven).filter(isNotDivisibleBy3);
+      THEN ("result contains even numbers")
+      {
+        COMPARE_RANGES(result, (std::initializer_list{2, 4, 8, 10}));
       }
     }
 
@@ -180,6 +201,15 @@ SCENARIO("strong type extensions")
       THEN("contains the sliced elements")
       {
         COMPARE_RANGES(result, (std::initializer_list{2, 3}));
+      }
+    }
+
+    WHEN("elements sliced within boundaries two times")
+    {
+      const auto result = numbers.slice(1, 5).slice(2, 3);
+      THEN("contains the sliced elements")
+      {
+        COMPARE_RANGES(result, (std::initializer_list{4}));
       }
     }
 
@@ -223,6 +253,17 @@ SCENARIO("strong type extensions")
       THEN("contains all elements")
       {
         COMPARE_RANGES(result, (std::initializer_list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 4, 5}));
+      }
+    }
+    WHEN("another range concatenated multiple times")
+    {
+      const std::vector<int> others{3, 4, 5};
+      const std::vector<int> more_others{6, 7, 8};
+      const auto result = numbers.concatenate(others).concatenate(more_others);
+
+      THEN("contains all elements")
+      {
+        COMPARE_RANGES(result, (std::initializer_list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 4, 5, 6, 7, 8}));
       }
     }
 
@@ -463,6 +504,11 @@ SCENARIO("strong type extensions")
       COMPARE_RANGES(numbers.take(5), (std::initializer_list{1, 2, 3, 4, 5}));
       COMPARE_RANGES(numbers.take(10), (std::initializer_list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
       COMPARE_RANGES(numbers.take(15), (std::initializer_list{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+    }
+
+    WHEN("take multiple times")
+    {
+      COMPARE_RANGES(numbers.take(8).take(5).take(2), (std::initializer_list{1, 2}));
     }
 
     WHEN("take_while (<5)")

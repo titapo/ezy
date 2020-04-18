@@ -245,13 +245,13 @@
         {
           if (auto [it, end] = tracking_info<0>(); it != end)
           {
-            it++;
+            ++it;
             return *this;
           }
 
           if (auto [it, end] = tracking_info<1>(); it != end)
           {
-            it++;
+            ++it;
             return *this;
           }
             
@@ -652,14 +652,16 @@
     /**
      * range_view_slice
      */
-    template <typename Range>
+    template <typename KeeperCategory, typename Range>
     struct range_view_slice
     {
         using const_iterator = typename Range::const_iterator;
         using difference_type = typename const_iterator::difference_type;
 
-        range_view_slice(const Range& orig, difference_type f, difference_type u)
-          : orig_range(orig)
+        using Keeper = ezy::experimental::basic_keeper<KeeperCategory, Range>;
+
+        range_view_slice(Keeper&& orig, difference_type f, difference_type u)
+          : orig_range(std::move(orig))
           , from(f)
           , until(u)
         {
@@ -668,15 +670,15 @@
         }
 
         const_iterator begin() const
-        { return const_iterator(std::next(orig_range.begin(), bounded(from))); }
+        { return const_iterator(std::next(orig_range.get().begin(), bounded(from))); }
 
         const_iterator end() const
-        { return const_iterator(std::next(orig_range.begin(), bounded(until))); }
+        { return const_iterator(std::next(orig_range.get().begin(), bounded(until))); }
 
       private:
         difference_type get_range_size() const
         {
-          return std::distance(orig_range.begin(), orig_range.end());
+          return std::distance(orig_range.get().begin(), orig_range.get().end());
         }
 
         difference_type bounded(difference_type difference) const
@@ -684,7 +686,7 @@
           return std::min(get_range_size(), difference);
         }
 
-        const Range& orig_range;
+        Keeper orig_range;
         const difference_type from;
         const difference_type until;
     };
@@ -706,25 +708,27 @@
     };
 
     // TODO generalize to N ranges (N > 0)
-    template <typename RangeType1, typename RangeType2>
+    template <typename KeeperCategory1, typename RangeType1, typename RangeType2> // TODO keeper for Range2?
     struct concatenated_range_view
     {
         using const_iterator = iterator_concatenator<RangeType1, RangeType2>;
         using difference_type = typename const_iterator::difference_type;
 
-        concatenated_range_view(const RangeType1& r1, const RangeType2& r2)
-          : range1(r1)
+        using Keeper1 = ezy::experimental::basic_keeper<KeeperCategory1, RangeType1>;
+
+        concatenated_range_view(Keeper1&& k1, const RangeType2& r2)
+          : range1(std::move(k1))
           , range2(r2)
         {}
 
         const_iterator begin() const
-        { return const_iterator(range1, range2); }
+        { return const_iterator(range1.get(), range2); }
 
         const_iterator end() const
-        { return const_iterator(range1, range2, end_marker_t{}); }
+        { return const_iterator(range1.get(), range2, end_marker_t{}); }
 
       private:
-        const RangeType1& range1;
+        Keeper1 range1;
         const RangeType2& range2;
     };
 
