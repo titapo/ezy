@@ -619,7 +619,8 @@
     template <typename KeeperCategory, typename Range, typename Transformation>
     struct range_view
     {
-      using const_iterator = iterator_adaptor<typename Range::const_iterator, Transformation>;
+      using _orig_const_iterator = decltype(std::declval<Range>().begin());
+      using const_iterator = iterator_adaptor<_orig_const_iterator, Transformation>;
 
       constexpr const_iterator begin() const
       { return const_iterator(orig_range.get().begin(), transformation); }

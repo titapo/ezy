@@ -46,31 +46,29 @@ namespace ezy::features
     template < typename UnaryFunction >
     auto for_each(UnaryFunction f)
     {
-      return std::for_each(base::underlying().begin(), base::underlying().end(), f);
+      return ezy::for_each((*this).self(), std::forward<UnaryFunction>(f));
     }
 
     template <typename UnaryFunction>
     auto for_each(UnaryFunction f) const
     {
-      return std::for_each(base::underlying().begin(), base::underlying().end(), f);
+      return ezy::for_each((*this).self(), std::forward<UnaryFunction>(f));
     }
 
     template <typename UnaryFunction>
     constexpr auto map(UnaryFunction&& f) const &
     {
-      using range_type = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = range_view<ezy::experimental::reference_category_tag, const range_type, UnaryFunction>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type{ezy::experimental::reference_to<const range_type>{base::underlying()}, std::forward<UnaryFunction>(f)});
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::transform((*this).underlying(), std::forward<UnaryFunction>(f))
+        );
     }
 
     template <typename UnaryFunction>
     constexpr auto map(UnaryFunction&& f) &&
     {
-      using range_type = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = range_view<ezy::experimental::owner_category_tag, range_type, UnaryFunction>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type{ezy::experimental::owner<range_type>{std::move(*this).underlying()}, std::forward<UnaryFunction>(f)});
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::transform(std::move(*this).underlying(), std::forward<UnaryFunction>(f))
+        );
     }
 
     template <typename UnaryFunction>
@@ -106,19 +104,17 @@ namespace ezy::features
     template <typename Predicate>
     auto filter(Predicate&& predicate) const &
     {
-      using range_type = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = range_view_filter<ezy::experimental::reference_category_tag, const range_type, Predicate>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type{ezy::experimental::reference_to<const range_type>{base::underlying()}, std::forward<Predicate>(predicate)});
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::filter((*this).underlying(), std::forward<Predicate>(predicate))
+        );
     }
 
     template <typename Predicate>
     auto filter(Predicate&& predicate) &&
     {
-      using range_type = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = range_view_filter<ezy::experimental::owner_category_tag, range_type, Predicate>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type{ezy::experimental::owner<range_type>{std::move(*this).underlying()}, std::forward<Predicate>(predicate)});
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::filter(std::move(*this).underlying(), std::forward<Predicate>(predicate))
+        );
     }
 
     template <typename Element>

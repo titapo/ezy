@@ -106,6 +106,7 @@ namespace ezy
   template <typename T, template<typename> class crtp_type>
   struct crtp
   {
+    using self_type = T;
     constexpr T& self() & { return static_cast<T&>(*this); }
     constexpr const T& self() const & { return static_cast<const T&>(*this); }
     constexpr T&& self() && { return static_cast<T&&>(*this); }

@@ -1,6 +1,8 @@
 #include <catch.hpp>
 
 #include <ezy/algorithm>
+#include <ezy/strong_type>
+#include <ezy/features/iterable.h>
 
 #include <vector>
 
@@ -137,4 +139,30 @@ SCENARIO("size")
     REQUIRE(ezy::size(external_iterable_t{}) == 0);
     REQUIRE(ezy::size(external_iterable_t{4}) == 4);
   }
+}
+
+SCENARIO("for_each")
+{
+  std::vector<int> v{1,2,3};
+  std::string r;
+  ezy::for_each(v, [&r](int i) { r += std::to_string(i); });
+  REQUIRE(r == "123");
+}
+
+// however .for_each() is preferred
+SCENARIO("for_each on strong type")
+{
+  ezy::strong_type<std::vector<int>, void, ezy::features::iterable> v{1,2,3};
+  std::string r;
+  ezy::for_each(v, [&r](int i) { r += std::to_string(i); });
+  REQUIRE(r == "123");
+}
+
+SCENARIO("transform")
+{
+  std::vector<int> v{1,2,3};
+  std::string r;
+  auto mapped = ezy::transform(v, [](int i) { return i + 1; });
+  ezy::for_each(mapped, [&r](int i) { r += std::to_string(i); });
+  REQUIRE(r == "234");
 }
