@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <type_traits>
+#include "type_traits.h"
 
 namespace ezy
 { 
@@ -89,6 +90,18 @@ namespace ezy
   // TODO if not already a reference?
   template <typename T, typename Tag, template<typename> class... Features>
   using strong_type_reference = strong_type<typename std::add_lvalue_reference<T>::type, Tag, Features...>;
+
+  template <typename Tag, template <typename> class... Features, typename T>
+  auto make_strong(T&& t)
+  {
+    return strong_type<ezy::remove_cvref_t<T>, Tag, Features...>(std::forward<T>(t));
+  }
+
+  template <typename Tag, template <typename> class... Features, typename T>
+  auto make_strong_const(T&& t)
+  {
+    return strong_type<std::add_const_t<ezy::remove_cvref_t<T>>, Tag, Features...>(std::forward<T>(t));
+  }
 
   template <typename T, template<typename> class crtp_type>
   struct crtp
