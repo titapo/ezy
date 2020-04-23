@@ -84,21 +84,19 @@ namespace ezy::features
     }
 
     template <typename RhsRange>
-    auto concatenate(const RhsRange& rhs) const &
+    auto concatenate(RhsRange&& rhs) const &
     {
-      using range_type = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = concatenated_range_view<ezy::experimental::reference_category_tag, const range_type, RhsRange>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(ezy::experimental::reference_to<const range_type>(base::underlying()), rhs));
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::concatenate((*this).underlying(), std::forward<RhsRange>(rhs))
+          );
     }
 
     template <typename RhsRange>
-    auto concatenate(const RhsRange& rhs) &&
+    auto concatenate(RhsRange&& rhs) &&
     {
-      using range_type = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = concatenated_range_view<ezy::experimental::owner_category_tag, range_type, RhsRange>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(ezy::experimental::owner<range_type>(std::move(*this).underlying()), rhs));
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::concatenate(std::move(*this).underlying(), std::forward<RhsRange>(rhs))
+          );
     }
 
     template <typename Predicate>

@@ -709,28 +709,33 @@
     };
 
     // TODO generalize to N ranges (N > 0)
-    template <typename KeeperCategory1, typename RangeType1, typename RangeType2> // TODO keeper for Range2?
+    template <typename KeeperCategory1, typename RangeType1, typename KeeperCategory2, typename RangeType2>
     struct concatenated_range_view
     {
         using const_iterator = iterator_concatenator<RangeType1, RangeType2>;
         using difference_type = typename const_iterator::difference_type;
 
         using Keeper1 = ezy::experimental::basic_keeper<KeeperCategory1, RangeType1>;
+        using Keeper2 = ezy::experimental::basic_keeper<KeeperCategory2, RangeType2>;
 
+        /*
         concatenated_range_view(Keeper1&& k1, const RangeType2& r2)
           : range1(std::move(k1))
           , range2(r2)
         {}
+        */
 
         const_iterator begin() const
-        { return const_iterator(range1.get(), range2); }
+        { return const_iterator(range1.get(), range2.get()); }
 
         const_iterator end() const
-        { return const_iterator(range1.get(), range2, end_marker_t{}); }
+        { return const_iterator(range1.get(), range2.get(), end_marker_t{}); }
 
-      private:
+      public:
+      //private:
         Keeper1 range1;
-        const RangeType2& range2;
+        Keeper2 range2;
+        //const RangeType2& range2;
     };
 
     // TODO generalize to N ?

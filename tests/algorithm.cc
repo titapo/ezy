@@ -158,6 +158,15 @@ SCENARIO("for_each on strong type")
   REQUIRE(r == "123");
 }
 
+template <typename Range>
+std::string
+range_to_string(Range&& range)
+{
+  std::string r;
+  ezy::for_each(std::forward<Range>(range), [&r](int i) { r += std::to_string(i); });
+  return r;
+}
+
 SCENARIO("transform")
 {
   std::vector<int> v{1,2,3};
@@ -165,4 +174,32 @@ SCENARIO("transform")
   auto mapped = ezy::transform(v, [](int i) { return i + 1; });
   ezy::for_each(mapped, [&r](int i) { r += std::to_string(i); });
   REQUIRE(r == "234");
+}
+
+SCENARIO("concatenate")
+{
+  std::vector<int> v1{1,2,3};
+  std::vector<int> v2{4,5,6};
+  const auto concatenated = ezy::concatenate(v1, v2);
+  REQUIRE(range_to_string(concatenated) == "123456");
+}
+
+SCENARIO("concatenate - when the first is a temporary")
+{
+  std::vector<int> v2{4,5,6};
+  const auto concatenated = ezy::concatenate(std::vector{1,2,3}, v2);
+  REQUIRE(range_to_string(concatenated) == "123456");
+}
+
+SCENARIO("concatenate - when the second is a temporary")
+{
+  std::vector<int> v1{1,2,3};
+  const auto concatenated = ezy::concatenate(v1, std::vector{4,5,6});
+  REQUIRE(range_to_string(concatenated) == "123456");
+}
+
+SCENARIO("concatenate - when the both are temporaries")
+{
+  const auto concatenated = ezy::concatenate(std::vector{1,2,3}, std::vector{4,5,6});
+  REQUIRE(range_to_string(concatenated) == "123456");
 }
