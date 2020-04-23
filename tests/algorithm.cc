@@ -167,6 +167,16 @@ range_to_string(Range&& range)
   return r;
 }
 
+// TODO ezy::join()
+template <typename Range>
+std::string
+join(Range&& range)
+{
+  std::string r;
+  ezy::for_each(std::forward<Range>(range), [&r](auto i) { r += i; });
+  return r;
+}
+
 SCENARIO("transform")
 {
   std::vector<int> v{1,2,3};
@@ -202,4 +212,28 @@ SCENARIO("concatenate - when the both are temporaries")
 {
   const auto concatenated = ezy::concatenate(std::vector{1,2,3}, std::vector{4,5,6});
   REQUIRE(range_to_string(concatenated) == "123456");
+}
+
+SCENARIO("zip")
+{
+  std::vector<int> v1{1,2,3};
+  std::vector<int> v2{4,5,6};
+  const auto zipped = ezy::zip(v1, v2);
+  const auto joined = join(
+      ezy::transform(
+        zipped,
+        [](auto pair) -> std::string {auto[a,b] = pair; return std::to_string(a) + "+" + std::to_string(b) + ";"; }
+  ));
+  REQUIRE(joined == "1+4;2+5;3+6;");
+}
+
+SCENARIO("zip with temporaries")
+{
+  const auto zipped = ezy::zip(std::vector{1,2,3}, std::vector{4,5,6});
+  const auto joined = join(
+      ezy::transform(
+        zipped,
+        [](auto pair) -> std::string {auto[a,b] = pair; return std::to_string(a) + "+" + std::to_string(b) + ";"; }
+  ));
+  REQUIRE(joined == "1+4;2+5;3+6;");
 }

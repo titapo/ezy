@@ -432,6 +432,11 @@
               || (tracker.template get<1>().first != rhs.get_tracker().template get<1>().first);
         }
 
+        bool operator==(const iterator_zipper& rhs) const
+        {
+          return !(*this != rhs);
+        }
+
         const auto& get_tracker() const
         {
           return tracker;
@@ -739,26 +744,25 @@
     };
 
     // TODO generalize to N ?
-    template <typename RangeType1, typename RangeType2>
+    template <typename Category1, typename RangeType1, typename Category2, typename RangeType2>
     struct zip_range_view
     {
       using const_iterator = iterator_zipper<RangeType1, RangeType2>;
       using difference_type = typename const_iterator::difference_type;
 
-      zip_range_view(const RangeType1& r1, const RangeType2& r2)
-        : range1(r1)
-        , range2(r2)
-      {}
+      using Keeper1 = ezy::experimental::basic_keeper<Category1, RangeType1>;
+      using Keeper2 = ezy::experimental::basic_keeper<Category2, RangeType2>;
 
       const_iterator begin() const
-      { return const_iterator(range1, range2); }
+      { return const_iterator(range1.get(), range2.get()); }
 
       const_iterator end() const
-      { return const_iterator(range1, range2, end_marker_t{}); }
+      { return const_iterator(range1.get(), range2.get(), end_marker_t{}); }
 
-      private:
-        const RangeType1& range1;
-        const RangeType2& range2;
+      public:
+      //private:
+        Keeper1 range1;
+        Keeper2 range2;
     };
 
     template <typename KeeperCategory, typename RangeType>

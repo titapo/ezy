@@ -259,13 +259,19 @@ namespace ezy::features
     */
 
     template <typename OtherRange>
-    auto zip(const OtherRange& other_range)
+    auto zip(OtherRange&& other_range) const &
     {
-      using lhs_range_type = typename std::remove_reference<typename T::type>::type;
-      using rhs_range_type = typename std::remove_reference<OtherRange>::type;
-      using result_range_type = zip_range_view<lhs_range_type, rhs_range_type>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type(base::underlying(), other_range));
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+        ezy::zip((*this).underlying(), std::forward<OtherRange>(other_range))
+      );
+    }
+
+    template <typename OtherRange>
+    auto zip(OtherRange&& other_range) &&
+    {
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+        ezy::zip(std::move(*this).underlying(), std::forward<OtherRange>(other_range))
+      );
     }
 
     //template <typename OtherRange> // TODO constrain to be a raised (flattenable) range
