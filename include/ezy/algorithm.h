@@ -98,6 +98,18 @@ namespace ezy
   }
 
   template <typename Range>
+  /*constexpr*/ auto take(Range&& range, size_t n) // TODO check size_type
+  {
+    using RangeType = typename detail::deducer_helper<Range>::underlying_range_type;
+    using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
+    using ResultRangeType = take_n_range_view<CategoryTag, RangeType>;
+    return ResultRangeType{
+      ezy::experimental::basic_keeper<CategoryTag, RangeType>(std::forward<Range>(range)),
+      n
+    };
+  }
+
+  template <typename Range>
   /*constexpr*/ auto flatten(Range&& range)
   {
     using RangeType = typename detail::deducer_helper<Range>::underlying_range_type;

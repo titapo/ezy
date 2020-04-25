@@ -531,6 +531,11 @@
         return n != 0;
       }
 
+      bool operator==(const take_iterator& rhs) const
+      {
+        return !(*this != rhs);
+      }
+
       private:
         range_tracker<RangeType> tracker;
         typename RangeType::size_type n;
@@ -807,29 +812,26 @@
     using pick_first = pick_nth_t<0>;
     using pick_second = pick_nth_t<1>;
 
-    template <typename RangeType>
+    template <typename KeeperCategory, typename RangeType>
     struct take_n_range_view
     {
       public:
         using const_iterator = take_iterator<RangeType>;
         using size_type = typename RangeType::size_type;
 
-        explicit take_n_range_view(const RangeType& range, size_type n)
-          : range(range)
-          , n(n)
-        {}
+        using Keeper = ezy::experimental::basic_keeper<KeeperCategory, RangeType>;
 
         const_iterator begin() const
         {
-          return const_iterator(range, n);
+          return const_iterator(range.get(), n);
         }
 
         const_iterator end() const
         {
-          return const_iterator(range, end_marker_t{});
+          return const_iterator(range.get(), end_marker_t{});
         }
 
-        const RangeType& range;
+        Keeper range;
         size_type n;
     };
 
