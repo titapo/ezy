@@ -275,18 +275,16 @@ namespace ezy::features
     //template <typename OtherRange> // TODO constrain to be a raised (flattenable) range
     auto flatten() const &
     {
-      using ThisRange = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = flattened_range_view<ezy::experimental::reference_category_tag, const ThisRange>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type{ezy::experimental::reference_to<const ThisRange>(base::underlying())});
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+        ezy::flatten((*this).underlying())
+      );
     }
 
     auto flatten() &&
     {
-      using ThisRange = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = flattened_range_view<ezy::experimental::owner_category_tag, ThisRange>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type{ezy::experimental::owner<ThisRange>(std::move(*this).underlying())});
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+        ezy::flatten(std::move(*this).underlying())
+      );
     }
 
     auto take(size_t n) const

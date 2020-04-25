@@ -251,3 +251,9 @@ SCENARIO("slice")
   std::vector<int> v{1,2,3,4,5,6,7,8};
   REQUIRE(join_as_strings(ezy::slice(v, 0, 3)) == "123");
 }
+
+SCENARIO("flatten")
+{
+  std::vector<std::vector<int>> v{std::vector{1,2,3,4,5,6,7,8}, {}, std::vector{0,0,0}};
+  REQUIRE(join_as_strings(ezy::flatten(v)) == "12345678000");
+}
