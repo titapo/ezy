@@ -593,6 +593,11 @@
         return it != end;
       }
 
+      bool operator==(const take_while_iterator& rhs) const
+      {
+        return !(*this != rhs);
+      }
+
       private:
         range_tracker<RangeType> tracker;
         Predicate predicate;
@@ -835,30 +840,26 @@
         size_type n;
     };
 
-    template <typename RangeType, typename Predicate>
+    template <typename KeeperCategory, typename RangeType, typename Predicate>
     struct take_while_range_view
     {
       public:
         using const_iterator = take_while_iterator<RangeType, Predicate>;
         using size_type = typename RangeType::size_type;
 
-        template <typename PredT>
-        explicit take_while_range_view(const RangeType& range, PredT&& p_pred)
-          : range(range)
-          , pred(std::forward<PredT>(p_pred))
-        {}
+        using Keeper = ezy::experimental::basic_keeper<KeeperCategory, RangeType>;
 
         const_iterator begin() const
         {
-          return const_iterator(range, pred);
+          return const_iterator(range.get(), pred);
         }
 
         const_iterator end() const
         {
-          return const_iterator(range, pred, end_marker_t{});
+          return const_iterator(range.get(), pred, end_marker_t{});
         }
 
-        const RangeType& range;
+        Keeper range;
         Predicate pred;
     };
 

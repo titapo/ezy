@@ -258,6 +258,19 @@ SCENARIO("take")
   REQUIRE(join_as_strings(ezy::take(v, 5)) == "12345");
 }
 
+SCENARIO("take_while")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  REQUIRE(join_as_strings(ezy::take_while(v, [](int i) { return i != 5; })) == "1234");
+}
+
+SCENARIO("take_while temporary")
+{
+  REQUIRE(join_as_strings(ezy::take_while(
+          std::vector{1,2,3,4,5,6,7,8},
+          [](int i) { return i != 5; })) == "1234");
+}
+
 SCENARIO("flatten")
 {
   std::vector<std::vector<int>> v{std::vector{1,2,3,4,5,6,7,8}, {}, std::vector{0,0,0}};

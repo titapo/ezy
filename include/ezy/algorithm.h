@@ -109,6 +109,18 @@ namespace ezy
     };
   }
 
+  template <typename Range, typename Predicate>
+  /*constexpr*/ auto take_while(Range&& range, Predicate&& pred)
+  {
+    using RangeType = typename detail::deducer_helper<Range>::underlying_range_type;
+    using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
+    using ResultRangeType = take_while_range_view<CategoryTag, RangeType, ezy::remove_cvref_t<Predicate>>;
+    return ResultRangeType{
+      ezy::experimental::basic_keeper<CategoryTag, RangeType>(std::forward<Range>(range)),
+      std::forward<Predicate>(pred)
+    };
+  }
+
   template <typename Range>
   /*constexpr*/ auto flatten(Range&& range)
   {
