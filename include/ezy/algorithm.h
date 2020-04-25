@@ -84,6 +84,19 @@ namespace ezy
     };
   }
 
+  template <typename Range>
+  /*constexpr*/ auto slice(Range&& range, unsigned int from, unsigned int until) // TODO check size_type
+  {
+    using RangeType = typename detail::deducer_helper<Range>::underlying_range_type;
+    using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
+    using ResultRangeType = range_view_slice<CategoryTag, RangeType>;
+    return ResultRangeType{
+      ezy::experimental::basic_keeper<CategoryTag, RangeType>(std::forward<Range>(range)),
+      from,
+      until
+    };
+  }
+
 }
 
 #endif

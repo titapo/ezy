@@ -213,18 +213,16 @@ namespace ezy::features
 
     auto slice(const unsigned from, const unsigned until) const &
     {
-      using range_type = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = range_view_slice<ezy::experimental::reference_category_tag, const range_type>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type{ezy::experimental::reference_to<const range_type>(base::underlying()), from, until});
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::slice((*this).underlying(), from, until)
+          );
     }
 
     auto slice(const unsigned from, const unsigned until) &&
     {
-      using range_type = typename std::remove_reference<typename T::type>::type;
-      using result_range_type = range_view_slice<ezy::experimental::owner_category_tag, range_type>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_range_view(result_range_type{ezy::experimental::owner<range_type>(std::move(*this).underlying()), from, until});
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::slice(std::move(*this).underlying(), from, until)
+          );
     }
 
     template <typename Predicate>

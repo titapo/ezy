@@ -167,6 +167,7 @@ range_to_string(Range&& range)
   return r;
 }
 
+
 // TODO ezy::join()
 template <typename Range>
 std::string
@@ -175,6 +176,13 @@ join(Range&& range)
   std::string r;
   ezy::for_each(std::forward<Range>(range), [&r](auto i) { r += i; });
   return r;
+}
+
+template <typename Range>
+std::string
+join_as_strings(Range&& range)
+{
+  return join(ezy::transform(std::forward<Range>(range), [](auto e) { return std::to_string(e); }));
 }
 
 SCENARIO("transform")
@@ -236,4 +244,10 @@ SCENARIO("zip with temporaries")
         [](auto pair) -> std::string {auto[a,b] = pair; return std::to_string(a) + "+" + std::to_string(b) + ";"; }
   ));
   REQUIRE(joined == "1+4;2+5;3+6;");
+}
+
+SCENARIO("slice")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  REQUIRE(join_as_strings(ezy::slice(v, 0, 3)) == "123");
 }
