@@ -276,3 +276,25 @@ SCENARIO("flatten")
   std::vector<std::vector<int>> v{std::vector{1,2,3,4,5,6,7,8}, {}, std::vector{0,0,0}};
   REQUIRE(join_as_strings(ezy::flatten(v)) == "12345678000");
 }
+
+SCENARIO("find_element")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  const auto found = ezy::find_element(v, 5);
+  REQUIRE(found != std::end(v));
+  REQUIRE(*found == 5);
+
+  const auto not_found = ezy::find_element(v, 9);
+  REQUIRE(not_found == std::end(v));
+}
+
+SCENARIO("find")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  const auto found = ezy::find(v, 5);
+  REQUIRE(found.has_value());
+  REQUIRE(found.value() == 5);
+
+  const auto not_found = ezy::find(v, 9);
+  REQUIRE(!not_found.has_value());
+}

@@ -3,6 +3,7 @@
 
 #include "experimental/keeper.h"
 #include "range.h"
+#include "optional" // ezy::optional for find
 
 #include "bits_empty_size.h"
 
@@ -130,6 +131,40 @@ namespace ezy
     return ResultRangeType{
       ezy::experimental::basic_keeper<CategoryTag, RangeType>(std::forward<Range>(range))
     };
+  }
+
+  namespace detail
+  {
+    template <typename Range, typename Key>
+    using find_mem_fn_t = decltype(std::declval<Range>().find(std::declval<Key>()));
+  }
+
+  template <typename Range, typename Needle>
+  /*constexpr*/ auto find_element(Range&& range, Needle&& needle)
+  {
+      using std::begin;
+      using std::end;
+      if constexpr (std::experimental::is_detected<detail::find_mem_fn_t, Range, Needle>::value)
+      {
+        return range.find(std::forward<Needle>(needle));
+      }
+      else
+      {
+        return std::find(begin(range), end(range), std::forward<Needle>(needle));
+      }
+  }
+
+  template <typename Range, typename Needle>
+  /*constexpr*/ auto find(Range&& range, Needle&& needle)
+  {
+    using range_type = std::remove_reference_t<Range>;
+    using result_type = ezy::optional<typename range_type::value_type>;
+
+    const auto found = find_element(std::forward<Range>(range), std::forward<Needle>(needle));
+    if (found != end(range))
+      return result_type(*found);
+    else
+      return result_type();
   }
 
 

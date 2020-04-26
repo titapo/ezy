@@ -11,9 +11,6 @@
 
 #include <experimental/type_traits>
 
-template <typename Range, typename Key>
-using find_mem_fn_t = decltype(std::declval<Range>().find(std::declval<Key>()));
-
 namespace ezy::features
 {
   template <typename T>
@@ -118,25 +115,7 @@ namespace ezy::features
     template <typename Element>
     auto find(Element&& element) const
     {
-      using range_type = typename std::remove_reference<typename T::type>::type;
-      using result_type = ezy::optional<typename range_type::value_type>;
-
-      if constexpr (std::experimental::is_detected<find_mem_fn_t, typename T::type, Element>::value)
-      {
-        const auto found = base::underlying().find(std::forward<Element>(element));
-        if (found != base::underlying().end())
-          return result_type(*found);
-        else
-          return result_type();
-      }
-      else
-      {
-        const auto found = std::find(base::underlying().begin(), base::underlying().end(), std::forward<Element>(element));
-        if (found != base::underlying().end())
-          return result_type(*found);
-        else
-          return result_type();
-      }
+      return ezy::find((*this).underlying(), std::forward<Element>(element));
     }
 
     template <typename Predicate>
