@@ -167,6 +167,27 @@ namespace ezy
       return result_type();
   }
 
+  template <typename Range, typename Predicate>
+  /*constexpr*/ auto find_element_if(Range&& range, Predicate&& pred)
+  {
+    using std::begin;
+    using std::end;
+    return std::find_if(begin(range), end(range), std::forward<Predicate>(pred));
+  }
+
+  template <typename Range, typename Predicate>
+  /*constexpr*/ auto find_if(Range&& range, Predicate&& pred)
+  {
+    using range_type = std::remove_reference_t<Range>;
+    using result_type = ezy::optional<typename range_type::value_type>;
+
+    const auto found = find_element_if(std::forward<Range>(range), std::forward<Predicate>(pred));
+    if (found != end(range))
+      return result_type(*found);
+    else
+      return result_type();
+  }
+
 
 }
 

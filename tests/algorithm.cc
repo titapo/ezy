@@ -293,8 +293,40 @@ SCENARIO("find")
   std::vector<int> v{1,2,3,4,5,6,7,8};
   const auto found = ezy::find(v, 5);
   REQUIRE(found.has_value());
-  REQUIRE(found.value() == 5);
+  REQUIRE(found.value() == 5); // this should be a reference
 
   const auto not_found = ezy::find(v, 9);
   REQUIRE(!not_found.has_value());
+}
+
+SCENARIO("find in temporary")
+{
+  const auto found = ezy::find(std::vector{1,2,3,4,5,6,7,8}, 6);
+  REQUIRE(found.has_value());
+  REQUIRE(found.value() == 6); // this must be moved
+}
+
+constexpr auto greater_than_3 = [](int i) { return i > 3; };
+constexpr auto greater_than_10 = [](int i) { return i > 10; };
+
+SCENARIO("find_if")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  const auto found = ezy::find_if(v, greater_than_3);
+  REQUIRE(found.has_value());
+  REQUIRE(found.value() == 4);
+
+  const auto not_found = ezy::find_if(v, greater_than_10);
+  REQUIRE(!not_found.has_value());
+}
+
+SCENARIO("find_element_if")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  const auto found = ezy::find_element_if(v, greater_than_3);
+  REQUIRE(found != end(v));
+  REQUIRE(*found == 4);
+
+  const auto not_found = ezy::find_element_if(v, greater_than_10);
+  REQUIRE(not_found == end(v));
 }
