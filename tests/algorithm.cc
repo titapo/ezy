@@ -288,6 +288,12 @@ SCENARIO("find_element")
   REQUIRE(not_found == std::end(v));
 }
 
+SCENARIO("find_element in temporary should not compile")
+{
+  //const auto found = ezy::find_element(std::vector{1,2,3,4,5,6,7,8}, 5);
+  // > "Range must be a reference! Cannot form an iterator to a temporary!"
+}
+
 SCENARIO("find")
 {
   std::vector<int> v{1,2,3,4,5,6,7,8};
@@ -320,6 +326,16 @@ SCENARIO("find_if")
   REQUIRE(!not_found.has_value());
 }
 
+SCENARIO("find_if in temporary")
+{
+  const auto found = ezy::find_if(std::vector{1,2,3,4,5,6,7,8}, greater_than_3);
+  REQUIRE(found.has_value());
+  REQUIRE(found.value() == 4); // TODO check: moved, not referenced
+
+  const auto not_found = ezy::find_if(std::vector{1,2,3,4,5,6,7,8}, greater_than_10);
+  REQUIRE(!not_found.has_value());
+}
+
 SCENARIO("find_element_if")
 {
   std::vector<int> v{1,2,3,4,5,6,7,8};
@@ -329,4 +345,10 @@ SCENARIO("find_element_if")
 
   const auto not_found = ezy::find_element_if(v, greater_than_10);
   REQUIRE(not_found == end(v));
+}
+
+SCENARIO("find_element_if in temporary should not compile")
+{
+  //const auto found = ezy::find_element_if(std::vector{1,2,3,4,5,6,7,8}, greater_than_3);
+  // > "Range must be a reference! Cannot form an iterator to a temporary!"
 }

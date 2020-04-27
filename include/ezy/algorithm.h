@@ -142,16 +142,21 @@ namespace ezy
   template <typename Range, typename Needle>
   /*constexpr*/ auto find_element(Range&& range, Needle&& needle)
   {
-      using std::begin;
-      using std::end;
-      if constexpr (std::experimental::is_detected<detail::find_mem_fn_t, Range, Needle>::value)
-      {
-        return range.find(std::forward<Needle>(needle));
-      }
-      else
-      {
-        return std::find(begin(range), end(range), std::forward<Needle>(needle));
-      }
+    static_assert(std::is_same_v<
+        ezy::experimental::detail::ownership_category_t<Range>,
+        ezy::experimental::reference_category_tag
+        >, "Range must be a reference! Cannot form an iterator to a temporary!");
+
+    using std::begin;
+    using std::end;
+    if constexpr (std::experimental::is_detected<detail::find_mem_fn_t, Range, Needle>::value)
+    {
+      return range.find(std::forward<Needle>(needle));
+    }
+    else
+    {
+      return std::find(begin(range), end(range), std::forward<Needle>(needle));
+    }
   }
 
   template <typename Range, typename Needle>
@@ -160,7 +165,7 @@ namespace ezy
     using range_type = std::remove_reference_t<Range>;
     using result_type = ezy::optional<typename range_type::value_type>;
 
-    const auto found = find_element(std::forward<Range>(range), std::forward<Needle>(needle));
+    const auto found = find_element(range, std::forward<Needle>(needle));
     if (found != end(range))
       return result_type(*found);
     else
@@ -170,6 +175,11 @@ namespace ezy
   template <typename Range, typename Predicate>
   /*constexpr*/ auto find_element_if(Range&& range, Predicate&& pred)
   {
+    static_assert(std::is_same_v<
+        ezy::experimental::detail::ownership_category_t<Range>,
+        ezy::experimental::reference_category_tag
+        >, "Range must be a reference! Cannot form an iterator to a temporary!");
+
     using std::begin;
     using std::end;
     return std::find_if(begin(range), end(range), std::forward<Predicate>(pred));
@@ -181,7 +191,7 @@ namespace ezy
     using range_type = std::remove_reference_t<Range>;
     using result_type = ezy::optional<typename range_type::value_type>;
 
-    const auto found = find_element_if(std::forward<Range>(range), std::forward<Predicate>(pred));
+    const auto found = find_element_if(range, std::forward<Predicate>(pred));
     if (found != end(range))
       return result_type(*found);
     else
