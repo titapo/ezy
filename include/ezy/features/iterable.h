@@ -299,14 +299,15 @@ namespace ezy::features
     template <typename ResultContainer>
     constexpr ResultContainer to() const
     {
-      return ResultContainer(base::underlying().begin(), base::underlying().end());
+      return ezy::collect<ResultContainer>((*this).underlying());
     }
 
     template <typename ResultContainer>
     constexpr auto to_iterable() const
     {
-      using algo_iterable_container = strong_type<ResultContainer, notag_t, has_iterator, algo_iterable>;
-      return algo_iterable_container(base::underlying().begin(), base::underlying().end());
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::collect<ResultContainer>((*this).underlying())
+          );
     }
 
   };

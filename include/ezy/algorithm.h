@@ -221,6 +221,22 @@ namespace ezy
       return result_type();
   }
 
+  template <typename Result, typename Range>
+  constexpr auto collect(Range&& range)
+  {
+    using std::begin;
+    using std::end;
+    return Result(begin(range), end(range));
+  }
+
+  template <template <typename> class ResultWrapper, typename Range>
+  constexpr auto collect(Range&& range)
+  {
+    using std::begin;
+    using ElementType = std::remove_reference_t<decltype(*begin(range))>;
+    return collect<ResultWrapper<ElementType>>(std::forward<Range>(range));
+  }
+
 
 }
 

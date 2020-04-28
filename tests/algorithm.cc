@@ -5,6 +5,7 @@
 #include <ezy/features/iterable.h>
 
 #include <vector>
+#include <list>
 
 #include "common.h"
 
@@ -382,4 +383,34 @@ SCENARIO("find_if a move_only type")
   auto found = ezy::find_if(make_vector_of_move_only(), [](const auto& m) { return m.i == 4; });
   REQUIRE(found.has_value());
   REQUIRE(found->i == 4);
+}
+
+SCENARIO("collect explicitly to the same type")
+{
+  std::vector<int> v{1,2,3,4};
+  auto collected = ezy::collect<std::vector<int>>(v);
+  static_assert(std::is_same_v<decltype(v), decltype(collected)>);
+  REQUIRE(v == collected);
+}
+
+SCENARIO("collect explicitly to different type")
+{
+  std::vector<int> v{1,2,3,4};
+  auto collected = ezy::collect<std::vector<unsigned int>>(v);
+  REQUIRE(collected == std::vector{1u,2u,3u,4u});
+}
+
+SCENARIO("collect explicitly to different container type")
+{
+  std::vector<int> v{1,2,3,4};
+  auto collected = ezy::collect<std::list<int>>(v);
+  REQUIRE(collected == std::list{1,2,3,4});
+}
+
+SCENARIO("collect by deducing the element type")
+{
+  std::vector<int> v{1,2,3,4};
+  auto collected = ezy::collect<std::vector>(v);
+  static_assert(std::is_same_v<decltype(collected), std::vector<int>>);
+  REQUIRE(collected == v);
 }
