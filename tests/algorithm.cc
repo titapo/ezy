@@ -6,6 +6,8 @@
 
 #include <vector>
 
+#include "common.h"
+
 namespace
 {
   struct empty_t
@@ -351,4 +353,33 @@ SCENARIO("find_element_if in temporary should not compile")
 {
   //const auto found = ezy::find_element_if(std::vector{1,2,3,4,5,6,7,8}, greater_than_3);
   // > "Range must be a reference! Cannot form an iterator to a temporary!"
+}
+
+bool operator==(const move_only& lhs, const move_only& rhs)
+{
+  return lhs.i == rhs.i;
+}
+
+constexpr auto make_vector_of_move_only = [] {
+  std::vector<move_only> v;
+  v.emplace_back(1);
+  v.emplace_back(2);
+  v.emplace_back(3);
+  v.emplace_back(4);
+  v.emplace_back(5);
+  return v;
+};
+
+SCENARIO("find a move_only type")
+{
+  auto found = ezy::find(make_vector_of_move_only(), move_only{3});
+  REQUIRE(found.has_value());
+  REQUIRE(found->i == 3);
+}
+
+SCENARIO("find_if a move_only type")
+{
+  auto found = ezy::find_if(make_vector_of_move_only(), [](const auto& m) { return m.i == 4; });
+  REQUIRE(found.has_value());
+  REQUIRE(found->i == 4);
 }

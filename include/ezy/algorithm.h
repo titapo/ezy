@@ -159,15 +159,38 @@ namespace ezy
     }
   }
 
+  namespace detail
+  {
+    template <typename T>
+    decltype(auto) dependent_forward_impl(T&& t, ezy::experimental::owner_category_tag, std::false_type)
+    { return std::move(t); }
+
+    template <typename T>
+    decltype(auto) dependent_forward_impl(T&& t, ezy::experimental::reference_category_tag, std::false_type)
+    { return t; }
+
+    // TODO const cases are missing
+
+    template <typename Dependence, typename T>
+    decltype(auto) dependent_forward(T&& t)
+    {
+      return dependent_forward_impl(
+          std::forward<T>(t),
+          ezy::experimental::detail::ownership_category_t<Dependence>{},
+          std::is_const<Dependence>{}
+      );
+    }
+  }
+
   template <typename Range, typename Needle>
   /*constexpr*/ auto find(Range&& range, Needle&& needle)
   {
-    using range_type = std::remove_reference_t<Range>;
-    using result_type = ezy::optional<typename range_type::value_type>;
+    using ValueType = std::remove_reference_t<decltype(*begin(range))>;
+    using result_type = ezy::optional<ValueType>;
 
-    const auto found = find_element(range, std::forward<Needle>(needle));
+    auto found = find_element(range, std::forward<Needle>(needle));
     if (found != end(range))
-      return result_type(*found);
+      return result_type(detail::dependent_forward<Range>(*found));
     else
       return result_type();
   }
@@ -193,7 +216,7 @@ namespace ezy
 
     const auto found = find_element_if(range, std::forward<Predicate>(pred));
     if (found != end(range))
-      return result_type(*found);
+      return result_type(detail::dependent_forward<Range>(*found));
     else
       return result_type();
   }
