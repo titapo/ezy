@@ -4,6 +4,7 @@
 #include "experimental/keeper.h"
 #include "range.h"
 #include "optional" // ezy::optional for find
+#include "pointer.h" // for find
 
 #include "bits_empty_size.h"
 
@@ -167,7 +168,7 @@ namespace ezy
 
     template <typename T>
     decltype(auto) dependent_forward_impl(T&& t, ezy::experimental::reference_category_tag, std::false_type)
-    { return t; }
+    { return &t; }
 
     // TODO const cases are missing
 
@@ -186,7 +187,11 @@ namespace ezy
   /*constexpr*/ auto find(Range&& range, Needle&& needle)
   {
     using ValueType = std::remove_reference_t<decltype(*begin(range))>;
-    using result_type = ezy::optional<ValueType>;
+    using result_type = std::conditional_t<
+      std::is_lvalue_reference_v<Range>,
+      const ezy::pointer<ValueType>,
+      ezy::optional<ValueType>
+    >;
 
     auto found = find_element(range, std::forward<Needle>(needle));
     if (found != end(range))
@@ -211,8 +216,12 @@ namespace ezy
   template <typename Range, typename Predicate>
   /*constexpr*/ auto find_if(Range&& range, Predicate&& pred)
   {
-    using range_type = std::remove_reference_t<Range>;
-    using result_type = ezy::optional<typename range_type::value_type>;
+    using ValueType = std::remove_reference_t<decltype(*begin(range))>;
+    using result_type = std::conditional_t<
+      std::is_lvalue_reference_v<Range>,
+      const ezy::pointer<ValueType>,
+      ezy::optional<ValueType>
+    >;
 
     const auto found = find_element_if(range, std::forward<Predicate>(pred));
     if (found != end(range))

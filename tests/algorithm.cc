@@ -308,6 +308,16 @@ SCENARIO("find")
   REQUIRE(!not_found.has_value());
 }
 
+SCENARIO("find returns reference-like")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  const auto found = ezy::find(v, 5);
+  REQUIRE(found.has_value());
+  REQUIRE(found.value() == 5);
+  v[4] += 10;
+  REQUIRE(found.value() == 15);
+}
+
 SCENARIO("find in temporary")
 {
   const auto found = ezy::find(std::vector{1,2,3,4,5,6,7,8}, 6);
