@@ -7,6 +7,7 @@ add_executable(unit_test
   tuple_traits.cc
   iterable_feature.cc
   algorithm.cc
+  nullable_feature.cc
 )
 
 target_link_libraries(unit_test
