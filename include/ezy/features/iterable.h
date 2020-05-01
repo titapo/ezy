@@ -297,9 +297,15 @@ namespace ezy::features
     }
 
     template <typename ResultContainer>
-    constexpr ResultContainer to() const
+    constexpr ResultContainer to() const &
     {
       return ezy::collect<ResultContainer>((*this).underlying());
+    }
+
+    template <typename ResultContainer>
+    constexpr ResultContainer to() &&
+    {
+      return ezy::collect<ResultContainer>(std::move(*this).underlying());
     }
 
     template <typename ResultContainer>

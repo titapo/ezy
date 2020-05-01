@@ -233,9 +233,9 @@ namespace ezy
   template <typename Result, typename Range>
   constexpr auto collect(Range&& range)
   {
-    using std::begin;
-    using std::end;
-    return Result(begin(range), end(range));
+    using std::cbegin;
+    using std::cend;
+    return Result(cbegin(range), cend(range));
   }
 
   template <template <typename> class ResultWrapper, typename Range>
