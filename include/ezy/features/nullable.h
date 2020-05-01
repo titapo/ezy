@@ -158,7 +158,16 @@ namespace ezy::features::experimental
     struct apply :
       detail::nullable_unwrapper<Unwrapper>::template apply<T>,
       detail::null_checker_with_binary_predicate<NoneProvider, NoneChecker>::template apply<T>
-    {};
+    {
+      template <typename DefaultType>
+      auto value_or(DefaultType def) const
+      {
+        if (this->has_value())
+          return this->value();
+        else
+          return static_cast<decltype(this->value())>(def);
+      }
+    };
   };
 
   /**
@@ -172,7 +181,16 @@ namespace ezy::features::experimental
     struct apply :
       detail::nullable_unwrapper<Unwrapper>::template apply<T>,
       detail::null_checker_with_unary_predicate<NoneChecker>::template apply<T>
-    {};
+    {
+      template <typename DefaultType>
+      auto value_or(DefaultType def) const
+      {
+        if (this->has_value())
+          return this->value();
+        else
+          return static_cast<decltype(this->value())>(def);
+      }
+    };
   };
 
   template <typename T>
