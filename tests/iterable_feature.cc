@@ -1,6 +1,7 @@
 #include <catch.hpp>
 
 #include <ezy/strong_type>
+#include <ezy/string.h>
 
 #include <sstream>
 #include <map>
@@ -331,13 +332,13 @@ SCENARIO("strong type extensions")
       }
     }
 
-    const auto to_string = [](auto&& e) { return std::to_string(e); }; // lifting
+    //const auto to_string = [](auto&& e) { return std::to_string(e); }; // lifting
     WHEN("zipped")
     {
       const auto add_percent = [](const std::string& s) { return s + "%"; };
       const auto numbers_as_strings = numbers
         .map([](auto i) { return 2*i; })
-        .map(to_string)
+        .map(ezy::to_string)
         .map(add_percent)
         .to<std::vector<std::string>>();
 

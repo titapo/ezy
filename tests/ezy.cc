@@ -2,6 +2,7 @@
 
 #include <ezy/strong_type>
 #include <ezy/features/common.h>
+#include <ezy/string.h>
 
 // TODO think of: making ezy::optional and ezy::result iterable?
 
@@ -547,8 +548,7 @@ SCENARIO("result like interface for std::optional")
   THEN("string not need to be passed on parameter side") // not created internally
   {
 using O = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
-    const auto to_string = [](auto i) { return std::to_string(i); };
-    auto result = O{std::nullopt}.map_or(to_string, "foo");
+    auto result = O{std::nullopt}.map_or(ezy::to_string, "foo");
     static_assert(std::is_same_v<decltype(result), std::string>);
     REQUIRE(result == "foo");
   }

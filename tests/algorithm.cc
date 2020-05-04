@@ -3,6 +3,7 @@
 #include <ezy/algorithm>
 #include <ezy/strong_type>
 #include <ezy/features/iterable.h>
+#include <ezy/string.h>
 
 #include <vector>
 #include <list>
@@ -188,18 +189,9 @@ SCENARIO("join string_views")
 
 template <typename Range>
 std::string
-range_to_string(Range&& range)
-{
-  std::string r;
-  ezy::for_each(std::forward<Range>(range), [&r](int i) { r += std::to_string(i); });
-  return r;
-}
-
-template <typename Range>
-std::string
 join_as_strings(Range&& range)
 {
-  return ezy::join(ezy::transform(std::forward<Range>(range), [](auto e) { return std::to_string(e); }), "");
+  return ezy::join(ezy::transform(std::forward<Range>(range), ezy::to_string));
 }
 
 SCENARIO("transform")
@@ -207,8 +199,7 @@ SCENARIO("transform")
   std::vector<int> v{1,2,3};
   std::string r;
   auto mapped = ezy::transform(v, [](int i) { return i + 1; });
-  ezy::for_each(mapped, [&r](int i) { r += std::to_string(i); });
-  REQUIRE(r == "234");
+  REQUIRE(join_as_strings(mapped) == "234");
 }
 
 SCENARIO("concatenate")
@@ -216,27 +207,27 @@ SCENARIO("concatenate")
   std::vector<int> v1{1,2,3};
   std::vector<int> v2{4,5,6};
   const auto concatenated = ezy::concatenate(v1, v2);
-  REQUIRE(range_to_string(concatenated) == "123456");
+  REQUIRE(join_as_strings(concatenated) == "123456");
 }
 
 SCENARIO("concatenate - when the first is a temporary")
 {
   std::vector<int> v2{4,5,6};
   const auto concatenated = ezy::concatenate(std::vector{1,2,3}, v2);
-  REQUIRE(range_to_string(concatenated) == "123456");
+  REQUIRE(join_as_strings(concatenated) == "123456");
 }
 
 SCENARIO("concatenate - when the second is a temporary")
 {
   std::vector<int> v1{1,2,3};
   const auto concatenated = ezy::concatenate(v1, std::vector{4,5,6});
-  REQUIRE(range_to_string(concatenated) == "123456");
+  REQUIRE(join_as_strings(concatenated) == "123456");
 }
 
 SCENARIO("concatenate - when the both are temporaries")
 {
   const auto concatenated = ezy::concatenate(std::vector{1,2,3}, std::vector{4,5,6});
-  REQUIRE(range_to_string(concatenated) == "123456");
+  REQUIRE(join_as_strings(concatenated) == "123456");
 }
 
 SCENARIO("zip")
