@@ -8,6 +8,7 @@ add_executable(unit_test
   iterable_feature.cc
   algorithm.cc
   nullable_feature.cc
+  to_string.cc
 )
 
 target_link_libraries(unit_test
