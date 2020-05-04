@@ -161,6 +161,31 @@ SCENARIO("for_each on strong type")
   REQUIRE(r == "123");
 }
 
+SCENARIO("join empty range")
+{
+  std::vector<std::string> v{};
+  const auto joined = ezy::join(v, "+");
+  REQUIRE(joined == "");
+}
+
+SCENARIO("join")
+{
+  std::vector<std::string> v{"a", "b", "c"};
+  REQUIRE(ezy::join(v, "+") == "a+b+c");
+}
+
+SCENARIO("join with default delimiter")
+{
+  std::vector<std::string> v{"a", "b", "c"};
+  REQUIRE(ezy::join(v) == "abc");
+}
+
+SCENARIO("join string_views")
+{
+  std::vector<std::string_view> v{"a", "b", "c"};
+  REQUIRE(ezy::join<std::string>(v, ":") == "a:b:c");
+}
+
 template <typename Range>
 std::string
 range_to_string(Range&& range)
@@ -170,22 +195,11 @@ range_to_string(Range&& range)
   return r;
 }
 
-
-// TODO ezy::join()
-template <typename Range>
-std::string
-join(Range&& range)
-{
-  std::string r;
-  ezy::for_each(std::forward<Range>(range), [&r](auto i) { r += i; });
-  return r;
-}
-
 template <typename Range>
 std::string
 join_as_strings(Range&& range)
 {
-  return join(ezy::transform(std::forward<Range>(range), [](auto e) { return std::to_string(e); }));
+  return ezy::join(ezy::transform(std::forward<Range>(range), [](auto e) { return std::to_string(e); }), "");
 }
 
 SCENARIO("transform")
@@ -230,7 +244,7 @@ SCENARIO("zip")
   std::vector<int> v1{1,2,3};
   std::vector<int> v2{4,5,6};
   const auto zipped = ezy::zip(v1, v2);
-  const auto joined = join(
+  const auto joined = ezy::join(
       ezy::transform(
         zipped,
         [](auto pair) -> std::string {auto[a,b] = pair; return std::to_string(a) + "+" + std::to_string(b) + ";"; }
@@ -241,7 +255,7 @@ SCENARIO("zip")
 SCENARIO("zip with temporaries")
 {
   const auto zipped = ezy::zip(std::vector{1,2,3}, std::vector{4,5,6});
-  const auto joined = join(
+  const auto joined = ezy::join(
       ezy::transform(
         zipped,
         [](auto pair) -> std::string {auto[a,b] = pair; return std::to_string(a) + "+" + std::to_string(b) + ";"; }

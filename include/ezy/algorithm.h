@@ -246,6 +246,52 @@ namespace ezy
     return collect<ResultWrapper<ElementType>>(std::forward<Range>(range));
   }
 
+  namespace detail
+  {
+     template <typename T>
+     struct value_type
+     {
+       using type = ezy::remove_cvref_t<decltype(*std::begin(std::declval<T>()))>;
+     };
+
+     template <typename T>
+     using value_type_t = typename value_type<T>::type;
+  }
+
+  template <typename ReturnType, typename Range, typename Separator = detail::value_type_t<Range>>
+  constexpr ReturnType join(Range&& range, Separator&& separator = Separator{})
+  {
+    using std::begin;
+    using std::end;
+    if (ezy::empty(range))
+    {
+      return ReturnType{};
+    }
+    else
+    {
+      ReturnType result{*begin(range)};
+      std::for_each(
+          ++begin(range), // std::next() would be better
+          end(range),
+          [&result,separator](const auto& e)
+          {
+            result += separator;
+            result += e;
+          }
+        );
+      return result;
+    }
+  }
+
+  template <typename Range, typename Separator = detail::value_type_t<Range>>
+  constexpr auto join(Range&& range, Separator&& separator = Separator{})
+  {
+    using std::begin;
+    using std::end;
+    using ValueType = detail::value_type_t<Range>;
+    return join<ValueType>(std::forward<Range>(range), std::forward<Separator>(separator));
+  }
+
 
 }
 
