@@ -80,25 +80,23 @@ namespace ezy::features
       bool is_error() const
       { return !is_success(); }
 
-      /* TODO make it work
       decltype(auto) success() const &
-      { return trait_type::get_success((*this).self()); }
+      { return Adapter<typename T::type>::get_success((*this).underlying()); }
 
       decltype(auto) success() &
-      { return trait_type::get_success((*this).self()); }
+      { return Adapter<typename T::type>::get_success((*this).underlying()); }
 
       decltype(auto) success() &&
-      { return trait_type::get_success(std::move(*this).self()); }
+      { return Adapter<typename T::type>::get_success(std::move(*this).underlying()); }
 
       decltype(auto) error() const &
-      { return trait_type::get_error((*this).self()); }
+      { return Adapter<typename T::type>::get_error((*this).underlying()); }
 
       decltype(auto) error() &
-      { return trait_type::get_error((*this).self()); }
+      { return Adapter<typename T::type>::get_error((*this).underlying()); }
 
       decltype(auto) error() &&
-      { return trait_type::get_error(std::move(*this).self()); }
-      */
+      { return Adapter<typename T::type>::get_error(std::move(*this).underlying()); }
 
       // TODO it seems those factory functions do not work with non_transferable types, since T (strong type) does not work.
       template <typename... Ts>

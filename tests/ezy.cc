@@ -198,6 +198,26 @@ SCENARIO("result-like continuation")
     REQUIRE(R{"alma"}.is_error());
   }
 
+  GIVEN("success")
+  {
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
+    REQUIRE(R{10}.success() == 10);
+    const R r{11};
+    REQUIRE(r.success() == 11);
+    R mutable_r{12};
+    REQUIRE(mutable_r.success() == 12);
+  }
+
+  GIVEN("error")
+  {
+    using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
+    REQUIRE(R{"alma"}.error() == "alma");
+    const R r{"banan"};
+    REQUIRE(r.error() == "banan");
+    R mutable_r{"korte"};
+    REQUIRE(mutable_r.error() == "korte");
+  }
+
   /*
   GIVEN("ctor works with non_transferable")
   {
