@@ -1,7 +1,8 @@
 #ifndef EZY_FEATURES_RESULT_INTERFACE_INCLUDED
 #define EZY_FEATURES_RESULT_INTERFACE_INCLUDED
 
-#include "../strong_type.h"
+#include "../feature.h"
+#include "../strong_type_traits.h"
 
 #include <functional>
 #include <variant> // std::get

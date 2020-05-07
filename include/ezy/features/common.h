@@ -52,5 +52,58 @@ namespace ezy::features
   };
 }
 
+namespace ezy::features
+{
+  // TODO std::ostream should not be named here
+  /**
+   * features
+   */
+  template <typename T>
+  struct printable : feature<T, printable>
+  {
+    using base = feature<T, printable>;
+
+    std::ostream& print_to_stream(std::ostream& ostr) const
+    {
+      return ostr << base::underlying();
+    }
+  };
+
+  template <typename T, typename Tag, template <typename> class... Features>
+  std::ostream& operator<<(std::ostream& ostr, const strong_type<T, Tag, Features...>& strong)
+  {
+    return strong.print_to_stream(ostr);
+  }
+
+  template <typename T>
+  struct clonable : feature<T, clonable>
+  {
+    using base = feature<T, clonable>;
+
+    T clone() const
+    {
+      return {base::underlying()};
+    }
+  };
+
+  template <typename T>
+  struct implicit_convertible : feature<T, implicit_convertible>
+  {
+    using base = feature<T, implicit_convertible>;
+    using underlying_type = extract_underlying_type_t<T>;
+
+    operator const underlying_type&() const
+    {
+      return base::underlying();
+    }
+
+    operator underlying_type&()
+    {
+      return base::underlying;
+    }
+  };
+}
+
+
 
 #endif
