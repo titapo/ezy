@@ -41,15 +41,17 @@ namespace ezy::features::experimental
     };
 
     template <typename T>
-    struct default_ctor_of_plain_type
+    struct default_ctor_of
     {
-      //using value_type = typename T::type;
-      using value_type = ezy::plain_type_t<T>;
+      using value_type = T;
       constexpr value_type operator()() const
       {
         return value_type{};
       }
     };
+
+    template <typename T>
+    struct default_ctor_of_plain_type : default_ctor_of<ezy::plain_type_t<T>> {};
 
     template <typename Unwrapper>
     struct nullable_unwrapper
