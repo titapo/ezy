@@ -1236,6 +1236,27 @@ SCENARIO("compose")
     S s{3};
     REQUIRE(calculate(s) == 103);
   }
+
+  WHEN("invoked in constexpr context") // TODO
+  {
+    /*
+    constexpr auto plus_4 = [](auto i) {return i + 4;};
+    constexpr auto plus_10 = [](auto i) {return i + 10;};
+
+    constexpr auto plus_14 = compose(plus_4, plus_10);
+    static_assert(plus_14(6) == 20);
+    */
+  }
+
+  WHEN("composing more")
+  {
+    auto double_length = compose(ezy::to_string, &std::string::size, [](auto s) {return s * 2;});
+
+    REQUIRE(double_length(4) == 2);
+    REQUIRE(double_length(12345) == 10);
+    REQUIRE(compose(double_length, double_length)(12345) == 4);
+  }
+  // moving etc
 }
 
 #include <ezy/experimental/tuple_algorithm.h>

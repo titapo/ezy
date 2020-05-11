@@ -2,6 +2,7 @@
 #define EZY_EXPERIMENTAL_FUNCTION_HH
 
 #include <functional>
+#include <ezy/invoke.h>
 
 namespace ezy::experimental::function
 {
@@ -23,30 +24,58 @@ namespace ezy::experimental::function
   /**
    * compose
    */
-  template <typename F1, typename F2>
+  template <typename... Fs>
   struct composed
   {
-    composed(F1 f1, F2 f2)
-      : fs(f1, f2)
+    template <typename... Functions> //convertible to?
+    constexpr explicit composed(Functions&&... fns)
+      : fs{std::forward<Functions>(fns)...}
     {}
 
-    template <typename T>
-    decltype(auto) operator()(T&& p)
+    static_assert(sizeof...(Fs) > 0, "Composing nothing is not supported.");
+    std::tuple<Fs...> fs;
+
+    template <typename...Fns, typename Fn, typename T>
+    constexpr static decltype(auto) call_helper_pack(T&& t, Fn&& fn, Fns&&... fns)
     {
-      return std::invoke(
-          std::get<1>(fs),
-          std::invoke(std::get<0>(fs), std::forward<T>(p)));
+      if constexpr (sizeof...(Fns) == 0)
+      {
+        return ezy::invoke(std::forward<Fn>(fn), std::forward<T>(t));
+      }
+      else
+      {
+        return call_helper_pack(ezy::invoke(std::forward<Fn>(fn), std::forward<T>(t)), std::forward<Fns>(fns)...);
+      }
     }
 
-    std::tuple<F1, F2> fs;
+    template <typename T, typename Tuple, std::size_t...Is>
+    constexpr static decltype(auto) call_helper_tuple(T&& t, Tuple&& tup, std::index_sequence<Is...>)
+    {
+      return call_helper_pack(std::forward<T>(t), std::get<Is>(tup)...);
+    }
+
+    template <typename...Fns, typename T>
+    constexpr static decltype(auto) call_helper(std::tuple<Fns...> tup, T&& t)
+    {
+      return call_helper_tuple(
+          std::forward<T>(t),
+          std::forward<decltype(tup)>(tup),
+          std::make_index_sequence<sizeof...(Fns)>());
+    }
+
+    template <typename T>
+    constexpr decltype(auto) operator()(T&& t) const
+    {
+      return call_helper(fs, std::forward<T>(t));
+    }
   };
 
   //template <typename F1, typename F2> composed(F1, F2) -> composed<F1, F2>;
 
-  template <typename F1, typename F2>
-  composed<F1, F2> compose(F1&& f1, F2&& f2)
+  template <typename... Fns>
+  constexpr composed<Fns...> compose(Fns&&... fns)
   {
-    return composed<F1, F2>(std::forward<F1>(f1), std::forward<F2>(f2));
+    return composed<Fns...>(std::forward<Fns>(fns)...);
   }
 
 }
