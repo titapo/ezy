@@ -1,6 +1,8 @@
 #ifndef EZY_FEATURE_H_INCLUDED
 #define EZY_FEATURE_H_INCLUDED
 
+#include <utility> // for std::move
+
 namespace ezy
 {
   template <typename T, template<typename> class crtp_type>
