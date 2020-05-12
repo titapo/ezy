@@ -885,14 +885,28 @@ SCENARIO("strong type reference for struct")
 
 SCENARIO("make_strong")
 {
-  int mi = 1;
-  const int ci = 2;
+  int mutable_int = 1;
+  const int const_int = 2;
 
-  static_assert(std::is_same_v<decltype(ezy::make_strong<struct Tag>(mi)), ezy::strong_type<int, struct Tag>>);
-  static_assert(std::is_same_v<decltype(ezy::make_strong<struct Tag>(ci)), ezy::strong_type<int, struct Tag>>);
+  static_assert(std::is_same_v<
+      decltype(ezy::make_strong<struct Tag>(mutable_int)),
+      ezy::strong_type<int, struct Tag>
+    >);
 
-  static_assert(std::is_same_v<decltype(ezy::make_strong_const<struct Tag>(mi)), ezy::strong_type<const int, struct Tag>>);
-  static_assert(std::is_same_v<decltype(ezy::make_strong_const<struct Tag>(ci)), ezy::strong_type<const int, struct Tag>>);
+  static_assert(std::is_same_v<
+      decltype(ezy::make_strong<struct Tag>(const_int)),
+      ezy::strong_type<int, struct Tag>
+    >);
+
+  static_assert(std::is_same_v<
+      decltype(ezy::make_strong_const<struct Tag>(mutable_int)),
+      ezy::strong_type<const int, struct Tag>
+    >);
+
+  static_assert(std::is_same_v<
+      decltype(ezy::make_strong_const<struct Tag>(const_int)),
+      ezy::strong_type<const int, struct Tag>
+    >);
 }
 
 SCENARIO("strong type for vector")
