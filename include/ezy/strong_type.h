@@ -102,6 +102,18 @@ namespace ezy
   {
     return strong_type<std::add_const_t<ezy::remove_cvref_t<T>>, Tag, Features...>(std::forward<T>(t));
   }
+
+  template <typename Tag, template <typename> class... Features, typename T>
+  auto make_strong_reference(T&& t)
+  {
+    return strong_type_reference<std::remove_reference_t<T>, Tag, Features...>(std::forward<T>(t));
+  }
+
+  template <typename Tag, template <typename> class... Features, typename T>
+  auto make_strong_reference_const(T&& t)
+  {
+    return strong_type_reference<std::add_const_t<std::remove_reference_t<T>>, Tag, Features...>(std::forward<T>(t));
+  }
 }
 
 namespace ezy

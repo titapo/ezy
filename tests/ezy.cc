@@ -888,25 +888,85 @@ SCENARIO("make_strong")
   int mutable_int = 1;
   const int const_int = 2;
 
-  static_assert(std::is_same_v<
-      decltype(ezy::make_strong<struct Tag>(mutable_int)),
-      ezy::strong_type<int, struct Tag>
-    >);
+  WHEN("make_strong")
+  {
+    static_assert(std::is_same_v<
+        decltype(ezy::make_strong<struct Tag>(mutable_int)),
+        ezy::strong_type<int, struct Tag>
+      >);
 
-  static_assert(std::is_same_v<
-      decltype(ezy::make_strong<struct Tag>(const_int)),
-      ezy::strong_type<int, struct Tag>
-    >);
+    static_assert(std::is_same_v<
+        decltype(ezy::make_strong<struct Tag>(const_int)),
+        ezy::strong_type<int, struct Tag>
+      >);
 
-  static_assert(std::is_same_v<
-      decltype(ezy::make_strong_const<struct Tag>(mutable_int)),
-      ezy::strong_type<const int, struct Tag>
-    >);
+    static_assert(std::is_same_v<
+        decltype(ezy::make_strong<struct Tag>(1)),
+        ezy::strong_type<int, struct Tag>
+      >);
+  }
 
-  static_assert(std::is_same_v<
-      decltype(ezy::make_strong_const<struct Tag>(const_int)),
-      ezy::strong_type<const int, struct Tag>
-    >);
+  WHEN("make_strong_const")
+  {
+    static_assert(std::is_same_v<
+        decltype(ezy::make_strong_const<struct Tag>(mutable_int)),
+        ezy::strong_type<const int, struct Tag>
+      >);
+
+    static_assert(std::is_same_v<
+        decltype(ezy::make_strong_const<struct Tag>(const_int)),
+        ezy::strong_type<const int, struct Tag>
+      >);
+
+    static_assert(std::is_same_v<
+        decltype(ezy::make_strong_const<struct Tag>(1)),
+        ezy::strong_type<const int, struct Tag>
+      >);
+  }
+
+  WHEN("make_strong_reference")
+  {
+    static_assert(std::is_same_v<
+        decltype(ezy::make_strong_reference<struct Tag>(mutable_int)),
+        ezy::strong_type_reference<int, struct Tag>
+      >);
+
+    static_assert(std::is_same_v<
+        decltype(ezy::make_strong_reference<struct Tag>(const_int)),
+        ezy::strong_type_reference<const int, struct Tag>
+      >);
+
+    // ezy::make_strong_reference<struct Tag>(1) // OK does not compile
+  }
+
+  WHEN("make_strong_reference_const")
+  {
+    static_assert(std::is_same_v<
+        decltype(ezy::make_strong_reference_const<struct Tag>(mutable_int)),
+        ezy::strong_type_reference<const int, struct Tag>
+      >);
+
+    static_assert(std::is_same_v<
+        decltype(ezy::make_strong_reference_const<struct Tag>(const_int)),
+        ezy::strong_type_reference<const int, struct Tag>
+      >);
+
+    static_assert(std::is_same_v<
+        decltype(ezy::make_strong_reference_const<struct Tag>(1)),
+        ezy::strong_type_reference<const int, struct Tag>
+      >);
+
+    /*
+    TODO these are buggy: forming reference to a(n) (p)rvalue
+
+    auto cref = ezy::make_strong_reference_const<struct Tag>(12345);
+    REQUIRE(cref.get() == 12345);
+
+    int movable_int = 15;
+    auto moved = ezy::make_strong_reference_const<struct Tag>(std::move(movable_int));
+    REQUIRE(moved.get() == 15);
+    */
+  }
 }
 
 SCENARIO("strong type for vector")
