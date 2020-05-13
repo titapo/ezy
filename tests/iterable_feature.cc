@@ -541,7 +541,6 @@ SCENARIO("strong type extensions")
     // TODO head/tail
     // TODO unzip
     // TODO grouping?
-    // TODO collect?
     //
 
     GIVEN("a string vector")

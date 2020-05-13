@@ -3,6 +3,7 @@
 
 #include "nullable.h"
 #include "result_interface.h"
+#include "../type_traits.h"
 
 namespace ezy::features::experimental
 {
@@ -14,8 +15,7 @@ namespace ezy::features::experimental
     template <typename ValueType>
     struct apply
     {
-      // TODO remove_cvref_t
-      using success_type = std::decay_t<decltype(NullableFeature<ValueType>::has_value_impl(std::declval<ValueType>()))>;
+      using success_type = ezy::remove_cvref_t<decltype(NullableFeature<ValueType>::has_value_impl(std::declval<ValueType>()))>;
 
       template <typename T>
       constexpr static bool is_success(T&& t)
