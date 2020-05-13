@@ -544,6 +544,39 @@ SCENARIO("strong type extensions")
     // TODO collect?
     //
 
+    GIVEN("a string vector")
+    {
+      using MyStrings = ezy::strong_type<std::vector<std::string>, void, ezy::features::iterable>;
+      MyStrings strings{"alma", "korte", "szilva"};
+      WHEN("its joined with empty separator")
+      {
+        REQUIRE(strings.join("") == "almakorteszilva");
+      }
+      WHEN("its joined with separator")
+      {
+        REQUIRE(strings.join("/") == "alma/korte/szilva");
+      }
+    }
+
+    GIVEN("a const string vector")
+    {
+      using MyStrings = ezy::strong_type<std::vector<std::string>, void, ezy::features::iterable>;
+      const MyStrings strings{"alma", "korte", "szilva"};
+      WHEN("its joined with empty separator")
+      {
+        REQUIRE(strings.join("") == "almakorteszilva");
+      }
+      WHEN("its joined with separator")
+      {
+        REQUIRE(strings.join("/") == "alma/korte/szilva");
+      }
+    }
+
+    WHEN("mapped and joined")
+    {
+      REQUIRE(numbers.map(ezy::to_string).join(".") == "1.2.3.4.5.6.7.8.9.10");
+    }
+
     WHEN("mapped then filtered")
     {
       auto transform = [](auto i) { return i + 10; };

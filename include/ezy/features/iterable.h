@@ -316,6 +316,12 @@ namespace ezy::features
           );
     }
 
+    template <typename Separator>
+    constexpr auto join(Separator&& separator) const
+    {
+      return ezy::join((*this).underlying(), std::forward<Separator>(separator));
+    }
+
   };
 
   template <typename T>
