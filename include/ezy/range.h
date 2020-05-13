@@ -33,7 +33,7 @@
                 return *this;
             }
 
-            inline constexpr auto operator*()
+            inline constexpr decltype(auto) operator*()
             {
               return *orig;
             }
