@@ -19,6 +19,9 @@ using integral_constant_add_t = typename integral_constant_add<T1, T2>::type;
 template <size_t N>
 using index_constant = std::integral_constant<size_t, N>;
 
+template <typename>
+struct unary_template {};
+
 SCENARIO("tuple_traits")
 {
   namespace ett = ezy::tuple_traits;
@@ -135,10 +138,10 @@ SCENARIO("tuple_traits")
 
   GIVEN("map")
   {
-    static_assert(std::is_same_v<ett::map_t<std::tuple<>, std::vector>, std::tuple<>>);
-    static_assert(std::is_same_v<ett::map_t<std::tuple<int>, std::vector>, std::tuple<std::vector<int>>>);
-    static_assert(std::is_same_v<ett::map_t<std::tuple<int, char, int>, std::vector>,
-        std::tuple<std::vector<int>, std::vector<char>, std::vector<int>>
+    static_assert(std::is_same_v<ett::map_t<std::tuple<>, unary_template>, std::tuple<>>);
+    static_assert(std::is_same_v<ett::map_t<std::tuple<int>, unary_template>, std::tuple<unary_template<int>>>);
+    static_assert(std::is_same_v<ett::map_t<std::tuple<int, char, int>, unary_template>,
+        std::tuple<unary_template<int>, unary_template<char>, unary_template<int>>
         >);
   }
 
