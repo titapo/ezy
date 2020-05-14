@@ -5,6 +5,9 @@ compiler:
   - gcc
   - clang
 
+install:
+  - make -f Makefile.env
+
 before_script:
   - mkdir build
   - cd build
