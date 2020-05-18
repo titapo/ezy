@@ -23,4 +23,4 @@ set_target_properties(unit_test
 )
 
 target_compile_options(unit_test PRIVATE -pedantic -Wall -Werror)
-target_compile_options(unit_test PRIVATE -D_GLIBCXX_DEBUG)
+# target_compile_options(unit_test PRIVATE -D_GLIBCXX_DEBUG)

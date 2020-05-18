@@ -112,9 +112,8 @@ constexpr bool consteval_check()
 {
   using Array = ezy::strong_type<std::array<int, 10>, struct ArrayTag, ezy::features::iterable>;
   Array arr{1,2,3,4,5,6,7,8,9,10};
+  return equal(arr, std::array{1,2,3,4,5,6,7,8,9,10});
   //equal(arr.map([](int i) { return i + 1; }), std::array{2,3,4,5,6,7,8,9,10,11}); //TODO this should work
-
-  return true;
 }
 
 static_assert(consteval_check());
