@@ -1068,7 +1068,7 @@ SCENARIO("strong type for const integer")
     const ST other(st);
     THEN("underlying type can be got back")
     {
-      REQUIRE(st.get() == 123);
+      REQUIRE(other.get() == 123);
     }
   }
 }
