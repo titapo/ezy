@@ -1,7 +1,7 @@
-#include <catch.hpp>
 
 #include <ezy/strong_type>
 #include <ezy/features/common.h>
+#include <ezy/features/printable.h>
 #include <ezy/string.h>
 
 // TODO think of: making ezy::optional and ezy::result iterable?
@@ -9,6 +9,8 @@
 #include <ezy/result>
 
 #include "common.h"
+
+#include <catch.hpp>
 
 static_assert(!std::is_copy_constructible_v<move_only>);
 static_assert(!std::is_trivially_copy_constructible_v<move_only>);

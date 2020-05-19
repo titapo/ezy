@@ -1,10 +1,10 @@
-#include <catch.hpp>
-
 #include <ezy/strong_type>
 #include <ezy/string.h>
 
 #include <sstream>
 #include <map>
+
+#include <catch.hpp>
 
 template <typename RangeType>
 auto range_size(const RangeType& range)

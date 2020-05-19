@@ -54,26 +54,24 @@ namespace ezy::features
 
 namespace ezy::features
 {
-  // TODO std::ostream should not be named here
   /**
    * features
    */
-  template <typename T>
-  struct printable : feature<T, printable>
-  {
-    using base = feature<T, printable>;
 
-    std::ostream& print_to_stream(std::ostream& ostr) const
+  // TODO specify order: a << b, b << a
+  // TODO specify return type
+  template <typename U>
+  struct left_shiftable_with
+  {
+    template <typename T>
+    struct impl : feature<T, impl>
     {
-      return ostr << base::underlying();
-    }
+      friend decltype(auto) operator<<(U& lhs, const T& rhs)
+      {
+        return lhs << rhs.get();
+      }
+    };
   };
-
-  template <typename T, typename Tag, template <typename> class... Features>
-  std::ostream& operator<<(std::ostream& ostr, const strong_type<T, Tag, Features...>& strong)
-  {
-    return strong.print_to_stream(ostr);
-  }
 
   template <typename T>
   struct clonable : feature<T, clonable>

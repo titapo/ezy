@@ -1,7 +1,7 @@
 #ifndef STRONG_TYPE_H_INCLUDED
 #define STRONG_TYPE_H_INCLUDED
 
-#include <iostream>
+#include <utility> // std::forward
 #include <type_traits>
 #include "type_traits.h"
 
