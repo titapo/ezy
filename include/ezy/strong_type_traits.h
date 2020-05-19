@@ -39,10 +39,13 @@ namespace ezy
   using plain_type_t = typename plain_type<T>::type;
 
   template <typename S>
-  struct extract_underlying_type
+  struct extract_underlying_type;
+
+
+  template <typename T, typename Tag, template <typename> class... Features>
+  struct extract_underlying_type<strong_type<T, Tag, Features...>>
   {
-    static_assert(is_strong_type_v<S>, "is not a strong type");
-    using type = typename S::type;
+    using type = T;
   };
 
   template <typename T>
