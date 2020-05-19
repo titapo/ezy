@@ -1169,6 +1169,52 @@ SCENARIO("strong type integer arithmetic")
       REQUIRE(a.get() == 1);
     }
   }
+
+  WHEN("multipliable")
+  {
+    using Mult = ezy::strong_type<int, struct Tag, ezy::features::multipliable>;
+    THEN("multiplication works and returns the same type (closed multiplication)")
+    {
+      Mult a(5);
+      Mult b(3);
+      static_assert(std::is_same_v<Mult, decltype(a * b)>);
+      REQUIRE((a * b).get() == 15);
+    }
+
+    THEN("multiplicative update works and returns the same type (closed multiplication)")
+    {
+      Mult a(5);
+      a *= Mult(3);
+      REQUIRE(a.get() == 15);
+    }
+  }
+
+  WHEN("multipliable_with_underlying")
+  {
+    using Mult = ezy::strong_type<int, struct Tag, ezy::features::multipliable_with_underlying>;
+    THEN("multiplication works and returns the same type (closed multiplication)")
+    {
+      Mult a(5);
+      int b{3};
+      static_assert(std::is_same_v<Mult, decltype(a * b)>);
+      REQUIRE((a * b).get() == 15);
+    }
+
+    THEN("multiplicative update works and returns the same type (closed multiplication)")
+    {
+      Mult a(5);
+      a *= 3;
+      REQUIRE(a.get() == 15);
+    }
+
+    THEN("multiplication works and returns the same type (closed multiplication) (swapped order)")
+    {
+      Mult a(5);
+      int b{3};
+      static_assert(std::is_same_v<Mult, decltype(b * a)>);
+      REQUIRE((b * a).get() == 15);
+    }
+  }
 }
 
 SCENARIO("strong type comparisons")

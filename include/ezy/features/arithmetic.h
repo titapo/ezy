@@ -116,6 +116,15 @@ namespace ezy::features
     }
   };
 
+  namespace detail
+  {
+    template <typename T>
+    decltype(auto) to_plain_type(T&& t)
+    {
+      return static_cast<ezy::plain_type_t<std::remove_reference_t<T>>>(t); // forwarding?
+    }
+  }
+
   // nicer solution?
   template <typename N>
   struct multipliable_by
@@ -127,14 +136,24 @@ namespace ezy::features
       using base::self;
 
       using numtype = N;
-      T operator*(numtype other) const { return T(self().get() * other); }
+      friend T operator*(const T& lhs, numtype rhs) { return T(lhs.get() * detail::to_plain_type(rhs)); }
+
+      template <typename B = bool, typename = std::enable_if_t<!std::is_same_v<T, N>, B>>
+      friend T operator*(numtype lhs, const T& rhs) { return T(detail::to_plain_type(lhs) * rhs.get()); }
+
       T& operator*=(numtype other)
       {
-        self().get() *= other;
+        self().get() *= detail::to_plain_type(other);
         return self();
       }
     };
   };
+
+  template <typename T>
+  using multipliable = typename multipliable_by<T>::template internal<T>;
+
+  template <typename T>
+  using multipliable_with_underlying = typename multipliable_by<ezy::extract_underlying_type_t<T>>::template internal<T>;
 
   template <typename N>
   struct divisible_by
