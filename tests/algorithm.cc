@@ -230,28 +230,48 @@ SCENARIO("concatenate - when the both are temporaries")
   REQUIRE(join_as_strings(concatenated) == "123456");
 }
 
+template <typename Zipped>
+auto join_zipped(Zipped&& zipped)
+{
+  return ezy::join(
+      ezy::transform(
+        zipped,
+        [](auto pair) -> std::string {auto[a,b] = pair; return std::to_string(a) + "+" + std::to_string(b) + ";"; }
+  ));
+}
+
 SCENARIO("zip")
 {
   std::vector<int> v1{1,2,3};
   std::vector<int> v2{4,5,6};
   const auto zipped = ezy::zip(v1, v2);
-  const auto joined = ezy::join(
-      ezy::transform(
-        zipped,
-        [](auto pair) -> std::string {auto[a,b] = pair; return std::to_string(a) + "+" + std::to_string(b) + ";"; }
-  ));
+  const auto joined = join_zipped(zipped);
   REQUIRE(joined == "1+4;2+5;3+6;");
 }
 
-SCENARIO("zip with temporaries")
+SCENARIO("zip temporaries")
 {
   const auto zipped = ezy::zip(std::vector{1,2,3}, std::vector{4,5,6});
+  const auto joined = join_zipped(zipped);
+  REQUIRE(joined == "1+4;2+5;3+6;");
+}
+
+SCENARIO("zip different size")
+{
+  const auto zipped = ezy::zip(std::vector{1,2,3}, std::vector{4, 5});
+  const auto joined = join_zipped(zipped);
+  REQUIRE(joined == "1+4;2+5;");
+}
+
+SCENARIO("zip 3")
+{
+  const auto zipped = ezy::zip(std::vector{1,2,3}, std::vector{4,5,6}, std::vector{7,8,9});
   const auto joined = ezy::join(
       ezy::transform(
         zipped,
-        [](auto pair) -> std::string {auto[a,b] = pair; return std::to_string(a) + "+" + std::to_string(b) + ";"; }
+        [](auto tuple) -> std::string {auto[a,b,c] = tuple; return std::to_string(a) + "+" + std::to_string(b) + "+" + std::to_string(c) + ";"; }
   ));
-  REQUIRE(joined == "1+4;2+5;3+6;");
+  REQUIRE(joined == "1+4+7;2+5+8;3+6+9;");
 }
 
 SCENARIO("slice")

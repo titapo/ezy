@@ -19,6 +19,7 @@ namespace ezy
       using orig_type = Range;
       using underlying_range_type = std::remove_reference_t<orig_type>;
       using category_tag = ezy::experimental::detail::ownership_category_t<orig_type>;
+      using keeper_type = ezy::experimental::basic_keeper<category_tag, underlying_range_type>;
     };
   }
 
@@ -70,19 +71,12 @@ namespace ezy
     };
   }
 
-  template <typename Range1, typename Range2>
-  /*constexpr*/ auto zip(Range1&& range1, Range2&& range2)
+  template <typename... Ranges>
+  /*constexpr*/ auto zip(Ranges&&... ranges)
   {
-    using Range1Type = typename detail::deducer_helper<Range1>::underlying_range_type;
-    using Category1Tag = typename detail::deducer_helper<Range1>::category_tag;
-
-    using Range2Type = typename detail::deducer_helper<Range2>::underlying_range_type;
-    using Category2Tag = typename detail::deducer_helper<Range2>::category_tag;
-
-    using ResultRangeType = zip_range_view<Category1Tag, Range1Type, Category2Tag, Range2Type>;
+    using ResultRangeType = zip_range_view<typename detail::deducer_helper<Ranges>::keeper_type... >;
     return ResultRangeType{
-      ezy::experimental::basic_keeper<Category1Tag, Range1Type>(std::forward<Range1>(range1)),
-      ezy::experimental::basic_keeper<Category2Tag, Range2Type>(std::forward<Range2>(range2))
+      ezy::experimental::make_keeper(std::forward<Ranges>(ranges))...
     };
   }
 

@@ -346,7 +346,7 @@ SCENARIO("strong type extensions")
       THEN("it is ok")
       {
         const auto as_strings = result
-          .map([](const auto& p) { return std::to_string(p.first) + ":" + p.second; });
+          .map([](const auto& p) { return std::to_string(std::get<0>(p)) + ":" + std::get<1>(p); });
 
         COMPARE_RANGES(as_strings,
             (std::array<std::string, 10>{"1:2%", "2:4%", "3:6%", "4:8%", "5:10%", "6:12%", "7:14%", "8:16%", "9:18%", "10:20%"}));

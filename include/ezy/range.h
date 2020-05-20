@@ -64,6 +64,8 @@
     struct range_tracker
     {
       public:
+        constexpr static auto size = sizeof...(Ranges);
+
         range_tracker(const Ranges&... ranges)
           : ranges(ranges...)
           , current(std::begin(ranges)...)
@@ -111,6 +113,12 @@
         void next_all()
         {
           ezy::experimental::static_for_each(current, [](auto& it){ ++it; });
+        }
+
+        template <unsigned N>
+        bool has_next() const
+        {
+          return std::get<N>(current) != std::get<N>(ranges).get().end();
         }
 
       private:
@@ -391,33 +399,52 @@
           inner_iterator inner;
     };
 
-    template <typename first_range_type, typename second_range_type>
+    template <typename... Ranges>
     struct iterator_zipper
     {
       public:
         using difference_type = size_t; // TODO what should it be?
         //using orig_type = typename first_range_type::const_iterator;
         //using value_type = decltype(*std::declval<orig_type>());
-        using value_type = std::pair<
-          std::add_pointer_t<typename first_range_type::const_iterator::value_type>,
-          std::add_pointer_t<typename second_range_type::const_iterator::value_type>
+        using value_type = std::tuple<
+          std::add_pointer_t<typename Ranges::const_iterator::value_type>...
               >;
         using pointer = std::add_pointer_t<value_type>;
         using reference = std::add_lvalue_reference_t<value_type>;
         using iterator_category = std::input_iterator_tag; // forward_iterator_tag?
 
+        using range_tracker_type = range_tracker<Ranges...>;
+
+        static constexpr auto cardinality = sizeof...(Ranges);
+
         // constructor
-        iterator_zipper(const first_range_type& fr, const second_range_type& sr)
-          : tracker(fr, sr)
+        iterator_zipper(const Ranges&... rs)
+          : tracker(rs...)
         {}
 
-        iterator_zipper(const first_range_type& fr, const second_range_type& sr, end_marker_t&&)
-          : tracker(fr, sr, end_marker_t{})
+        iterator_zipper(const Ranges&... rs, end_marker_t&&)
+          : tracker(rs..., end_marker_t{})
         {}
 
+      private:
+        template <size_t... Is>
+        static auto deref_helper(const range_tracker_type& tracker, std::index_sequence<Is...>)
+        {
+          return std::make_tuple(
+              *(tracker.template get<Is>().first)...
+              );
+        }
+
+        template <size_t... Is>
+        static bool has_next_helper(const range_tracker_type& tracker, std::index_sequence<Is...>)
+        {
+          return (tracker.template has_next<Is>() && ...);
+        }
+
+      public:
         auto operator*()
         {
-          return std::make_pair(*(tracker.template get<0>().first), *(tracker.template get<1>().first));
+          return deref_helper(tracker, std::make_index_sequence<cardinality>());
         }
 
         iterator_zipper& operator++()
@@ -426,10 +453,10 @@
           return *this;
         }
 
-        bool operator!=(const iterator_zipper& rhs) const
+        // TODO sentinel
+        bool operator!=(const iterator_zipper&) const
         {
-          return (tracker.template get<0>().first != rhs.get_tracker().template get<0>().first)
-              || (tracker.template get<1>().first != rhs.get_tracker().template get<1>().first);
+          return has_next_helper(tracker, std::make_index_sequence<cardinality>());
         }
 
         bool operator==(const iterator_zipper& rhs) const
@@ -443,7 +470,7 @@
         }
 
       private:
-        range_tracker<first_range_type, second_range_type> tracker;
+        range_tracker_type tracker;
     };
 
 /*
@@ -753,26 +780,48 @@
         //const RangeType2& range2;
     };
 
-    // TODO generalize to N ?
-    template <typename Category1, typename RangeType1, typename Category2, typename RangeType2>
+    template <typename... Keepers>
     struct zip_range_view
     {
-      using const_iterator = iterator_zipper<RangeType1, RangeType2>;
+      using KeepersTuple = std::tuple<Keepers...>;
+
+      using const_iterator = iterator_zipper<ezy::experimental::detail::keeper_value_type_t<Keepers>...>;
       using difference_type = typename const_iterator::difference_type;
 
-      using Keeper1 = ezy::experimental::basic_keeper<Category1, RangeType1>;
-      using Keeper2 = ezy::experimental::basic_keeper<Category2, RangeType2>;
+      zip_range_view(Keepers&&... keepers)
+        : keepers{std::move(keepers)...}
+      {}
+
+      template <size_t... Is>
+      static const_iterator get_begin_helper(const KeepersTuple& keepers, std::index_sequence<Is...>)
+      {
+        return const_iterator(std::get<Is>(keepers).get()...);
+      }
+      static const_iterator get_begin(const KeepersTuple& keepers)
+      {
+        return get_begin_helper(keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
+      }
+
+      // TODO introduce sentinel
+      template <size_t... Is>
+      static const_iterator get_end_helper(const KeepersTuple& keepers, std::index_sequence<Is...>)
+      {
+        return const_iterator(std::get<Is>(keepers).get()..., end_marker_t{});
+      }
+      static const_iterator get_end(const KeepersTuple& keepers)
+      {
+        return get_end_helper(keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
+      }
 
       const_iterator begin() const
-      { return const_iterator(range1.get(), range2.get()); }
+      { return get_begin(keepers); }
 
-      const_iterator end() const
-      { return const_iterator(range1.get(), range2.get(), end_marker_t{}); }
+      auto end() const
+      { return get_end(keepers); }
 
       public:
       //private:
-        Keeper1 range1;
-        Keeper2 range2;
+        KeepersTuple keepers;
     };
 
     template <typename KeeperCategory, typename RangeType>
