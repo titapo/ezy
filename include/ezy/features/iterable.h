@@ -251,6 +251,28 @@ namespace ezy::features
       );
     }
 
+    template <typename Zipper, typename... OtherRanges>
+    auto zip_with(Zipper&& zipper, OtherRanges&&... other_ranges) const &
+    {
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+        ezy::zip_with(
+          std::forward<Zipper>(zipper),
+          (*this).underlying(),
+          std::forward<OtherRanges>(other_ranges)...)
+      );
+    }
+
+    template <typename Zipper, typename... OtherRanges>
+    auto zip_with(Zipper&& zipper, OtherRanges&&... other_ranges) &&
+    {
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+        ezy::zip_with(
+          std::forward<Zipper>(zipper),
+          std::move(*this).underlying(),
+          std::forward<OtherRanges>(other_ranges)...)
+      );
+    }
+
     //template <typename OtherRange> // TODO constrain to be a raised (flattenable) range
     auto flatten() const &
     {

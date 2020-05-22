@@ -356,8 +356,6 @@ SCENARIO("strong type extensions")
     WHEN("zipped multiple")
     {
       const auto zipped = numbers.zip(numbers.map([](int i) {return 10 + i;}), numbers.map([](int i){return 100 + i;}));
-      //const auto zipped = numbers.zip(numbers.map([](int i) {return 10 + i;}), numbers);
-      //const auto zipped = numbers.zip(numbers, numbers);
       const auto as_strings = zipped.map([](const auto& t) {
           const auto&[a,b,c] = t;
           return std::to_string(a) + ":" + std::to_string(b) + ":" + std::to_string(c);
@@ -377,6 +375,15 @@ SCENARIO("strong type extensions")
             }))
     }
 
+    WHEN("zipped_with")
+    {
+      constexpr auto minus1 = [] (int i) { return i - 1; };
+      constexpr auto minus4 = [] (int i) { return i - 4; };
+      constexpr auto multiply_and_add = [] (int a, int b, int c) { return a * b + c; };
+      const auto zipped = numbers.zip_with(multiply_and_add, numbers.map(minus1), numbers.map(minus4));
+      const auto joined = zipped.map(ezy::to_string).join(",");
+      REQUIRE(joined == "-3,0,5,12,21,32,45,60,77,96");
+    }
 
 
     WHEN("finding element works with different type")
