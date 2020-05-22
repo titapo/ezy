@@ -274,6 +274,13 @@ SCENARIO("zip 3")
   REQUIRE(joined == "1+4+7;2+5+8;3+6+9;");
 }
 
+SCENARIO("mapped and zipped")
+{
+  const auto zipped = ezy::zip(std::vector{1,2,3}, ezy::transform(std::vector{1,2,3}, [](int i) { return i + 1; }));
+  const auto joined = join_zipped(zipped);
+  REQUIRE(joined == "1+2;2+3;3+4;");
+}
+
 SCENARIO("slice")
 {
   std::vector<int> v{1,2,3,4,5,6,7,8};

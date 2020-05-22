@@ -404,10 +404,8 @@
     {
       public:
         using difference_type = size_t; // TODO what should it be?
-        //using orig_type = typename first_range_type::const_iterator;
-        //using value_type = decltype(*std::declval<orig_type>());
         using value_type = std::tuple<
-          std::add_pointer_t<typename Ranges::const_iterator::value_type>...
+          std::add_lvalue_reference_t<typename Ranges::const_iterator::value_type>...
               >;
         using pointer = std::add_pointer_t<value_type>;
         using reference = std::add_lvalue_reference_t<value_type>;
@@ -427,11 +425,18 @@
         {}
 
       private:
+
+        template <size_t I>
+        static auto get_iterator_by_value(const range_tracker_type& tracker)
+        {
+          return tracker.template get<I>().first;
+        }
+
         template <size_t... Is>
         static auto deref_helper(const range_tracker_type& tracker, std::index_sequence<Is...>)
         {
           return std::make_tuple(
-              *(tracker.template get<Is>().first)...
+              (*get_iterator_by_value<Is>(tracker))...
               );
         }
 
