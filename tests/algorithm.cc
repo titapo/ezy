@@ -189,9 +189,9 @@ SCENARIO("join string_views")
 
 template <typename Range>
 std::string
-join_as_strings(Range&& range)
+join_as_strings(Range&& range, std::string_view separator = "")
 {
-  return ezy::join(ezy::transform(std::forward<Range>(range), ezy::to_string));
+  return ezy::join(ezy::transform(std::forward<Range>(range), ezy::to_string), separator);
 }
 
 SCENARIO("transform")
@@ -279,6 +279,17 @@ SCENARIO("mapped and zipped")
   const auto zipped = ezy::zip(std::vector{1,2,3}, ezy::transform(std::vector{1,2,3}, [](int i) { return i + 1; }));
   const auto joined = join_zipped(zipped);
   REQUIRE(joined == "1+2;2+3;3+4;");
+}
+
+SCENARIO("zip_with")
+{
+  const auto zipped = ezy::zip_with(std::plus{}, std::vector{1,2,3}, std::vector{4,5,6});
+  const auto joined = join_as_strings(zipped, ",");
+  REQUIRE(joined == "5,7,9");
+
+  // TODO Zipper size shouldn't be added
+  //using ZipIterator = decltype(std::begin(zipped));
+  //static_assert(sizeof(ZipIterator) == (sizeof(range_tracker<std::vector<int>>) * 2 + 8));
 }
 
 SCENARIO("slice")

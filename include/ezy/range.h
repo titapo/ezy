@@ -438,12 +438,12 @@
           inner_iterator inner;
     };
 
-    template <typename... Ranges>
+    template <typename Zipper, typename... Ranges>
     struct iterator_zipper
     {
       public:
         using difference_type = size_t; // TODO what should it be?
-        using value_type = std::tuple<
+        using value_type = std::tuple< // TODO actual return type of zipper
           std::add_lvalue_reference_t<ezy::detail::const_value_type_t<Ranges>>...
               >;
         using pointer = std::add_pointer_t<value_type>;
@@ -455,12 +455,14 @@
         static constexpr auto cardinality = sizeof...(Ranges);
 
         // constructor
-        iterator_zipper(const Ranges&... rs)
-          : tracker(rs...)
+        iterator_zipper(Zipper zipper, const Ranges&... rs)
+          : zipper(zipper) // TODO forward
+          , tracker(rs...)
         {}
 
-        iterator_zipper(const Ranges&... rs, end_marker_t&&)
-          : tracker(rs..., end_marker_t{})
+        iterator_zipper(Zipper zipper, const Ranges&... rs, end_marker_t&&)
+          : zipper(zipper)
+          , tracker(rs..., end_marker_t{})
         {}
 
       private:
@@ -472,9 +474,9 @@
         }
 
         template <size_t... Is>
-        static auto deref_helper(const range_tracker_type& tracker, std::index_sequence<Is...>)
+        auto deref_helper(std::index_sequence<Is...>)
         {
-          return std::make_tuple(
+          return zipper(
               (*get_iterator_by_value<Is>(tracker))...
               );
         }
@@ -488,7 +490,7 @@
       public:
         auto operator*()
         {
-          return deref_helper(tracker, std::make_index_sequence<cardinality>());
+          return deref_helper(std::make_index_sequence<cardinality>());
         }
 
         iterator_zipper& operator++()
@@ -514,6 +516,8 @@
         }
 
       private:
+        Zipper zipper; // TODO its size should be optimized out no_unique_address
+                       // or store a reference which is held in zip_range_view
         range_tracker_type tracker;
     };
 
@@ -823,47 +827,50 @@
         Keeper2 range2;
     };
 
-    template <typename... Keepers>
+    template <typename Zipper, typename... Keepers>
     struct zip_range_view
     {
       using KeepersTuple = std::tuple<Keepers...>;
 
-      using const_iterator = iterator_zipper<ezy::experimental::detail::keeper_value_type_t<Keepers>...>;
+      using const_iterator = iterator_zipper<Zipper, ezy::experimental::detail::keeper_value_type_t<Keepers>...>;
       using difference_type = typename const_iterator::difference_type;
 
-      zip_range_view(Keepers&&... keepers)
-        : keepers{std::move(keepers)...}
+      template <typename UZipper> // universal
+      zip_range_view(UZipper&& zipper, Keepers&&... keepers)
+        : zipper(std::forward<UZipper>(zipper))
+        , keepers{std::move(keepers)...}
       {}
 
       template <size_t... Is>
-      static const_iterator get_begin_helper(const KeepersTuple& keepers, std::index_sequence<Is...>)
+      static const_iterator get_begin_helper(Zipper zipper, const KeepersTuple& keepers, std::index_sequence<Is...>)
       {
-        return const_iterator(std::get<Is>(keepers).get()...);
+        return const_iterator(zipper, std::get<Is>(keepers).get()...);
       }
-      static const_iterator get_begin(const KeepersTuple& keepers)
+      static const_iterator get_begin(Zipper zipper, const KeepersTuple& keepers)
       {
-        return get_begin_helper(keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
+        return get_begin_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
       }
 
       // TODO introduce sentinel
       template <size_t... Is>
-      static const_iterator get_end_helper(const KeepersTuple& keepers, std::index_sequence<Is...>)
+      static const_iterator get_end_helper(Zipper zipper, const KeepersTuple& keepers, std::index_sequence<Is...>)
       {
-        return const_iterator(std::get<Is>(keepers).get()..., end_marker_t{});
+        return const_iterator(zipper, std::get<Is>(keepers).get()..., end_marker_t{});
       }
-      static const_iterator get_end(const KeepersTuple& keepers)
+      static const_iterator get_end(Zipper zipper, const KeepersTuple& keepers)
       {
-        return get_end_helper(keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
+        return get_end_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
       }
 
       const_iterator begin() const
-      { return get_begin(keepers); }
+      { return get_begin(zipper, keepers); }
 
       auto end() const
-      { return get_end(keepers); }
+      { return get_end(zipper, keepers); }
 
       public:
       //private:
+        Zipper zipper;
         KeepersTuple keepers;
     };
 

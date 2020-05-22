@@ -71,11 +71,33 @@ namespace ezy
     };
   }
 
+  struct make_tuple_fn
+  {
+    template <typename... Args>
+    constexpr auto operator()(Args&&... args) const
+    {
+      return std::make_tuple(std::forward<Args>(args)...);
+    }
+  };
+
+  inline constexpr make_tuple_fn make_tuple{};
+
   template <typename... Ranges>
   /*constexpr*/ auto zip(Ranges&&... ranges)
   {
-    using ResultRangeType = zip_range_view<typename detail::deducer_helper<Ranges>::keeper_type... >;
+    using ResultRangeType = zip_range_view<make_tuple_fn, typename detail::deducer_helper<Ranges>::keeper_type... >;
     return ResultRangeType{
+      make_tuple,
+      ezy::experimental::make_keeper(std::forward<Ranges>(ranges))...
+    };
+  }
+
+  template <typename Zipper, typename... Ranges>
+  /*constexpr*/ auto zip_with(Zipper&& zipper, Ranges&&... ranges)
+  {
+    using ResultRangeType = zip_range_view<Zipper, typename detail::deducer_helper<Ranges>::keeper_type... >;
+    return ResultRangeType{
+      std::forward<Zipper>(zipper),
       ezy::experimental::make_keeper(std::forward<Ranges>(ranges))...
     };
   }
