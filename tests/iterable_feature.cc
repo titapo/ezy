@@ -353,6 +353,32 @@ SCENARIO("strong type extensions")
       }
     }
 
+    WHEN("zipped multiple")
+    {
+      const auto zipped = numbers.zip(numbers.map([](int i) {return 10 + i;}), numbers.map([](int i){return 100 + i;}));
+      //const auto zipped = numbers.zip(numbers.map([](int i) {return 10 + i;}), numbers);
+      //const auto zipped = numbers.zip(numbers, numbers);
+      const auto as_strings = zipped.map([](const auto& t) {
+          const auto&[a,b,c] = t;
+          return std::to_string(a) + ":" + std::to_string(b) + ":" + std::to_string(c);
+        });
+
+      COMPARE_RANGES(as_strings, (std::array<std::string, 10>{
+            "1:11:101",
+            "2:12:102",
+            "3:13:103",
+            "4:14:104",
+            "5:15:105",
+            "6:16:106",
+            "7:17:107",
+            "8:18:108",
+            "9:19:109",
+            "10:20:110"
+            }))
+    }
+
+
+
     WHEN("finding element works with different type")
     {
       struct S

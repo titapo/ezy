@@ -10,6 +10,45 @@
 
 // TODO for filter-like iterators, which stores end_iterator -> what if range changes and end() also changes?
 
+  namespace ezy::detail
+  {
+    template <typename T>
+    struct const_iterator_type
+    {
+      using type = decltype(std::begin(std::declval<const T>()));
+    };
+
+    template <typename T>
+    using const_iterator_type_t = typename const_iterator_type<T>::type;
+
+    template <typename T>
+    struct iterator_type
+    {
+      using type = decltype(std::begin(std::declval<T>()));
+    };
+
+    template <typename T>
+    using iterator_type_t = typename iterator_type<T>::type;
+
+    template <typename T>
+    struct value_type
+    {
+      using type = ezy::remove_cvref_t<decltype(*std::begin(std::declval<T>()))>;
+    };
+
+    template <typename T>
+    using value_type_t = typename value_type<T>::type;
+
+    template <typename T>
+    struct const_value_type
+    {
+      using type = std::remove_reference_t<decltype(*std::begin(std::declval<const T>()))>;
+    };
+
+    template <typename T>
+    using const_value_type_t = typename const_value_type<T>::type;
+  }
+
     template <typename F>
     using IsFunction = typename std::enable_if<std::is_function<F>::value, F>;
 
@@ -124,7 +163,7 @@
       private:
       public:
         template <typename RangeType>
-        using const_it_type = typename RangeType::const_iterator;
+        using const_it_type = ezy::detail::iterator_type_t<RangeType>; //typename RangeType::const_iterator;
 
         std::tuple<const std::reference_wrapper<const Ranges>...> ranges;
         std::tuple<const_it_type<Ranges>...> current;
@@ -405,7 +444,7 @@
       public:
         using difference_type = size_t; // TODO what should it be?
         using value_type = std::tuple<
-          std::add_lvalue_reference_t<typename Ranges::const_iterator::value_type>...
+          std::add_lvalue_reference_t<ezy::detail::const_value_type_t<Ranges>>...
               >;
         using pointer = std::add_pointer_t<value_type>;
         using reference = std::add_lvalue_reference_t<value_type>;
@@ -782,7 +821,6 @@
       //private:
         Keeper1 range1;
         Keeper2 range2;
-        //const RangeType2& range2;
     };
 
     template <typename... Keepers>

@@ -235,19 +235,19 @@ namespace ezy::features
     }
     */
 
-    template <typename OtherRange>
-    auto zip(OtherRange&& other_range) const &
+    template <typename... OtherRanges>
+    auto zip(OtherRanges&&... other_ranges) const &
     {
       return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
-        ezy::zip((*this).underlying(), std::forward<OtherRange>(other_range))
+        ezy::zip((*this).underlying(), std::forward<OtherRanges>(other_ranges)...)
       );
     }
 
-    template <typename OtherRange>
-    auto zip(OtherRange&& other_range) &&
+    template <typename... OtherRanges>
+    auto zip(OtherRanges&&... other_ranges) &&
     {
       return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
-        ezy::zip(std::move(*this).underlying(), std::forward<OtherRange>(other_range))
+        ezy::zip(std::move(*this).underlying(), std::forward<OtherRanges>(other_ranges)...)
       );
     }
 
