@@ -172,7 +172,7 @@ namespace ezy::features
     {
       using range_type = typename std::remove_reference<typename T::type>::type;
       using concrete_predicate_type = std::function<bool(const typename range_type::value_type&)>; // TODO
-      using result_range_type = range_view_filter<ezy::experimental::reference_category_tag, const range_type, concrete_predicate_type>;
+      using result_range_type = ezy::detail::range_view_filter<ezy::experimental::reference_category_tag, const range_type, concrete_predicate_type>;
       using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
 
       const auto negate_result = [](const Predicate& original_predicate)
@@ -226,9 +226,9 @@ namespace ezy::features
     auto grouped(const unsigned group_size) const
     {
       using range_type = typename std::remove_reference<typename T::type>::type;
-      using group_range_type = range_view_slice<range_type>;
+      using group_range_type = detail::range_view_slice<range_type>;
       using algo_iterable_group_type = strong_type<group_range_type, notag_t, has_iterator, algo_iterable>;
-      using wrapper_range = basic_range_view<algo_iterable_group_type>;
+      using wrapper_range = detail::basic_range_view<algo_iterable_group_type>;
       using algo_iterable_wrapper_range = strong_type<wrapper_range, notag_t, has_iterator, algo_iterable>;
       //using algo_iterable_range_view
       return algo_iterable_wrapper_range(algo_iterable_group_type(base::underlying(), 0, group_size));

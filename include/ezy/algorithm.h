@@ -36,7 +36,7 @@ namespace ezy
   {
     using range_type = typename detail::deducer_helper<Range>::underlying_range_type;
     using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
-    using result_range_type = range_view<CategoryTag, range_type, UnaryFunction>;
+    using result_range_type = detail::range_view<CategoryTag, range_type, UnaryFunction>;
     return result_range_type{
         ezy::experimental::basic_keeper<CategoryTag, range_type>{std::forward<Range>(range)},
         std::forward<UnaryFunction>(fn)
@@ -48,7 +48,7 @@ namespace ezy
   {
     using range_type = typename detail::deducer_helper<Range>::underlying_range_type;
     using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
-    using result_range_type = range_view_filter<CategoryTag, range_type, Predicate>;
+    using result_range_type = detail::range_view_filter<CategoryTag, range_type, Predicate>;
     return result_range_type{
       ezy::experimental::basic_keeper<CategoryTag, range_type>{std::forward<Range>(range)},
       std::forward<Predicate>(pred)
@@ -64,7 +64,7 @@ namespace ezy
     using Range2Type = typename detail::deducer_helper<Range2>::underlying_range_type;
     using Category2Tag = typename detail::deducer_helper<Range2>::category_tag;
 
-    using ResultRangeType = concatenated_range_view<Category1Tag, Range1Type, Category2Tag, Range2Type>;
+    using ResultRangeType = detail::concatenated_range_view<Category1Tag, Range1Type, Category2Tag, Range2Type>;
     return ResultRangeType{
         ezy::experimental::basic_keeper<Category1Tag, Range1Type>(std::forward<Range1>(range1)),
         ezy::experimental::basic_keeper<Category2Tag, Range2Type>(std::forward<Range2>(range2))
@@ -85,7 +85,7 @@ namespace ezy
   template <typename... Ranges>
   /*constexpr*/ auto zip(Ranges&&... ranges)
   {
-    using ResultRangeType = zip_range_view<make_tuple_fn, typename detail::deducer_helper<Ranges>::keeper_type... >;
+    using ResultRangeType = detail::zip_range_view<make_tuple_fn, typename detail::deducer_helper<Ranges>::keeper_type... >;
     return ResultRangeType{
       make_tuple,
       ezy::experimental::make_keeper(std::forward<Ranges>(ranges))...
@@ -95,7 +95,7 @@ namespace ezy
   template <typename Zipper, typename... Ranges>
   /*constexpr*/ auto zip_with(Zipper&& zipper, Ranges&&... ranges)
   {
-    using ResultRangeType = zip_range_view<Zipper, typename detail::deducer_helper<Ranges>::keeper_type... >;
+    using ResultRangeType = detail::zip_range_view<Zipper, typename detail::deducer_helper<Ranges>::keeper_type... >;
     return ResultRangeType{
       std::forward<Zipper>(zipper),
       ezy::experimental::make_keeper(std::forward<Ranges>(ranges))...
@@ -107,7 +107,7 @@ namespace ezy
   {
     using RangeType = typename detail::deducer_helper<Range>::underlying_range_type;
     using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
-    using ResultRangeType = range_view_slice<CategoryTag, RangeType>;
+    using ResultRangeType = detail::range_view_slice<CategoryTag, RangeType>;
     return ResultRangeType{
       ezy::experimental::basic_keeper<CategoryTag, RangeType>(std::forward<Range>(range)),
       from,
@@ -120,7 +120,7 @@ namespace ezy
   {
     using RangeType = typename detail::deducer_helper<Range>::underlying_range_type;
     using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
-    using ResultRangeType = take_n_range_view<CategoryTag, RangeType>;
+    using ResultRangeType = detail::take_n_range_view<CategoryTag, RangeType>;
     return ResultRangeType{
       ezy::experimental::basic_keeper<CategoryTag, RangeType>(std::forward<Range>(range)),
       n
@@ -132,7 +132,7 @@ namespace ezy
   {
     using RangeType = typename detail::deducer_helper<Range>::underlying_range_type;
     using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
-    using ResultRangeType = take_while_range_view<CategoryTag, RangeType, ezy::remove_cvref_t<Predicate>>;
+    using ResultRangeType = detail::take_while_range_view<CategoryTag, RangeType, ezy::remove_cvref_t<Predicate>>;
     return ResultRangeType{
       ezy::experimental::basic_keeper<CategoryTag, RangeType>(std::forward<Range>(range)),
       std::forward<Predicate>(pred)
@@ -144,7 +144,7 @@ namespace ezy
   {
     using RangeType = typename detail::deducer_helper<Range>::underlying_range_type;
     using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
-    using ResultRangeType = flattened_range_view<CategoryTag, RangeType>;
+    using ResultRangeType = detail::flattened_range_view<CategoryTag, RangeType>;
     return ResultRangeType{
       ezy::experimental::basic_keeper<CategoryTag, RangeType>(std::forward<Range>(range))
     };

@@ -290,7 +290,7 @@ SCENARIO("zip_with")
   THEN("zipper function size can be optimized out from the iterator")
   {
     using ZipIterator = decltype(std::begin(zipped));
-    static_assert(sizeof(ZipIterator) == (sizeof(range_tracker<std::vector<int>>) * 2));
+    static_assert(sizeof(ZipIterator) == (sizeof(ezy::detail::range_tracker<std::vector<int>>) * 2));
   }
 }
 
