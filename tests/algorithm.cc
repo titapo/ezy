@@ -287,9 +287,11 @@ SCENARIO("zip_with")
   const auto joined = join_as_strings(zipped, ",");
   REQUIRE(joined == "5,7,9");
 
-  // TODO Zipper size shouldn't be added
-  //using ZipIterator = decltype(std::begin(zipped));
-  //static_assert(sizeof(ZipIterator) == (sizeof(range_tracker<std::vector<int>>) * 2 + 8));
+  THEN("zipper function size can be optimized out from the iterator")
+  {
+    using ZipIterator = decltype(std::begin(zipped));
+    static_assert(sizeof(ZipIterator) == (sizeof(range_tracker<std::vector<int>>) * 2));
+  }
 }
 
 SCENARIO("slice")

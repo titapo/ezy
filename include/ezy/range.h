@@ -454,18 +454,32 @@
 
         static constexpr auto cardinality = sizeof...(Ranges);
 
-        // constructor
         iterator_zipper(Zipper zipper, const Ranges&... rs)
-          : zipper(zipper) // TODO forward
-          , tracker(rs...)
+          : storage(zipper, {rs...})
         {}
 
         iterator_zipper(Zipper zipper, const Ranges&... rs, end_marker_t&&)
-          : zipper(zipper)
-          , tracker(rs..., end_marker_t{})
+          : storage(zipper, {rs..., end_marker_t{}})
         {}
 
       private:
+        static constexpr size_t zipper_index{0};
+        static constexpr size_t tracker_index{1};
+
+        constexpr decltype(auto) tracker()
+        {
+          return std::get<tracker_index>(storage);
+        }
+
+        constexpr decltype(auto) tracker() const
+        {
+          return std::get<tracker_index>(storage);
+        }
+
+        constexpr decltype(auto) zipper()
+        {
+          return std::get<zipper_index>(storage);
+        }
 
         template <size_t I>
         static auto get_iterator_by_value(const range_tracker_type& tracker)
@@ -476,8 +490,8 @@
         template <size_t... Is>
         auto deref_helper(std::index_sequence<Is...>)
         {
-          return zipper(
-              (*get_iterator_by_value<Is>(tracker))...
+          return zipper()(
+              (*get_iterator_by_value<Is>(tracker()))...
               );
         }
 
@@ -495,14 +509,14 @@
 
         iterator_zipper& operator++()
         {
-          tracker.next_all();
+          tracker().next_all();
           return *this;
         }
 
         // TODO sentinel
         bool operator!=(const iterator_zipper&) const
         {
-          return has_next_helper(tracker, std::make_index_sequence<cardinality>());
+          return has_next_helper(tracker(), std::make_index_sequence<cardinality>());
         }
 
         bool operator==(const iterator_zipper& rhs) const
@@ -510,15 +524,8 @@
           return !(*this != rhs);
         }
 
-        const auto& get_tracker() const
-        {
-          return tracker;
-        }
-
       private:
-        Zipper zipper; // TODO its size should be optimized out no_unique_address
-                       // or store a reference which is held in zip_range_view
-        range_tracker_type tracker;
+        std::tuple<Zipper, range_tracker_type> storage;
     };
 
 /*
