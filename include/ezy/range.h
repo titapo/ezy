@@ -105,6 +105,86 @@ namespace ezy::detail
   struct end_marker_t
   {};
 
+  /**
+   * iterator tracker is a collection of iterators to Ranges.
+   *
+   * It's convenient for algorithms which operates multiple range at the same time.
+   */
+  template <typename... Iters>
+  struct iterator_tracker
+  {
+    public:
+      constexpr static auto size = sizeof...(Iters);
+
+      template <typename... Iterators>
+      iterator_tracker(Iterators&&... p_iters)
+        : iters{std::forward<Iterators>(p_iters)...}
+      {}
+
+      template <typename... Ranges>
+      static iterator_tracker begin_from_ranges(const Ranges&... ranges)
+      {
+        using std::begin;
+        return iterator_tracker(begin(ranges)...);
+      }
+
+      template <typename... Ranges>
+      static iterator_tracker end_from_ranges(const Ranges&... ranges)
+      {
+        using std::end;
+        return iterator_tracker(end(ranges)...);
+      }
+
+      template <unsigned N>
+      constexpr decltype(auto) get() noexcept
+      {
+        return std::get<N>(iters);
+      }
+
+      template <unsigned N>
+      constexpr decltype(auto) get() const noexcept
+      {
+        return std::get<N>(iters);
+      }
+
+      template <unsigned N, typename IterT>
+      void set_to(IterT&& it)
+      {
+        get<N>() = std::forward<IterT>(it);
+      }
+
+      template <unsigned N>
+      decltype(auto) next()
+      {
+        return ++std::get<N>(iters);
+      }
+
+      void next_all()
+      {
+        ezy::experimental::static_for_each(iters, [](auto& it){ ++it; });
+      }
+
+    private:
+      std::tuple<Iters...> iters;
+  };
+
+  template <typename... Ranges>
+  using iterator_tracker_for = iterator_tracker<iterator_type_t<Ranges>...>;
+
+  /**
+   * range_tracker is a more heavyweight version of iterator tracker.
+   *
+   * Alongside with an iterator it stores a reference to the range itself. So it can access the range
+   * properties, but it may provide unecessary lazyness.
+   *
+   * Idea: this should contain {it, end} iterator pairs instead.
+   *
+   * Since a range tracker itself is able to notice when the iterator reaches the end, it should not be used
+   * in an end iterator. But swiching to iterator+sentinel begin/end implementation would cause
+   * interoperability problems eg. with standard algorithms, and container constructors whose takes iterator
+   * pairs.
+   */
+
   template <typename... Ranges>
   struct range_tracker
   {
@@ -457,16 +537,16 @@ namespace ezy::detail
       using reference = std::add_lvalue_reference_t<value_type>;
       using iterator_category = std::input_iterator_tag; // forward_iterator_tag?
 
-      using range_tracker_type = range_tracker<Ranges...>;
+      using tracker_type = iterator_tracker_for<Ranges...>;
 
       static constexpr auto cardinality = sizeof...(Ranges);
 
       iterator_zipper(Zipper zipper, const Ranges&... rs)
-        : storage(zipper, {rs...})
+        : storage(zipper, tracker_type::begin_from_ranges(rs...))
       {}
 
       iterator_zipper(Zipper zipper, const Ranges&... rs, end_marker_t&&)
-        : storage(zipper, {rs..., end_marker_t{}})
+        : storage(zipper, tracker_type::end_from_ranges(rs...))
       {}
 
     private:
@@ -488,24 +568,18 @@ namespace ezy::detail
         return std::get<zipper_index>(storage);
       }
 
-      template <size_t I>
-      static auto get_iterator_by_value(const range_tracker_type& tracker)
-      {
-        return tracker.template get<I>().first;
-      }
-
       template <size_t... Is>
       auto deref_helper(std::index_sequence<Is...>)
       {
         return zipper()(
-            (*get_iterator_by_value<Is>(tracker()))...
+            (*(tracker().template get<Is>()))...
             );
       }
 
       template <size_t... Is>
-      static bool has_next_helper(const range_tracker_type& tracker, std::index_sequence<Is...>)
+      static bool has_next_helper(const tracker_type& tracker, const tracker_type& rhs, std::index_sequence<Is...>)
       {
-        return (tracker.template has_next<Is>() && ...);
+        return ((tracker.template get<Is>() != rhs.template get<Is>()) && ...);
       }
 
     public:
@@ -520,10 +594,9 @@ namespace ezy::detail
         return *this;
       }
 
-      // TODO sentinel
-      bool operator!=(const iterator_zipper&) const
+      bool operator!=(const iterator_zipper& rhs) const
       {
-        return has_next_helper(tracker(), std::make_index_sequence<cardinality>());
+        return has_next_helper(tracker(), rhs.tracker(), std::make_index_sequence<cardinality>());
       }
 
       bool operator==(const iterator_zipper& rhs) const
@@ -532,7 +605,7 @@ namespace ezy::detail
       }
 
     private:
-      std::tuple<Zipper, range_tracker_type> storage;
+      std::tuple<Zipper, tracker_type> storage;
   };
 
 /*
@@ -863,7 +936,6 @@ namespace ezy::detail
         return get_begin_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
       }
 
-      // TODO introduce sentinel
       template <size_t... Is>
       static const_iterator get_end_helper(Zipper zipper, const KeepersTuple& keepers, std::index_sequence<Is...>)
       {
