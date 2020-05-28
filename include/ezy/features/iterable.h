@@ -330,6 +330,18 @@ namespace ezy::features
       return ezy::collect<ResultContainer>(std::move(*this).underlying());
     }
 
+    template <template <typename, typename...> class ResultWrapper>
+    constexpr auto to() &&
+    {
+      return ezy::collect<ResultWrapper>(std::move(*this).underlying());
+    }
+
+    template <template <typename, typename...> class ResultWrapper>
+    constexpr auto to() const &
+    {
+      return ezy::collect<ResultWrapper>((*this).underlying());
+    }
+
     template <typename ResultContainer>
     constexpr auto to_iterable() const
     {

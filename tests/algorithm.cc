@@ -475,3 +475,11 @@ SCENARIO("collect by deducing the element type")
   static_assert(std::is_same_v<decltype(collected), std::vector<int>>);
   REQUIRE(collected == v);
 }
+
+SCENARIO("collect const by deducing the element type")
+{
+  const std::vector<int> v{1,2,3,4};
+  auto collected = ezy::collect<std::vector>(v);
+  static_assert(std::is_same_v<decltype(collected), std::vector<int>>);
+  REQUIRE(collected == v);
+}

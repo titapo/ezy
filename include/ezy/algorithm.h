@@ -258,7 +258,7 @@ namespace ezy
   constexpr auto collect(Range&& range)
   {
     using std::begin;
-    using ElementType = std::remove_reference_t<decltype(*begin(range))>;
+    using ElementType = ezy::remove_cvref_t<decltype(*begin(range))>;
     return collect<ResultWrapper<ElementType>>(std::forward<Range>(range));
   }
 

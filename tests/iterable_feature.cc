@@ -306,11 +306,21 @@ SCENARIO("strong type extensions")
       }
     }
 
-    WHEN("converted to vector")
+    WHEN("converted to vector of ints")
     {
       const auto result = numbers.to<std::vector<int>>();
       THEN("it is ok")
       {
+        COMPARE_RANGES(result, (std::array{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
+      }
+    }
+
+    WHEN("converted to vector")
+    {
+      const auto result = numbers.to<std::vector>();
+      THEN("value_type is deduced to non const")
+      {
+        static_assert(std::is_same_v<decltype(result), const std::vector<int>>);
         COMPARE_RANGES(result, (std::array{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}));
       }
     }
