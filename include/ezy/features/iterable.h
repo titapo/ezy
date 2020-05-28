@@ -171,9 +171,6 @@ namespace ezy::features
     auto partition(Predicate&& predicate) const &
     {
       using range_type = typename std::remove_reference<typename T::type>::type;
-      using concrete_predicate_type = std::function<bool(const typename range_type::value_type&)>; // TODO
-      using result_range_type = ezy::detail::range_view_filter<ezy::experimental::reference_category_tag, const range_type, concrete_predicate_type>;
-      using algo_iterable_range_view = strong_type<result_range_type, notag_t, has_iterator, algo_iterable>;
 
       const auto negate_result = [](const Predicate& original_predicate)
       {
@@ -181,9 +178,26 @@ namespace ezy::features
         { return !original_predicate(v); };
       };
 
+      auto non_predicate = negate_result(predicate);
+      using NonPredicate = decltype(non_predicate);
+
+      using result_true_range_type = ezy::detail::range_view_filter<
+        ezy::experimental::reference_category_tag,
+        const range_type,
+        Predicate>;
+
+      using result_false_range_type = ezy::detail::range_view_filter<
+        ezy::experimental::reference_category_tag,
+        const range_type,
+        NonPredicate>;
+
       return std::make_tuple(
-          algo_iterable_range_view(result_range_type{ezy::experimental::reference_to<const range_type>(base::underlying()), predicate}),
-          algo_iterable_range_view(result_range_type{ezy::experimental::reference_to<const range_type>(base::underlying()), negate_result(predicate)})
+          ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+            result_true_range_type{ezy::experimental::reference_to<const range_type>(base::underlying()), predicate}
+          ),
+          ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+            result_false_range_type{ezy::experimental::reference_to<const range_type>(base::underlying()), non_predicate}
+          )
           );
     }
 
