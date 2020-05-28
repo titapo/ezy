@@ -3,6 +3,7 @@
 
 #include "experimental/tuple_algorithm.h"
 #include "experimental/keeper.h"
+#include "invoke.h"
 
 #include <type_traits>
 #include <utility>
@@ -530,9 +531,9 @@ namespace ezy::detail
   {
     public:
       using difference_type = size_t; // TODO what should it be?
-      using value_type = std::tuple< // TODO actual return type of zipper
-        std::add_lvalue_reference_t<ezy::detail::const_value_type_t<Ranges>>...
-            >;
+      using value_type = std::remove_reference_t<decltype(
+          ezy::invoke(std::declval<Zipper>(), (*std::begin(std::declval<Ranges>()))...)
+          )>;
       using pointer = std::add_pointer_t<value_type>;
       using reference = std::add_lvalue_reference_t<value_type>;
       using iterator_category = std::input_iterator_tag; // forward_iterator_tag?
@@ -919,6 +920,7 @@ namespace ezy::detail
 
       using const_iterator = iterator_zipper<Zipper, ezy::experimental::detail::keeper_value_type_t<Keepers>...>;
       using difference_type = typename const_iterator::difference_type;
+      using value_type = typename const_iterator::value_type;
 
       template <typename UZipper> // universal
       zip_range_view(UZipper&& zipper, Keepers&&... keepers)

@@ -247,6 +247,13 @@ SCENARIO("zip")
   const auto zipped = ezy::zip(v1, v2);
   const auto joined = join_zipped(zipped);
   REQUIRE(joined == "1+4;2+5;3+6;");
+
+  THEN("value type is what expected")
+  {
+    using Zipped = std::remove_const_t<decltype(zipped)>;
+    static_assert(std::is_same_v<typename Zipped::const_iterator::value_type, std::tuple<int, int>>);
+    static_assert(std::is_same_v<typename Zipped::value_type, std::tuple<int, int>>);
+  }
 }
 
 SCENARIO("zip temporaries")
@@ -272,6 +279,12 @@ SCENARIO("zip 3")
         [](auto tuple) -> std::string {auto[a,b,c] = tuple; return std::to_string(a) + "+" + std::to_string(b) + "+" + std::to_string(c) + ";"; }
   ));
   REQUIRE(joined == "1+4+7;2+5+8;3+6+9;");
+
+  THEN("value type is expected")
+  {
+    using Zipped = std::remove_const_t<decltype(zipped)>;
+    static_assert(std::is_same_v<typename Zipped::value_type, std::tuple<int, int, int>>);
+  }
 }
 
 SCENARIO("mapped and zipped")
@@ -279,6 +292,12 @@ SCENARIO("mapped and zipped")
   const auto zipped = ezy::zip(std::vector{1,2,3}, ezy::transform(std::vector{1,2,3}, [](int i) { return i + 1; }));
   const auto joined = join_zipped(zipped);
   REQUIRE(joined == "1+2;2+3;3+4;");
+
+  THEN("value type is expected")
+  {
+    using Zipped = std::remove_const_t<decltype(zipped)>;
+    static_assert(std::is_same_v<typename Zipped::value_type, std::tuple<int, int>>);
+  }
 }
 
 SCENARIO("zip_with")
@@ -291,6 +310,12 @@ SCENARIO("zip_with")
   {
     using ZipIterator = decltype(std::begin(zipped));
     static_assert(sizeof(ZipIterator) == (sizeof(ezy::detail::iterator_tracker_for<std::vector<int>>) * 2));
+  }
+
+  THEN("value type is expected")
+  {
+    using Zipped = std::remove_const_t<decltype(zipped)>;
+    static_assert(std::is_same_v<typename Zipped::value_type, int>);
   }
 }
 
