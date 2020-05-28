@@ -764,13 +764,6 @@ namespace ezy::detail
       Predicate predicate;
   };
 
-  // TODO
-  template <typename... Ranges>
-  struct range_reference
-  {
-    std::tuple<std::add_const_t<Ranges>...> ranges;
-  };
-
   /**
    * basic_range_view
    */
