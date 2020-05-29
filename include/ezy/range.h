@@ -63,11 +63,11 @@ namespace ezy::detail
   struct basic_iterator_adaptor
   {
     public:
-      using difference_type = typename orig_type::difference_type;
-      using value_type = typename orig_type::value_type;
-      using pointer = typename orig_type::pointer;
-      using reference = typename orig_type::reference;
-      using iterator_category = typename orig_type::iterator_category;
+      using difference_type = typename std::iterator_traits<orig_type>::difference_type;
+      using value_type = typename std::iterator_traits<orig_type>::value_type;
+      using pointer = typename std::iterator_traits<orig_type>::pointer;
+      using reference = typename std::iterator_traits<orig_type>::reference;
+      using iterator_category = typename std::iterator_traits<orig_type>::iterator_category;
 
       constexpr explicit basic_iterator_adaptor(orig_type original)
           : orig(original)

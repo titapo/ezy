@@ -92,25 +92,25 @@ namespace ezy
   using strong_type_reference = strong_type<typename std::add_lvalue_reference<T>::type, Tag, Features...>;
 
   template <typename Tag, template <typename> class... Features, typename T>
-  auto make_strong(T&& t)
+  constexpr auto make_strong(T&& t)
   {
     return strong_type<ezy::remove_cvref_t<T>, Tag, Features...>(std::forward<T>(t));
   }
 
   template <typename Tag, template <typename> class... Features, typename T>
-  auto make_strong_const(T&& t)
+  constexpr auto make_strong_const(T&& t)
   {
     return strong_type<std::add_const_t<ezy::remove_cvref_t<T>>, Tag, Features...>(std::forward<T>(t));
   }
 
   template <typename Tag, template <typename> class... Features, typename T>
-  auto make_strong_reference(T&& t)
+  constexpr auto make_strong_reference(T&& t)
   {
     return strong_type_reference<std::remove_reference_t<T>, Tag, Features...>(std::forward<T>(t));
   }
 
   template <typename Tag, template <typename> class... Features, typename T>
-  auto make_strong_reference_const(T&& t)
+  constexpr auto make_strong_reference_const(T&& t)
   {
     return strong_type_reference<std::add_const_t<std::remove_reference_t<T>>, Tag, Features...>(std::forward<T>(t));
   }

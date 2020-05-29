@@ -54,54 +54,54 @@ namespace ezy::experimental
 
     value_type t;
 
-    basic_keeper(T&& u)
+    constexpr basic_keeper(T&& u)
       : t(std::forward<T>(u))
     {}
 
-    reference get() &
+    constexpr reference get() &
     {
       return t;
     }
 
-    const_reference get() const &
+    constexpr const_reference get() const &
     {
       return t;
     }
 
-    value_type&& get() &&
+    constexpr value_type&& get() &&
     {
       return std::move(t);
     }
 
-    basic_keeper<reference_category_tag, T> ref() &
+    constexpr basic_keeper<reference_category_tag, T> ref() &
     {
       return basic_keeper<reference_category_tag, T>(get());
     }
 
-    basic_keeper<owner_category_tag, T> copy() const &
+    constexpr basic_keeper<owner_category_tag, T> copy() const &
     {
       return basic_keeper<owner_category_tag, T>(T{get()});
     }
 
-    basic_keeper<owner_category_tag, std::remove_const_t<T>> mutable_copy() const &
+    constexpr basic_keeper<owner_category_tag, std::remove_const_t<T>> mutable_copy() const &
     {
       using MutableT = std::remove_const_t<T>;
       return basic_keeper<owner_category_tag, MutableT>(MutableT{get()});
     }
 
-    operator basic_keeper<owner_category_tag, const T>() &&
+    constexpr operator basic_keeper<owner_category_tag, const T>() &&
     {
       return basic_keeper<owner_category_tag, const T>{std::move(t)};
     }
 
     template <typename Fn>
-    decltype(auto) apply(Fn&& fn) &
+    constexpr decltype(auto) apply(Fn&& fn) &
     {
       return std::invoke(std::forward<Fn>(fn), t);
     }
 
     template <typename Fn>
-    decltype(auto) apply(Fn&& fn) &&
+    constexpr decltype(auto) apply(Fn&& fn) &&
     {
       return std::invoke(std::forward<Fn>(fn), std::move(t));
     }
@@ -125,38 +125,38 @@ namespace ezy::experimental
 
     reference t;
 
-    explicit basic_keeper(T& u)
+    constexpr explicit basic_keeper(T& u)
       : t(u)
     {}
 
-    reference get()
+    constexpr reference get()
     {
       return t;
     }
 
-    const_reference get() const
+    constexpr const_reference get() const
     {
       return t;
     }
 
-    basic_keeper<owner_category_tag, T> copy() &
+    constexpr basic_keeper<owner_category_tag, T> copy() &
     {
       return basic_keeper<owner_category_tag, T>(value_type{get()});
     }
 
-    basic_keeper<owner_category_tag, std::remove_const_t<T>> mutable_copy() const &
+    constexpr basic_keeper<owner_category_tag, std::remove_const_t<T>> mutable_copy() const &
     {
       using MutableT = std::remove_const_t<T>;
       return basic_keeper<owner_category_tag, MutableT>(MutableT{get()});
     }
 
-    operator basic_keeper<reference_category_tag, const T>()
+    constexpr operator basic_keeper<reference_category_tag, const T>()
     {
       return basic_keeper<reference_category_tag, const T>{t};
     }
 
     template <typename Fn>
-    decltype(auto) apply(Fn&& fn)
+    constexpr decltype(auto) apply(Fn&& fn)
     {
       return std::invoke(fn, t);
     }
