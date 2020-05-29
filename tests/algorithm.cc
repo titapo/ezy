@@ -508,3 +508,23 @@ SCENARIO("collect const by deducing the element type")
   static_assert(std::is_same_v<decltype(collected), std::vector<int>>);
   REQUIRE(collected == v);
 }
+
+SCENARIO("iterate")
+{
+  const auto it = ezy::iterate(1, [](int i) { return i * 2;});
+  const auto joined = join_as_strings(ezy::take(it, 7), ",");
+  REQUIRE(joined == "1,2,4,8,16,32,64");
+}
+
+SCENARIO("enumerate")
+{
+  std::vector<std::string> fruits{"alma", "banan", "cseresznye"};
+  const auto enumerated = ezy::enumerate(fruits);
+  const auto joined = ezy::join(
+      ezy::transform(
+        enumerated,
+        [](const auto& pair) { const auto& [i, f] = pair; return std::to_string(i) + "+" + f; }
+        ),
+      ";");
+  REQUIRE(joined == "1+alma;2+banan;3+cseresznye");
+}

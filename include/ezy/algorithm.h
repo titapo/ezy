@@ -296,6 +296,17 @@ namespace ezy
     return join<ValueType>(std::forward<Range>(range), std::forward<Separator>(separator));
   }
 
+  template <typename T, typename Fn>
+  constexpr auto iterate(T&& t, Fn&& fn)
+  {
+    return ezy::detail::iterate_view<T, Fn>{std::forward<T>(t), std::forward<Fn>(fn)};
+  }
+
+  template <typename Range>
+  constexpr auto enumerate(Range&& range)
+  {
+    return ezy::zip(ezy::iterate(1, [](auto i) {return ++i; }), std::forward<Range>(range));
+  }
 
 }
 

@@ -6,6 +6,7 @@
 #include "invoke.h"
 
 #include <type_traits>
+#include <experimental/type_traits>
 #include <utility>
 #include <iterator>
 
@@ -650,6 +651,12 @@ namespace ezy::detail
   }
   */
 
+  template <typename Range>
+  using infinite_t = typename Range::infinite;
+
+  template <typename Range>
+  constexpr bool is_infinite_v = std::experimental::is_detected_v<infinite_t, Range>;
+
   template <typename RangeType>
   struct take_iterator
   {
@@ -663,7 +670,14 @@ namespace ezy::detail
       static typename RangeType::size_type
       minimum_n(typename RangeType::size_type n, const RangeType& range)
       {
-        return std::min<decltype(n)>(n, std::distance(std::begin(range), std::end(range)));
+        if constexpr (is_infinite_v<RangeType>)
+        {
+          return n;
+        }
+        else
+        {
+          return std::min<decltype(n)>(n, std::distance(std::begin(range), std::end(range)));
+        }
       }
 
       explicit take_iterator(const RangeType& range, typename RangeType::size_type n)
@@ -1041,6 +1055,59 @@ namespace ezy::detail
       Predicate pred;
   };
 
+  template <typename T, typename Operation>
+  struct iterate_iterator
+  {
+    using difference_type = T;
+    using value_type = T;
+    using reference = std::add_lvalue_reference_t<T>;
+    using pointer = std::add_pointer_t<T>;
+    using iterator_category = std::forward_iterator_tag;
+
+    constexpr explicit iterate_iterator(T init, Operation op)
+      : storage(init, op)
+    {}
+
+    constexpr reference operator*() noexcept
+    {
+      return std::get<0>(storage);
+    }
+
+    constexpr bool operator!=(const iterate_iterator&) const noexcept
+    {
+      return true;
+    }
+
+    iterate_iterator& operator++()
+    {
+      std::get<0>(storage) = ezy::invoke(std::get<1>(storage), std::get<0>(storage));
+      return *this;
+    }
+
+    std::tuple<T, Operation> storage;
+  };
+
+  template <typename T, typename Operation>
+  struct iterate_view
+  {
+    using infinite = void;
+    using const_iterator = iterate_iterator<T, Operation>;
+
+    using size_type = size_t;
+
+    constexpr const_iterator begin() const
+    {
+      return const_iterator(init, op);
+    }
+
+    constexpr const_iterator end() const
+    {
+      return const_iterator(std::numeric_limits<T>::max(), op);
+    }
+
+    T init{};
+    Operation op;
+  };
 }
 
 #endif

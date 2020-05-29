@@ -370,6 +370,13 @@ namespace ezy::features
       return ezy::join((*this).underlying(), std::forward<Separator>(separator));
     }
 
+    constexpr auto enumerate() const
+    {
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+        ezy::enumerate((*this).underlying())
+        );
+    }
+
   };
 
   template <typename T>

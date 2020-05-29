@@ -325,7 +325,7 @@ SCENARIO("strong type extensions")
     }
 
     const auto stringify_pair = [](const auto& p)
-      { return std::to_string(p.first) + ":" + std::to_string(p.second); };
+      { return std::to_string(std::get<0>(p)) + ":" + std::to_string(std::get<1>(p)); };
 
     WHEN("converted to map")
     {
@@ -639,6 +639,19 @@ SCENARIO("strong type extensions")
         .map(transform);
 
       COMPARE_RANGES(result, (std::array<int, 5>{12,14,16,18,20}));
+    }
+
+    WHEN("enumerated")
+    {
+      const auto result = numbers
+        .map([](auto i) { return i + 10; })
+        .enumerate();
+
+      THEN("it is ok")
+      {
+        const auto as_strings = result.map(stringify_pair);
+        COMPARE_RANGES(as_strings, (std::array<std::string, 10>{"1:11", "2:12", "3:13", "4:14", "5:15", "6:16", "7:17", "8:18", "9:19", "10:20"}));
+      }
     }
   }
 
