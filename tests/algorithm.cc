@@ -413,7 +413,7 @@ SCENARIO("find_if in temporary")
 {
   const auto found = ezy::find_if(std::vector{1,2,3,4,5,6,7,8}, greater_than_3);
   REQUIRE(found.has_value());
-  REQUIRE(found.value() == 4); // TODO check: moved, not referenced
+  REQUIRE(found.value() == 4);
 
   const auto not_found = ezy::find_if(std::vector{1,2,3,4,5,6,7,8}, greater_than_10);
   REQUIRE(!not_found.has_value());
