@@ -894,22 +894,15 @@ namespace ezy::detail
   };
 
   // TODO generalize to N ranges (N > 0)
-  template <typename KeeperCategory1, typename RangeType1, typename KeeperCategory2, typename RangeType2>
+  template <typename Keeper1, typename Keeper2>
   struct concatenated_range_view
   {
     public:
-      using const_iterator = iterator_concatenator<RangeType1, RangeType2>;
+      using const_iterator = iterator_concatenator<
+        ezy::experimental::detail::keeper_value_type_t<Keeper1>,
+        ezy::experimental::detail::keeper_value_type_t<Keeper2>
+      >;
       using difference_type = typename const_iterator::difference_type;
-
-      using Keeper1 = ezy::experimental::basic_keeper<KeeperCategory1, RangeType1>;
-      using Keeper2 = ezy::experimental::basic_keeper<KeeperCategory2, RangeType2>;
-
-      /*
-      concatenated_range_view(Keeper1&& k1, const RangeType2& r2)
-        : range1(std::move(k1))
-        , range2(r2)
-      {}
-      */
 
       const_iterator begin() const
       { return const_iterator(range1.get(), range2.get()); }

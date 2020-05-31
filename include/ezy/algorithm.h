@@ -58,16 +58,15 @@ namespace ezy
   template <typename Range1, typename Range2>
   /*constexpr*/ auto concatenate(Range1&& range1, Range2&& range2)
   {
-    using Range1Type = typename detail::deducer_helper<Range1>::underlying_range_type;
-    using Category1Tag = typename detail::deducer_helper<Range1>::category_tag;
 
-    using Range2Type = typename detail::deducer_helper<Range2>::underlying_range_type;
-    using Category2Tag = typename detail::deducer_helper<Range2>::category_tag;
+    using ResultRangeType = detail::concatenated_range_view<
+      typename detail::deducer_helper<Range1>::keeper_type,
+      typename detail::deducer_helper<Range2>::keeper_type
+      >;
 
-    using ResultRangeType = detail::concatenated_range_view<Category1Tag, Range1Type, Category2Tag, Range2Type>;
     return ResultRangeType{
-        ezy::experimental::basic_keeper<Category1Tag, Range1Type>(std::forward<Range1>(range1)),
-        ezy::experimental::basic_keeper<Category2Tag, Range2Type>(std::forward<Range2>(range2))
+      ezy::experimental::make_keeper(std::forward<Range1>(range1)),
+      ezy::experimental::make_keeper(std::forward<Range2>(range2))
     };
   }
 
