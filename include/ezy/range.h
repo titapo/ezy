@@ -119,19 +119,19 @@ namespace ezy::detail
       constexpr static auto size = sizeof...(Iters);
 
       template <typename... Iterators>
-      iterator_tracker(Iterators&&... p_iters)
+      constexpr iterator_tracker(Iterators&&... p_iters)
         : iters{std::forward<Iterators>(p_iters)...}
       {}
 
       template <typename... Ranges>
-      static iterator_tracker begin_from_ranges(const Ranges&... ranges)
+      constexpr static iterator_tracker begin_from_ranges(const Ranges&... ranges)
       {
         using std::begin;
         return iterator_tracker(begin(ranges)...);
       }
 
       template <typename... Ranges>
-      static iterator_tracker end_from_ranges(const Ranges&... ranges)
+      constexpr static iterator_tracker end_from_ranges(const Ranges&... ranges)
       {
         using std::end;
         return iterator_tracker(end(ranges)...);
@@ -161,7 +161,7 @@ namespace ezy::detail
         return ++std::get<N>(iters);
       }
 
-      void next_all()
+      constexpr void next_all()
       {
         ezy::experimental::static_for_each(iters, [](auto& it){ ++it; });
       }
@@ -543,11 +543,11 @@ namespace ezy::detail
 
       static constexpr auto cardinality = sizeof...(Ranges);
 
-      iterator_zipper(Zipper zipper, const Ranges&... rs)
+      constexpr iterator_zipper(Zipper zipper, const Ranges&... rs)
         : storage(zipper, tracker_type::begin_from_ranges(rs...))
       {}
 
-      iterator_zipper(Zipper zipper, const Ranges&... rs, end_marker_t&&)
+      constexpr iterator_zipper(Zipper zipper, const Ranges&... rs, end_marker_t&&)
         : storage(zipper, tracker_type::end_from_ranges(rs...))
       {}
 
@@ -571,7 +571,7 @@ namespace ezy::detail
       }
 
       template <size_t... Is>
-      auto deref_helper(std::index_sequence<Is...>)
+      constexpr auto deref_helper(std::index_sequence<Is...>)
       {
         return zipper()(
             (*(tracker().template get<Is>()))...
@@ -579,29 +579,33 @@ namespace ezy::detail
       }
 
       template <size_t... Is>
-      static bool has_next_helper(const tracker_type& tracker, const tracker_type& rhs, std::index_sequence<Is...>)
+      constexpr static bool has_next_helper(
+          const tracker_type& tracker,
+          const tracker_type& rhs,
+          std::index_sequence<Is...>
+        )
       {
         return ((tracker.template get<Is>() != rhs.template get<Is>()) && ...);
       }
 
     public:
-      auto operator*()
+      constexpr auto operator*()
       {
         return deref_helper(std::make_index_sequence<cardinality>());
       }
 
-      iterator_zipper& operator++()
+      constexpr iterator_zipper& operator++()
       {
         tracker().next_all();
         return *this;
       }
 
-      bool operator!=(const iterator_zipper& rhs) const
+      constexpr bool operator!=(const iterator_zipper& rhs) const
       {
         return has_next_helper(tracker(), rhs.tracker(), std::make_index_sequence<cardinality>());
       }
 
-      bool operator==(const iterator_zipper& rhs) const
+      constexpr bool operator==(const iterator_zipper& rhs) const
       {
         return !(*this != rhs);
       }
@@ -930,35 +934,45 @@ namespace ezy::detail
       using value_type = typename const_iterator::value_type;
 
       template <typename UZipper> // universal
-      zip_range_view(UZipper&& zipper, Keepers&&... keepers)
+      constexpr zip_range_view(UZipper&& zipper, Keepers&&... keepers)
         : zipper(std::forward<UZipper>(zipper))
         , keepers{std::move(keepers)...}
       {}
 
       template <size_t... Is>
-      static const_iterator get_begin_helper(Zipper zipper, const KeepersTuple& keepers, std::index_sequence<Is...>)
+      constexpr static const_iterator get_begin_helper(
+          Zipper zipper,
+          const KeepersTuple& keepers,
+          std::index_sequence<Is...>
+        )
       {
         return const_iterator(zipper, std::get<Is>(keepers).get()...);
       }
-      static const_iterator get_begin(Zipper zipper, const KeepersTuple& keepers)
+
+      constexpr static const_iterator get_begin(Zipper zipper, const KeepersTuple& keepers)
       {
         return get_begin_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
       }
 
       template <size_t... Is>
-      static const_iterator get_end_helper(Zipper zipper, const KeepersTuple& keepers, std::index_sequence<Is...>)
+      constexpr static const_iterator get_end_helper(
+          Zipper zipper,
+          const KeepersTuple& keepers,
+          std::index_sequence<Is...>
+        )
       {
         return const_iterator(zipper, std::get<Is>(keepers).get()..., end_marker_t{});
       }
-      static const_iterator get_end(Zipper zipper, const KeepersTuple& keepers)
+
+      constexpr static const_iterator get_end(Zipper zipper, const KeepersTuple& keepers)
       {
         return get_end_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
       }
 
-      const_iterator begin() const
+      constexpr const_iterator begin() const
       { return get_begin(zipper, keepers); }
 
-      auto end() const
+      constexpr auto end() const
       { return get_end(zipper, keepers); }
 
     public:
@@ -1078,7 +1092,7 @@ namespace ezy::detail
       return true;
     }
 
-    iterate_iterator& operator++()
+    constexpr iterate_iterator& operator++()
     {
       std::get<0>(storage) = ezy::invoke(std::get<1>(storage), std::get<0>(storage));
       return *this;

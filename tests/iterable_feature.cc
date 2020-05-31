@@ -680,6 +680,24 @@ SCENARIO("strong type extensions")
 
 }
 
+constexpr bool enumerate_works_in_compile_time()
+{
+  const auto result = ezy::make_strong<void, ezy::features::iterable>(std::array<int, 3>{1,2,3})
+    .map([](auto i) { return i + 10; })
+    .enumerate()
+    .map([](const auto& p) { return std::get<0>(p) + std::get<1>(p); });
+    ;
+
+  int sum{};
+  for (const auto e : result)
+  {
+    sum += e;
+  }
+  return sum == (12+14+16);
+}
+
+static_assert(enumerate_works_in_compile_time());
+
 // lazily evaluated
 TEST_CASE(".map() is lazily evaluated")
 {

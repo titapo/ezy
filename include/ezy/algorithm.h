@@ -83,7 +83,7 @@ namespace ezy
   inline constexpr make_tuple_fn make_tuple{};
 
   template <typename... Ranges>
-  /*constexpr*/ auto zip(Ranges&&... ranges)
+  constexpr auto zip(Ranges&&... ranges)
   {
     using ResultRangeType = detail::zip_range_view<make_tuple_fn, typename detail::deducer_helper<Ranges>::keeper_type... >;
     return ResultRangeType{
