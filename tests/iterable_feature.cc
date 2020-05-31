@@ -650,7 +650,7 @@ SCENARIO("strong type extensions")
       THEN("it is ok")
       {
         const auto as_strings = result.map(stringify_pair);
-        COMPARE_RANGES(as_strings, (std::array<std::string, 10>{"1:11", "2:12", "3:13", "4:14", "5:15", "6:16", "7:17", "8:18", "9:19", "10:20"}));
+        COMPARE_RANGES(as_strings, (std::array<std::string, 10>{"0:11", "1:12", "2:13", "3:14", "4:15", "5:16", "6:17", "7:18", "8:19", "9:20"}));
       }
     }
   }
@@ -693,7 +693,7 @@ constexpr bool enumerate_works_in_compile_time()
   {
     sum += e;
   }
-  return sum == (12+14+16);
+  return sum == (11+13+15);
 }
 
 static_assert(enumerate_works_in_compile_time());

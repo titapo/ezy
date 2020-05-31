@@ -526,5 +526,5 @@ SCENARIO("enumerate")
         [](const auto& pair) { const auto& [i, f] = pair; return std::to_string(i) + "+" + f; }
         ),
       ";");
-  REQUIRE(joined == "1+alma;2+banan;3+cseresznye");
+  REQUIRE(joined == "0+alma;1+banan;2+cseresznye");
 }

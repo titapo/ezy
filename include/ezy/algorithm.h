@@ -305,7 +305,7 @@ namespace ezy
   template <typename Range>
   constexpr auto enumerate(Range&& range)
   {
-    return ezy::zip(ezy::iterate(1, [](auto i) {return ++i; }), std::forward<Range>(range));
+    return ezy::zip(ezy::iterate(0, [](auto i) {return ++i; }), std::forward<Range>(range));
   }
 
 }
