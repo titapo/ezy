@@ -80,7 +80,9 @@ SCENARIO("compilation tests")
 SCENARIO("derived strong type")
 {
   struct DerivedSimple : ezy::strong_type<int, DerivedSimple, ezy::features::addable>
-  {};
+  {
+    using strong_type::strong_type;
+  };
 
   static_assert(!ezy::is_strong_type_v<DerivedSimple>); //it fails // should be accepted?
   static_assert(ezy::is_strong_type_v<ezy::strong_type_base_t<DerivedSimple>>);

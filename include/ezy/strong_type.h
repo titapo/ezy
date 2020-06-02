@@ -59,7 +59,7 @@ namespace ezy
       strong_type& operator=(strong_type&&) = default;
 
       template <typename... Args>
-      constexpr /*explicit*/ strong_type(Args&&... args
+      constexpr explicit strong_type(Args&&... args
           //, std::enable_if_t<std::is_constructible_v<type, Args...>>* = nullptr
           //, std::enable_if_t<detail::is_braces_constructible<T, Args...>::value>* = nullptr
           //, std::enable_if_t<(sizeof...(Args) != 1) || (!std::is_same_v<ezy::remove_cvref_t<typename detail::headof<Args...>::type>, strong_type>)>* = nullptr
