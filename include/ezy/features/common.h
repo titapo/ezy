@@ -1,7 +1,8 @@
 #ifndef EZY_FEATURES_COMMON_H_INCLUDED
 #define EZY_FEATURES_COMMON_H_INCLUDED
 
-#include "../strong_type.h"
+#include "../feature.h"
+#include "../strong_type_traits.h"
 
 namespace ezy::features
 {
