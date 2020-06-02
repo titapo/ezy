@@ -694,6 +694,19 @@ SCENARIO("invocable feature")
   }
 }
 
+SCENARIO("strong type for int")
+{
+  using ST = ezy::strong_type<int, void>;
+
+  WHEN("constructed without initializer")
+  {
+    ST i;
+    THEN("it holds default initialized value")
+    {
+      REQUIRE(i.get() == 0);
+    }
+  }
+}
 
 SCENARIO("strong type for struct")
 {

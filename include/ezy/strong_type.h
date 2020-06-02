@@ -84,7 +84,7 @@ namespace ezy
 
       // swap
     private:
-      T _value;
+      T _value{};
   };
 
   // TODO if not already a reference?
