@@ -35,4 +35,4 @@ endif()
 ## enable_testing()
 ## add_subdirectory( tests )
 ## 
-## install(DIRECTORY include/ezy DESTINATION include)
+install(DIRECTORY include/ezy DESTINATION include)
