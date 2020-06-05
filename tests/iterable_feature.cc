@@ -653,6 +653,31 @@ SCENARIO("strong type extensions")
         COMPARE_RANGES(as_strings, (std::array<std::string, 10>{"0:11", "1:12", "2:13", "3:14", "4:15", "5:16", "6:17", "7:18", "8:19", "9:20"}));
       }
     }
+
+    WHEN("cycled")
+    {
+      const auto result = numbers
+        .cycle()
+        .take(20);
+
+      THEN("it contains every elements twice")
+      {
+        COMPARE_RANGES(result, (std::array<int, 20>{1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10}));
+      }
+    }
+
+    WHEN("rvalue cycled")
+    {
+      const auto result = numbers
+        .take(3)
+        .cycle()
+        .take(8);
+
+      THEN("it contains every elements twice")
+      {
+        COMPARE_RANGES(result, (std::array<int, 8>{1,2,3,1,2,3,1,2}));
+      }
+    }
   }
 
   GIVEN("a special type")

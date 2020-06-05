@@ -203,6 +203,16 @@ namespace ezy::detail
         , current(std::end(ranges)...)
       {}
 
+      range_tracker& operator=(const range_tracker& rhs)
+      {
+        ezy::experimental::static_for<size>([this, rhs](auto i)
+            {
+              std::get<i>(ranges) = std::get<i>(rhs.ranges);
+            });
+        current = rhs.current;
+        return *this;
+      }
+
       template <unsigned N>
       auto get()
       {
@@ -223,6 +233,12 @@ namespace ezy::detail
       void set_to(ItT it)
       {
         std::get<N>(current) = it;
+      }
+
+      template <unsigned N>
+      void set_to_begin()
+      {
+        set_to<N>(std::begin(std::get<N>(ranges).get()));
       }
 
       template <unsigned N>
@@ -253,7 +269,7 @@ namespace ezy::detail
       template <typename RangeType>
       using const_it_type = ezy::detail::iterator_type_t<RangeType>; //typename RangeType::const_iterator;
 
-      std::tuple<const std::reference_wrapper<const Ranges>...> ranges;
+      std::tuple<std::reference_wrapper<const Ranges>...> ranges;
       std::tuple<const_it_type<Ranges>...> current;
   };
 
@@ -694,6 +710,22 @@ namespace ezy::detail
         , n(0)
       {}
 
+      take_iterator& operator=(const take_iterator& rhs)
+      {
+        tracker = rhs.tracker;
+        n = rhs.n;
+        return *this;
+      }
+
+      /*
+      take_iterator& operator=(take_iterator&& rhs) //noexcept
+      {
+        tracker = std::move(rhs.tracker);
+        n = rhs.n;
+        return *this;
+      }
+      */
+
       inline take_iterator& operator++()
       {
         tracker.template next<0>();
@@ -1114,6 +1146,66 @@ namespace ezy::detail
 
     T init{};
     Operation op;
+  };
+
+  template <typename Range>
+  struct cycle_iterator
+  {
+    using orig_traits = std::iterator_traits<iterator_type_t<Range>>;
+    using difference_type = typename orig_traits::difference_type;
+    using value_type = typename orig_traits::value_type;
+    using pointer = typename orig_traits::pointer;
+    using reference = typename orig_traits::reference;
+
+    decltype(auto) operator*()
+    {
+      return *(tracker.template get<0>().first);
+    }
+
+    cycle_iterator& operator++()
+    {
+      tracker.template next<0>();
+      if (!tracker.template has_next<0>())
+      {
+        tracker.template set_to_begin<0>();
+      }
+      return *this;
+    }
+
+    bool operator!=(const cycle_iterator&) const
+    {
+      return false;
+    }
+
+    range_tracker<Range> tracker;
+  };
+
+  template <typename Keeper>
+  struct cycle_view
+  {
+    using infinite = void;
+
+    using Range = ezy::experimental::detail::keeper_value_type_t<Keeper>;
+    using iterator = cycle_iterator<Range>;
+    using const_iterator = cycle_iterator<Range>;
+
+    using size_type = typename Range::size_type;
+
+    /*
+    iterator begin()
+    { return iterator{range.get()}; }
+
+    iterator end()
+    { return iterator{range.get()}; }
+    */
+
+    const_iterator begin() const
+    { return const_iterator{range.get()}; }
+
+    const_iterator end() const
+    { return const_iterator{range.get()}; }
+
+    Keeper range;
   };
 }
 

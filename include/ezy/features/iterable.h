@@ -384,6 +384,19 @@ namespace ezy::features
         );
     }
 
+    constexpr auto cycle() const &
+    {
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::cycle((*this).underlying())
+          );
+    }
+
+    constexpr auto cycle() &&
+    {
+      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::cycle(std::move(*this).underlying())
+          );
+    }
   };
 
   template <typename T>

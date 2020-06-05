@@ -307,6 +307,13 @@ namespace ezy
     return ezy::zip(ezy::iterate(0, [](auto i) {return ++i; }), std::forward<Range>(range));
   }
 
+  template <typename Range>
+  constexpr auto cycle(Range&& range)
+  {
+    return detail::cycle_view<typename detail::deducer_helper<Range>::keeper_type>{
+      ezy::experimental::make_keeper(std::forward<Range>(range))
+    };
+  }
 }
 
 #endif

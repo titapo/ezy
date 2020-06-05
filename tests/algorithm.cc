@@ -528,3 +528,10 @@ SCENARIO("enumerate")
       ";");
   REQUIRE(joined == "0+alma;1+banan;2+cseresznye");
 }
+
+SCENARIO("cycle")
+{
+  const auto cycled = ezy::cycle(std::vector{2, 3, 4});
+  const auto joined = join_as_strings(ezy::take(cycled, 7), ",");
+  REQUIRE(joined == "2,3,4,2,3,4,2");
+}
