@@ -112,6 +112,7 @@ namespace ezy
   template <typename Tag, template <typename> class... Features, typename T>
   constexpr auto make_strong_reference_const(T&& t)
   {
+    static_assert(std::is_lvalue_reference_v<T>, "Cannot form reference to an rvalue!");
     return strong_type_reference<std::add_const_t<std::remove_reference_t<T>>, Tag, Features...>(std::forward<T>(t));
   }
 }

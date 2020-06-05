@@ -966,20 +966,11 @@ SCENARIO("make_strong")
         ezy::strong_type_reference<const int, struct Tag>
       >);
 
-    static_assert(std::is_same_v<
-        decltype(ezy::make_strong_reference_const<struct Tag>(1)),
-        ezy::strong_type_reference<const int, struct Tag>
-      >);
-
-    /*
-    TODO these are buggy: forming reference to a(n) (p)rvalue
-
+    /**
+     * OK: these are not compiling anymore:
     auto cref = ezy::make_strong_reference_const<struct Tag>(12345);
-    REQUIRE(cref.get() == 12345);
-
     int movable_int = 15;
     auto moved = ezy::make_strong_reference_const<struct Tag>(std::move(movable_int));
-    REQUIRE(moved.get() == 15);
     */
   }
 }
