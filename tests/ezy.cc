@@ -658,7 +658,6 @@ SCENARIO("strong type for integer")
       REQUIRE(other.get() == 123);
     }
   }
-
 }
 
 SCENARIO("invocable feature")
@@ -838,6 +837,22 @@ SCENARIO("strong type for a move only type")
     {
       REQUIRE(st.get().i == 2);
     }
+  }
+}
+
+SCENARIO("strong_type_reference construction")
+{
+  //using STR = ezy::strong_type_reference<int, struct DummyTag>;
+
+  WHEN("construct reference from prvalue should not compile")
+  {
+    // STR s{15}; // OK: does not compile
+  }
+
+  WHEN("construct reference from rvalue should not compile")
+  {
+    // int i{16};
+    // STR s{std::move(i)}; // OK: does not compile
   }
 }
 
