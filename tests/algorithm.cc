@@ -344,6 +344,39 @@ SCENARIO("take_while temporary")
           [](int i) { return i != 5; })) == "1234");
 }
 
+SCENARIO("zipped and taken")
+{
+  WHEN("both are finite")
+  {
+    auto result = ezy::take(ezy::zip(std::vector{1,2,3,4,5,6}, std::vector{-1,-2,-3,-4}), 8);
+    REQUIRE(join_zipped(result) == "1+-1;2+-2;3+-3;4+-4;");
+  }
+
+  WHEN("one is infinite")
+  {
+    auto result = ezy::take(
+        ezy::zip(
+          ezy::iterate(1, [](int i){return i + 1; }),
+          std::vector{-1,-2,-3,-4}
+        ),
+        8);
+
+    REQUIRE(join_zipped(result) == "1+-1;2+-2;3+-3;4+-4;");
+  }
+
+  WHEN("both are infinite")
+  {
+    auto result = ezy::take(
+        ezy::zip(
+          ezy::iterate(1, [](int i){return i + 1; }),
+          ezy::iterate(-1, [](int i){return i - 1; })
+        ),
+        8);
+
+    REQUIRE(join_zipped(result) == "1+-1;2+-2;3+-3;4+-4;5+-5;6+-6;7+-7;8+-8;");
+  }
+}
+
 SCENARIO("flatten")
 {
   std::vector<std::vector<int>> v{std::vector{1,2,3,4,5,6,7,8}, {}, std::vector{0,0,0}};
