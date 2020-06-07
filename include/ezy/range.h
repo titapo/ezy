@@ -1196,7 +1196,7 @@ namespace ezy::detail
 
     bool operator!=(const cycle_iterator&) const
     {
-      return false;
+      return true;
     }
 
     range_tracker<Range> tracker;
