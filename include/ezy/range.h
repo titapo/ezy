@@ -13,6 +13,8 @@
 #include <cstddef>
 #include <tuple>
 
+#include <iostream>
+
 namespace ezy::detail
 {
   template <typename T>
@@ -671,30 +673,6 @@ namespace ezy::detail
   }
   */
 
-  template <typename Range>
-  using infinite_t = typename Range::infinite;
-
-  template <typename Range, typename = void>
-  struct is_infinite : std::false_type
-  {};
-
-  template <typename Range>
-  struct is_infinite<Range, std::enable_if_t<std::experimental::is_detected_v<infinite_t, Range>>>
-  {
-    static constexpr bool value = infinite_t<Range>::value;
-  };
-
-  template <typename Range>
-  constexpr bool is_infinite_v = is_infinite<Range>::value;
-
-  /*
-  template <typename Range>
-  constexpr bool is_infinite_v = std::conditional<std::experimental::is_detected_v<infinite_t, Range>,
-            infinite_t<Range>,
-            std::false_type
-          >::value;
-          */
-
   template <typename RangeType>
   struct take_iterator
   {
@@ -705,22 +683,9 @@ namespace ezy::detail
       using reference = typename RangeType::const_iterator::reference;
       using iterator_category = std::forward_iterator_tag; // ??
 
-      static typename RangeType::size_type
-      minimum_n(typename RangeType::size_type n, const RangeType& range)
-      {
-        if constexpr (is_infinite_v<RangeType>)
-        {
-          return n;
-        }
-        else
-        {
-          return std::min<decltype(n)>(n, std::distance(std::begin(range), std::end(range)));
-        }
-      }
-
       explicit take_iterator(const RangeType& range, typename RangeType::size_type n)
         : tracker(range)
-        , n(minimum_n(n, range))
+        , n(n)
       {}
 
       explicit take_iterator(const RangeType& range, end_marker_t)
@@ -758,7 +723,7 @@ namespace ezy::detail
 
       bool operator!=(const take_iterator&) const
       {
-        return n != 0;
+        return (n != 0 && tracker.template has_next<0>());
       }
 
       bool operator==(const take_iterator& rhs) const
@@ -972,8 +937,6 @@ namespace ezy::detail
     public:
       using KeepersTuple = std::tuple<Keepers...>;
 
-      using infinite = std::conjunction<is_infinite<ezy::experimental::detail::keeper_value_type_t<Keepers>>...>;
-
       using const_iterator = iterator_zipper<Zipper, ezy::experimental::detail::keeper_value_type_t<Keepers>...>;
       using difference_type = typename const_iterator::difference_type;
       using value_type = typename const_iterator::value_type;
@@ -1150,8 +1113,6 @@ namespace ezy::detail
   template <typename T, typename Operation>
   struct iterate_view
   {
-    //using infinite = void;
-    using infinite = std::true_type;
     using const_iterator = iterate_iterator<T, Operation>;
 
     using size_type = size_t;
@@ -1205,9 +1166,6 @@ namespace ezy::detail
   template <typename Keeper>
   struct cycle_view
   {
-    //using infinite = void;
-    using infinite = std::true_type;
-
     using Range = ezy::experimental::detail::keeper_value_type_t<Keeper>;
     using iterator = cycle_iterator<Range>;
     using const_iterator = cycle_iterator<Range>;
