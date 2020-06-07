@@ -147,15 +147,15 @@ namespace ezy::features
     }
 
     template <typename Type>
-    Type accumulate(Type init) 
+    Type accumulate(Type&& init) const
     {
-      return std::accumulate(base::underlying().begin(), base::underlying().end(), init);
+      return ezy::accumulate((*this).underlying(), std::forward<Type>(init));
     }
 
     template <typename Type, typename BinaryOp>
-    Type accumulate(Type init, BinaryOp op) 
+    Type accumulate(Type&& init, BinaryOp&& op) const
     {
-      return std::accumulate(base::underlying().begin(), base::underlying().end(), init, op);
+      return ezy::accumulate((*this).underlying(), std::forward<Type>(init), std::forward<BinaryOp>(op));
     }
 
     /*

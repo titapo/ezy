@@ -320,6 +320,18 @@ namespace ezy
       ezy::experimental::make_keeper(std::forward<Range>(range))
     };
   }
+
+  template <typename Range, typename Init>
+  Init accumulate(Range&& range, Init&& init)
+  {
+    return std::accumulate(std::begin(range), std::end(range), std::forward<Init>(init));
+  }
+
+  template <typename Range, typename Init, typename BinaryOp>
+  Init accumulate(Range&& range, Init&& init, BinaryOp&& op)
+  {
+    return std::accumulate(std::begin(range), std::end(range), std::forward<Init>(init), std::forward<BinaryOp>(op));
+  }
 }
 
 #endif

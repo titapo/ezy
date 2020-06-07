@@ -483,6 +483,16 @@ SCENARIO("contains")
   //static_assert(ezy::contains(std::array{1, 5, 7}, 4) == false);
 }
 
+SCENARIO("accumulate")
+{
+  std::vector<int> v{1,2,3,4,5};
+  REQUIRE(ezy::accumulate(v, 0) == 15);
+  REQUIRE(ezy::accumulate(v, 5) == 20);
+
+  REQUIRE(ezy::accumulate(v, 0, std::minus{}) == -15);
+  REQUIRE(ezy::accumulate(v, 1, std::multiplies{}) == 120);
+}
+
 
 bool operator==(const move_only& lhs, const move_only& rhs)
 {
