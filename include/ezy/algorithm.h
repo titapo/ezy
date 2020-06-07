@@ -156,7 +156,7 @@ namespace ezy
   }
 
   template <typename Range, typename Needle>
-  /*constexpr*/ auto find_element(Range&& range, Needle&& needle)
+  constexpr auto find_element(Range&& range, Needle&& needle)
   {
     static_assert(std::is_same_v<
         ezy::experimental::detail::ownership_category_t<Range>,
@@ -243,6 +243,12 @@ namespace ezy
       return result_type(detail::dependent_forward<Range>(*found));
     else
       return result_type();
+  }
+
+  template <typename Range, typename Needle>
+  constexpr bool contains(Range&& range, Needle&& needle)
+  {
+    return find_element(range, needle) != end(range);
   }
 
   template <typename Result, typename Range>

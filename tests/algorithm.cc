@@ -469,6 +469,21 @@ SCENARIO("find_element_if in temporary should not compile")
   // > "Range must be a reference! Cannot form an iterator to a temporary!"
 }
 
+SCENARIO("contains")
+{
+  std::vector<int> v{1,2,3};
+  REQUIRE(ezy::contains(v, 0) == false);
+  REQUIRE(ezy::contains(v, 1) == true);
+  REQUIRE(ezy::contains(v, 2) == true);
+  REQUIRE(ezy::contains(v, 3) == true);
+  REQUIRE(ezy::contains(v, 4) == false);
+
+  // does not work: std::find cannot be used in constexpr context
+  //static_assert(ezy::contains(std::array{1, 5, 7}, 5) == true);
+  //static_assert(ezy::contains(std::array{1, 5, 7}, 4) == false);
+}
+
+
 bool operator==(const move_only& lhs, const move_only& rhs)
 {
   return lhs.i == rhs.i;

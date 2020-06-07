@@ -143,7 +143,7 @@ namespace ezy::features
     template <typename Element>
     bool contains(Element&& needle) const
     {
-      return find(std::forward<Element>(needle)).has_value();
+      return ezy::contains((*this).underlying(), std::forward<Element>(needle));
     }
 
     template <typename Type>
