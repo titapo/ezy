@@ -611,6 +611,18 @@ using O = ezy::strong_type<std::optional<int>, void, ezy::features::result_inter
 /**
  * strong type general
  */
+template <typename T, typename From>
+struct is_explicit_constructible : std::conjunction<
+                                   std::is_constructible<T, From>,
+                                   std::negation<std::is_convertible<From, T>>
+                                   > {};
+
+template <typename T, typename From>
+constexpr bool is_explicit_constructible_v = is_explicit_constructible<T, From>::value;
+
+static_assert(is_explicit_constructible_v<ezy::strong_type<int, struct Tag>, int>);
+static_assert(is_explicit_constructible_v<ezy::strong_type<int, void>, int>);
+static_assert(is_explicit_constructible_v<ezy::strong_type<int, void>, double>); // TODO control to handle if it's allowed or not
 
 SCENARIO("strong type for integer")
 {
