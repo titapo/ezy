@@ -1048,6 +1048,48 @@ SCENARIO("strong type for vector")
   }
 }
 
+SCENARIO("extended_type_reference")
+{
+  int i{3};
+  WHEN("extended_type_reference created")
+  {
+    ezy::extended_type_reference<int> ref{i};
+    i++;
+    REQUIRE(ref.get() == 4);
+  }
+
+  WHEN("make_extended")
+  {
+    auto ext = ezy::make_extended<ezy::features::addable>(4);
+    auto added = ext + ext;
+    static_assert(std::is_same_v<decltype(added), ezy::extended_type<int, ezy::features::addable>>);
+    REQUIRE(added.get() == 8);
+  }
+
+  WHEN("make_extended_const")
+  {
+    auto ext = ezy::make_extended_const<ezy::features::addable>(6);
+    auto added = ext + ext;
+    static_assert(std::is_same_v<decltype(added), ezy::extended_type<const int, ezy::features::addable>>);
+    REQUIRE(added.get() == 12);
+  }
+
+  WHEN("make_extended_reference")
+  {
+    auto ext = ezy::make_extended_reference(i);
+    ext.get() += 7;
+    REQUIRE(i == 10);
+  }
+
+  WHEN("make_extended_reference_const")
+  {
+    auto ext = ezy::make_extended_reference_const(i);
+    i += 4;
+    REQUIRE(ext.get() == 7);
+  }
+
+}
+
 SCENARIO("subscript operator")
 {
   using ST = ezy::strong_type<std::vector<int>, struct DummyTag, ezy::features::operator_subscript>;
@@ -1155,9 +1197,6 @@ SCENARIO("strong type constructions")
       REQUIRE(st.get().d == 0.5);
     }
   }
-
-
-  
 }
 
 /**

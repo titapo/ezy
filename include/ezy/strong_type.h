@@ -43,6 +43,9 @@ namespace ezy
       using disable_if_t = std::enable_if_t<!Condition>;
   }
 
+  using notag_t = void;
+  using extended_tag_t = void;
+
   template <typename T, typename Tag, template<typename> class... Features>
   class strong_type : public Features<strong_type<T, Tag, Features...>>...
   {
@@ -115,12 +118,45 @@ namespace ezy
     static_assert(std::is_lvalue_reference_v<T>, "Cannot form reference to an rvalue!");
     return strong_type_reference<std::add_const_t<std::remove_reference_t<T>>, Tag, Features...>(std::forward<T>(t));
   }
+
+  /**
+   * extended_type is a special case: it mainly used for extending the underlying type's
+   * interface or capabilities, the tag is mostly irrelevant: it doesn't really matter if two types are
+   * accidentally the same. (Currently extended_tag_t is a void, but users should not depend on it.)
+   */
+  template <typename T, template <typename> class... Features>
+  using extended_type = strong_type<T, extended_tag_t, Features...>;
+
+  template <typename T, template <typename> class... Features>
+  using extended_type_reference = strong_type_reference<T, extended_tag_t, Features...>;
+
+  template <template <typename> class... Features, typename T>
+  constexpr auto make_extended(T&& t)
+  {
+    return make_strong<extended_tag_t, Features...>(std::forward<T>(t));
+  }
+
+  template <template <typename> class... Features, typename T>
+  constexpr auto make_extended_const(T&& t)
+  {
+    return make_strong_const<extended_tag_t, Features...>(std::forward<T>(t));
+  }
+
+  template <template <typename> class... Features, typename T>
+  constexpr auto make_extended_reference(T&& t)
+  {
+    return make_strong_reference<extended_tag_t, Features...>(std::forward<T>(t));
+  }
+
+  template <template <typename> class... Features, typename T>
+  constexpr auto make_extended_reference_const(T&& t)
+  {
+    return make_strong_reference_const<extended_tag_t, Features...>(std::forward<T>(t));
+  }
 }
 
 namespace ezy
 {
-  using notag_t = void;
-
   namespace detail
   {
     // for debugging

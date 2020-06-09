@@ -54,7 +54,7 @@ enum class Evaluated
 template <typename ActionType, ResultIs Result = ResultIs::Range, Evaluated Eval = Evaluated::Lazy>
 void check_evaluation(ActionType&& action)
 {
-  using MyNumbers = ezy::strong_type<std::vector<int>, struct MyNumbersTag, ezy::features::iterable>;
+  using MyNumbers = ezy::extended_type<std::vector<int>, ezy::features::iterable>;
   MyNumbers numbers{1,2,3,4,5,6,7,8,9,10};
   const auto result = action(numbers);
   const auto new_numbers = MyNumbers{42, 43, 44, 45};
