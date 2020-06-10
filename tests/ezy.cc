@@ -620,9 +620,24 @@ struct is_explicit_constructible : std::conjunction<
 template <typename T, typename From>
 constexpr bool is_explicit_constructible_v = is_explicit_constructible<T, From>::value;
 
-static_assert(is_explicit_constructible_v<ezy::strong_type<int, struct Tag>, int>);
-static_assert(is_explicit_constructible_v<ezy::strong_type<int, void>, int>);
-static_assert(is_explicit_constructible_v<ezy::strong_type<int, void>, double>); // TODO control to handle if it's allowed or not
+template <typename T, typename From>
+struct is_implicit_constructible : std::conjunction<
+                                   std::is_constructible<T, From>,
+                                   std::is_convertible<From, T>
+                                   > {};
+
+template <typename T, typename From>
+constexpr bool is_implicit_constructible_v = is_implicit_constructible<T, From>::value;
+
+static_assert( is_explicit_constructible_v<ezy::strong_type<int, struct Tag>, int>);
+static_assert( is_explicit_constructible_v<ezy::strong_type<int, struct Tag>, double>); // TODO control to handle if it's allowed or not
+static_assert(!is_explicit_constructible_v<ezy::strong_type<int, void>, int>);
+static_assert(!is_explicit_constructible_v<ezy::strong_type<int, void>, double>); // TODO control to handle if it's allowed or not
+
+static_assert(!is_implicit_constructible_v<ezy::strong_type<int, struct Tag>, int>);
+static_assert(!is_implicit_constructible_v<ezy::strong_type<int, struct Tag>, double>);
+static_assert( is_implicit_constructible_v<ezy::strong_type<int, void>, int>);
+static_assert( is_implicit_constructible_v<ezy::strong_type<int, void>, double>);
 
 SCENARIO("strong type for integer")
 {
