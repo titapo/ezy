@@ -178,26 +178,9 @@ namespace ezy::features
         { return !original_predicate(v); };
       };
 
-      auto non_predicate = negate_result(predicate);
-      using NonPredicate = decltype(non_predicate);
-
-      using result_true_range_type = ezy::detail::range_view_filter<
-        ezy::experimental::reference_category_tag,
-        const range_type,
-        Predicate>;
-
-      using result_false_range_type = ezy::detail::range_view_filter<
-        ezy::experimental::reference_category_tag,
-        const range_type,
-        NonPredicate>;
-
       return std::make_tuple(
-          ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
-            result_true_range_type{ezy::experimental::reference_to<const range_type>(base::underlying()), predicate}
-          ),
-          ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
-            result_false_range_type{ezy::experimental::reference_to<const range_type>(base::underlying()), non_predicate}
-          )
+          ezy::filter((*this).underlying(), predicate),
+          ezy::filter((*this).underlying(), negate_result(predicate))
           );
     }
 
