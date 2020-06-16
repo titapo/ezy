@@ -41,6 +41,16 @@ namespace ezy
 
       template <bool Condition>
       using disable_if_t = std::enable_if_t<!Condition>;
+
+      /**
+       * Theoretically the same as std::integral_constant, just deduce the type automatically
+       */
+      template <auto Const>
+      struct constant
+      {
+        constexpr static auto value = Const;
+      };
+
   }
 
   using notag_t = void;
@@ -66,7 +76,7 @@ namespace ezy
       strong_type(strong_type&&) = default;
       strong_type& operator=(strong_type&&) = default;
 
-      template <typename... Args, std::enable_if_t<!is_extended<Args...>::value, bool> = true>
+      template <typename... Args, std::enable_if_t<std::conjunction_v<detail::constant<(sizeof...(Args) > 0)>, std::negation<is_extended<Args...>>>, bool> = true>
       constexpr explicit strong_type(Args&&... args
           //, std::enable_if_t<std::is_constructible_v<type, Args...>>* = nullptr
           //, std::enable_if_t<detail::is_braces_constructible<T, Args...>::value>* = nullptr
@@ -75,7 +85,7 @@ namespace ezy
         : _value{std::forward<Args>(args)...}
       {}
 
-      template <typename... Args, std::enable_if_t<is_extended<Args...>::value, bool> = true>
+      template <typename... Args, std::enable_if_t<std::conjunction_v<detail::constant<(sizeof...(Args) > 0)>, is_extended<Args...>>, bool> = true>
       constexpr strong_type(Args&&... args)
         : _value{std::forward<Args>(args)...}
       {}
