@@ -912,8 +912,8 @@ namespace ezy::detail
   {
     public:
       using const_iterator = iterator_concatenator<
-        ezy::experimental::detail::keeper_value_type_t<Keeper1>,
-        ezy::experimental::detail::keeper_value_type_t<Keeper2>
+        ezy::experimental::keeper_value_type_t<Keeper1>,
+        ezy::experimental::keeper_value_type_t<Keeper2>
       >;
       using difference_type = typename const_iterator::difference_type;
 
@@ -935,7 +935,7 @@ namespace ezy::detail
     public:
       using KeepersTuple = std::tuple<Keepers...>;
 
-      using const_iterator = iterator_zipper<Zipper, ezy::experimental::detail::keeper_value_type_t<Keepers>...>;
+      using const_iterator = iterator_zipper<Zipper, ezy::experimental::keeper_value_type_t<Keepers>...>;
       using difference_type = typename const_iterator::difference_type;
       using value_type = typename const_iterator::value_type;
       using size_type = size_t;
@@ -1164,7 +1164,7 @@ namespace ezy::detail
   template <typename Keeper>
   struct cycle_view
   {
-    using Range = ezy::experimental::detail::keeper_value_type_t<Keeper>;
+    using Range = ezy::experimental::keeper_value_type_t<Keeper>;
     using iterator = cycle_iterator<Range>;
     using const_iterator = cycle_iterator<Range>;
 

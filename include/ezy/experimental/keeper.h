@@ -189,23 +189,24 @@ namespace ezy::experimental
   static_assert(is_keeper_for<basic_keeper<reference_category_tag, int>, int>::value);
   static_assert(!is_keeper_for<basic_keeper<reference_category_tag, int>, double>::value);
 
+  template <typename T>
+  struct keeper_value_type
+  {
+    using type = T;
+  };
+
+  template <typename Category, typename Value>
+  struct keeper_value_type<basic_keeper<Category, Value>>
+  {
+    using type = Value;
+  };
+
+  template <typename T>
+  using keeper_value_type_t = typename keeper_value_type<T>::type;
+
+
   namespace detail
   {
-    template <typename T>
-    struct keeper_value_type
-    {
-      using type = T;
-    };
-
-    template <typename Category, typename Value>
-    struct keeper_value_type<basic_keeper<Category, Value>>
-    {
-      using type = Value;
-    };
-
-    template <typename T>
-    using keeper_value_type_t = typename keeper_value_type<T>::type;
-
     /**
      * ownership_category is general, decides ownership category tag, based on T's value category.
      * It is so generic that it does not care keepers at all.
@@ -287,7 +288,7 @@ namespace ezy::experimental
     struct infer_keeper
     {
       using category_type = detail::keeper_category_t<T>;
-      using value_type = detail::keeper_value_type_t<std::remove_reference_t<T>>;
+      using value_type = keeper_value_type_t<std::remove_reference_t<T>>;
       using type = basic_keeper<category_type, value_type>;
     };
 
