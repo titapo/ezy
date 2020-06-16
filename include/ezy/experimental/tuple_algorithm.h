@@ -2,9 +2,11 @@
 #define EZY_EXPERIMENTAL_TUPLE_ALGORITHM_H_INCLUDED
 
 #include "../type_traits.h"
+#include "../invoke.h"
 
 #include <utility>
 #include <tuple>
+#include <cstddef>
 
 namespace ezy::experimental
 {
@@ -49,7 +51,7 @@ namespace ezy::experimental
     template <typename Fn, typename Tuple, size_t... Is>
     [[nodiscard]] constexpr decltype(auto) tuple_map_impl(Fn&& fn, Tuple&& t, std::index_sequence<Is...>)
     {
-      return std::tuple(std::invoke(fn, std::get<Is>(t))...);
+      return std::tuple(ezy::invoke(fn, std::get<Is>(t))...);
     }
   }
 
@@ -59,7 +61,7 @@ namespace ezy::experimental
     constexpr auto tuple_for_each_enumerate_helper(Tuple&& t, Fn&& fn, std::index_sequence<Is...>)
     {
       (
-        std::invoke(
+        ezy::invoke(
           std::forward<Fn>(fn),
           std::integral_constant<size_t, Is>{},
           std::get<Is>(std::forward<Tuple>(t))
@@ -99,7 +101,7 @@ namespace ezy::experimental
   template <typename Tuple, typename T, typename Op>
   [[nodiscard]] constexpr T tuple_fold(Tuple&& t, T init, Op&& op)
   {
-    static_for_each(std::forward<Tuple>(t), [&init, &op](auto&& e){ init = std::invoke(op, init, e); });
+    static_for_each(std::forward<Tuple>(t), [&init, &op](auto&& e){ init = ezy::invoke(op, init, e); });
     return init;
   }
 
@@ -109,7 +111,7 @@ namespace ezy::experimental
     constexpr auto tuple_zip_for_each_helper(Tuple1&& t1, Tuple2&& t2, Fn&& fn, std::index_sequence<Is...>)
     {
       (
-        std::invoke(
+        ezy::invoke(
           std::forward<Fn>(fn),
           std::get<Is>(std::forward<Tuple1>(t1)),
           std::get<Is>(std::forward<Tuple2>(t2))
