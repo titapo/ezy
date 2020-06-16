@@ -832,10 +832,16 @@ namespace ezy::detail
   /**
    * range_view_filter
    */
-  template <typename KeeperCategory, typename Range, typename FilterPredicate>
+  template <typename Keeper, typename FilterPredicate>
   struct range_view_filter
   {
+    using Range = ezy::experimental::keeper_value_type_t<Keeper>;
     using const_iterator = iterator_filter<typename Range::const_iterator, FilterPredicate>;
+
+    range_view_filter(Keeper&& keeper, FilterPredicate pred)
+      : orig_range(std::move(keeper))
+      , predicate(pred)
+    {}
 
     const_iterator begin() const
     { return const_iterator(orig_range.get().begin(), predicate, orig_range.get().end()); }
@@ -843,8 +849,9 @@ namespace ezy::detail
     const_iterator end() const
     { return const_iterator(orig_range.get().end(), predicate, orig_range.get().end()); }
 
-    ezy::experimental::basic_keeper<KeeperCategory, Range> orig_range;
-    FilterPredicate predicate;
+    private:
+      Keeper orig_range;
+      FilterPredicate predicate;
   };
 
   /**

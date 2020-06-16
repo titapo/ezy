@@ -46,11 +46,9 @@ namespace ezy
   template <typename Range, typename Predicate>
   /*constexpr*/ auto filter(Range&& range, Predicate&& pred)
   {
-    using range_type = typename detail::deducer_helper<Range>::underlying_range_type;
-    using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
-    using result_range_type = detail::range_view_filter<CategoryTag, range_type, Predicate>;
+    using result_range_type = detail::range_view_filter<typename detail::deducer_helper<Range>::keeper_type, Predicate>;
     return result_range_type{
-      ezy::experimental::basic_keeper<CategoryTag, range_type>{std::forward<Range>(range)},
+      ezy::experimental::make_keeper(std::forward<Range>(range)),
       std::forward<Predicate>(pred)
     };
   }
