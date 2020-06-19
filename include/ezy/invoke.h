@@ -2,6 +2,7 @@
 #define EZY_INVOKE_H_INCLUDED
 
 #include <type_traits>
+#include <utility>
 
 namespace ezy
 {

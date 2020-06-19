@@ -1382,6 +1382,7 @@ SCENARIO("strong type comparisons")
   }
 }
 
+#include <ezy/experimental/compose.h>
 #include <ezy/experimental/function>
 
 const auto str_plus_int = [](const std::string& s, const int i)
@@ -1418,6 +1419,7 @@ SCENARIO("curry")
 SCENARIO("compose")
 {
   using namespace ezy::experimental::function;
+  using ezy::experimental::compose;
   auto addHundred = curry<int, int>(std::plus<int>{})(100);
 
   WHEN("composed with same type")
