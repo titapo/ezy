@@ -1020,23 +1020,6 @@ namespace ezy::detail
       ezy::experimental::basic_keeper<KeeperCategory, RangeType> range;
   };
 
-  // some common view adaptors
-  template <size_t N>
-  struct pick_nth_t
-  {
-    template <typename ValueType>
-    auto operator()(const ValueType& value)
-    { return std::get<N>(value); }
-  };
-
-  /*
-  inline constexpr pick_nth_t<0> pick_first;
-  inline constexpr pick_nth_t<1> pick_second;
-  */
-
-  using pick_first = pick_nth_t<0>;
-  using pick_second = pick_nth_t<1>;
-
   template <typename KeeperCategory, typename RangeType>
   struct take_n_range_view
   {
@@ -1193,6 +1176,36 @@ namespace ezy::detail
 
     Keeper range;
   };
+}
+
+// TODO these should be in another header
+namespace ezy
+{
+  template <size_t N>
+  struct pick_nth_t
+  {
+    template <typename ValueType>
+    decltype(auto) operator()(const ValueType& value) const
+    { return std::get<N>(value); }
+  };
+
+  template <size_t N>
+  constexpr pick_nth_t<N> pick_nth{};
+
+  constexpr pick_nth_t<0> pick_first{};
+  constexpr pick_nth_t<1> pick_second{};
+
+  template <typename T>
+  struct pick_type_t
+  {
+    template <typename ValueType>
+    decltype(auto) operator()(const ValueType& value) const
+    { return std::get<T>(value); }
+  };
+
+  template <typename T>
+  constexpr pick_type_t<T> pick_type{};
+
 }
 
 #endif

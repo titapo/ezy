@@ -1468,6 +1468,54 @@ SCENARIO("compose")
   // moving etc
 }
 
+SCENARIO("pickers")
+{
+  // TODO by value or by reference?
+  GIVEN("a tuple")
+  {
+    std::tuple<int, double, std::string, int> t{10, 12.5, "hello", 8};
+    WHEN("first picked")
+    {
+      REQUIRE(ezy::pick_nth<0>(t) == 10);
+      REQUIRE(ezy::pick_first(t) == 10);
+      //REQUIRE(ezy::pick_type<int>(t) == 10); // ambiguous
+    }
+
+    WHEN("second picked")
+    {
+      REQUIRE(ezy::pick_nth<1>(t) == 12.5);
+      REQUIRE(ezy::pick_second(t) == 12.5);
+      REQUIRE(ezy::pick_type<double>(t) == 12.5);
+    }
+
+    WHEN("third picked")
+    {
+      REQUIRE(ezy::pick_nth<2>(t) == "hello");
+      REQUIRE(ezy::pick_type<std::string>(t) == "hello");
+    }
+
+    WHEN("fourth picked")
+    {
+      REQUIRE(ezy::pick_nth<3>(t) == 8);
+    }
+
+    WHEN("pick from a temporary")
+    {
+      auto picked = ezy::pick_second(std::tuple{2, 4, 6});
+      REQUIRE(picked == 4);
+    }
+
+    WHEN("pick a reference")
+    {
+      auto& picked = ezy::pick_second(t);
+      REQUIRE(picked == 12.5);
+      std::get<1>(t) -= 10.0;
+      REQUIRE(picked == 2.5);
+    }
+  }
+
+}
+
 #include <ezy/experimental/tuple_algorithm.h>
 
 // TODO those things are implemented as strong type features
