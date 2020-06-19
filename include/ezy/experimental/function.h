@@ -27,13 +27,21 @@ namespace ezy::experimental::function
   template <typename... Fs>
   struct composed
   {
-    template <typename... Functions> //convertible to?
+    static_assert(sizeof...(Fs) > 0, "Composing nothing is not supported.");
+
+    using FsTuple = std::tuple<Fs...>;
+
+    composed(const composed&) = default;
+    composed(composed&&) = default;
+
+    // SFINAE out copy and move ctors
+    template <typename... Functions,
+             std::enable_if_t<(std::is_constructible_v<FsTuple, Functions...>), bool> = true>
     constexpr explicit composed(Functions&&... fns)
-      : fs{std::forward<Functions>(fns)...}
+      : fs(std::forward<Functions>(fns)...)
     {}
 
-    static_assert(sizeof...(Fs) > 0, "Composing nothing is not supported.");
-    std::tuple<Fs...> fs;
+    FsTuple fs;
 
     template <typename...Fns, typename Fn, typename T>
     constexpr static decltype(auto) call_helper_pack(T&& t, Fn&& fn, Fns&&... fns)
