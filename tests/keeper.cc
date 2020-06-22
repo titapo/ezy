@@ -251,6 +251,11 @@ SCENARIO("conversions")
       call_with_const_ref(owned.ref()); // explicit ref
       //call_with_const_ref(owned.copy().ref()); // does not compile // OK
     }
+
+    WHEN("const owner")
+    {
+      call_with_const_ref(const_owned.ref());
+    }
   }
 
   // TODO how to handle/mimic lifetime extension for const&

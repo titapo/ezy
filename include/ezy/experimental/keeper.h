@@ -78,6 +78,13 @@ namespace ezy::experimental
       return basic_keeper<reference_category_tag, T>(get());
     }
 
+    constexpr basic_keeper<reference_category_tag, const T> ref() const &
+    {
+      return basic_keeper<reference_category_tag, const T>(get());
+    }
+
+    constexpr basic_keeper<reference_category_tag, T> ref() && = delete;
+
     constexpr basic_keeper<owner_category_tag, T> copy() const &
     {
       return basic_keeper<owner_category_tag, T>(T{get()});
