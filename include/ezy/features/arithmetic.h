@@ -165,17 +165,23 @@ namespace ezy::features
       using base::self;
 
       using numtype = N;
-      T operator/(numtype other) const { return T(self().get() / other); }
+      T operator/(numtype other) const { return T(self().get() / detail::to_plain_type(other)); }
       T& operator/=(numtype other)
       {
-        self().get() /= other;
+        self().get() /= detail::to_plain_type(other);
         return self();
       }
     };
   };
 
   template <typename T>
+  using divisible = typename divisible_by<T>::template internal<T>;
+
+  template <typename T>
   using divisible_by_int = divisible_by<int>::internal<T>;
+
+  template <typename T>
+  using divisible_with_underlying = typename divisible_by<ezy::extract_underlying_type_t<T>>::template internal<T>;
 
   template <typename N>
   struct multiplicative_by
@@ -189,6 +195,9 @@ namespace ezy::features
 
   template <typename T>
   using multiplicative_by_int = multiplicative_by<int>::internal<T>;
+
+  template <typename T>
+  struct multiplicative : multipliable<T>, divisible<T> {};
 
 }
 
