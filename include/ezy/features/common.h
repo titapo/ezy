@@ -4,6 +4,8 @@
 #include "../feature.h"
 #include "../strong_type_traits.h"
 
+#include <cstddef>
+
 namespace ezy::features
 {
   template <typename T>

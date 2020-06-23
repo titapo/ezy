@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <ostream>
+
 namespace ezy::features
 {
   template <typename T>
