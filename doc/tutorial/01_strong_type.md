@@ -76,4 +76,4 @@ At the end of the day, only the parameter types had to be changed in the impleme
 about the code which uses this function? Well, the compiler will point to every single call which has to be
 updated.
 
-Next: [Iterating containers](03_iterable.md)
+Next: [Features](02_features.md)
