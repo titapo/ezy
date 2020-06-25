@@ -2,6 +2,7 @@
 #define EZY_FEATURES_STD_VARIANT_H_INCLUDED
 
 #include "../strong_type.h"
+#include "result_interface.h"
 #include <variant>
 
 namespace ezy::features

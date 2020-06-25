@@ -1,8 +1,7 @@
 #ifndef EZY_FEATURES_VISITABLE_H_INCLUDED
 #define EZY_FEATURES_VISITABLE_H_INCLUDED
 
-#include "../strong_type.h"
-
+#include "../feature.h"
 #include "../overloaded.h"
 #include <variant>
 

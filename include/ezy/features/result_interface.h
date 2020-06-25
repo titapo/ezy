@@ -3,8 +3,8 @@
 
 #include "../feature.h"
 #include "../strong_type_traits.h"
+#include "../invoke.h"
 
-#include <functional>
 #include <variant> // std::get
 
 namespace ezy::features
@@ -44,7 +44,7 @@ namespace ezy::features
     {
       if (SourceTrait::is_success(t.get()))
         return Result(ResultTrait::make_underlying_success(
-              std::invoke(std::forward<Fn>(fn), SourceTrait::get_success(std::forward<ST>(t).get()))
+              ezy::invoke(std::forward<Fn>(fn), SourceTrait::get_success(std::forward<ST>(t).get()))
             ));
       else
         return Result(ResultTrait::make_underlying_error(SourceTrait::get_error(std::forward<ST>(t).get())));
@@ -57,7 +57,7 @@ namespace ezy::features
         return Result(ResultTrait::make_underlying_success(SourceTrait::get_success(std::forward<ST>(t).get())));
       else
         return Result(ResultTrait::make_underlying_error(
-              std::invoke(std::forward<FnErr>(fn_err), SourceTrait::get_error(std::forward<ST>(t).get()))
+              ezy::invoke(std::forward<FnErr>(fn_err), SourceTrait::get_error(std::forward<ST>(t).get()))
             ));
     }
   }
@@ -141,8 +141,7 @@ namespace ezy::features
           using trait = Adapter<typename dST::type>;
 
           // TODO static_assert(std::is_invocable_v<Fn(success_type)>, "Fn must be invocable with success_type");
-          //TODO using map_result_type = std::invoke_result_t<Fn(success_type)>;
-          using fn_result_type = decltype(fn(std::declval<typename trait::success_type>()));
+          using fn_result_type = decltype(ezy::invoke(fn, std::declval<typename trait::success_type>()));
 
           using R = typename trait::template rebind_success_t<fn_result_type>;
           using new_trait = Adapter<R>;
@@ -183,7 +182,7 @@ namespace ezy::features
           static_assert(std::is_same_v<typename new_trait::error_type, typename trait::error_type>, "error types must be the same");
 
           if (trait::is_success(t.get()))
-            return return_type(std::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get())));
+            return return_type(ezy::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get())));
           else
             return return_type(new_trait::make_underlying_error(trait::get_error(std::forward<ST>(t).get())));
         }
@@ -195,9 +194,9 @@ namespace ezy::features
           using trait = Adapter<typename dST::type>;
 
           if (trait::is_success(t.get()))
-            return std::invoke(std::forward<FnSucc>(fn_succ), trait::get_success(std::forward<ST>(t).get()));
+            return ezy::invoke(std::forward<FnSucc>(fn_succ), trait::get_success(std::forward<ST>(t).get()));
           else
-            return std::invoke(std::forward<FnErr>(fn_err), trait::get_error(std::forward<ST>(t).get()));
+            return ezy::invoke(std::forward<FnErr>(fn_err), trait::get_error(std::forward<ST>(t).get()));
         }
 
         template <typename Ret, typename ST, typename FnSucc, typename FnErr>
@@ -207,9 +206,9 @@ namespace ezy::features
           using trait = Adapter<typename dST::type>;
 
           if (trait::is_success(t.get()))
-            return static_cast<Ret>(std::invoke(std::forward<FnSucc>(fn_succ), trait::get_success(std::forward<ST>(t).get())));
+            return static_cast<Ret>(ezy::invoke(std::forward<FnSucc>(fn_succ), trait::get_success(std::forward<ST>(t).get())));
           else
-            return static_cast<Ret>(std::invoke(std::forward<FnErr>(fn_err), trait::get_error(std::forward<ST>(t).get())));
+            return static_cast<Ret>(ezy::invoke(std::forward<FnErr>(fn_err), trait::get_error(std::forward<ST>(t).get())));
         }
 
         template <typename ST, typename FnErr>
@@ -217,7 +216,7 @@ namespace ezy::features
         {
           using dST = ezy::remove_cvref_t<ST>;
           using trait = Adapter<typename dST::type>;
-          using FnErrReturnType = decltype(std::invoke(std::forward<FnErr>(fn_err), trait::get_error(std::forward<ST>(t).get())));
+          using FnErrReturnType = decltype(ezy::invoke(std::forward<FnErr>(fn_err), trait::get_error(std::forward<ST>(t).get())));
           using R = typename trait::template rebind_error_t<FnErrReturnType>;
           using ReturnType = rebind_strong_type_t<dST, R>;
           using ReturnTrait = Adapter<R>;
