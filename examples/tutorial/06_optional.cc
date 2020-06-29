@@ -33,10 +33,10 @@ int main()
     std::cout << i << "\n";
   };
 
-  // does not work now
-  //from_ten.map(print_line);
-  //from_eleven.inspect(print_line);
-  //from_eleven.tee(print_line);
+  print_line("{");
+  from_ten.tee(print_line);
+  from_eleven.tee(print_line);
+  print_line("}");
 
 
   print_line(even(10).value_or(-100));

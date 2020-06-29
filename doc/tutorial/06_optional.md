@@ -65,17 +65,16 @@ auto print_line = [](cons auto& i) {
 Calling a function based on optional's state shouldn't be that hard:
 
 ```cpp
-  // neither of those works
-  //from_eleven.inspect(print_line);
-  //from_eleven.tee(print_line);
+from_ten.tee(print_line);
+from_eleven.tee(print_line);
 ```
 
-So `print_line` will be called with `10` if optional contains the value `10`, otherwise the function will not
-be called at all.
+So `print_line` will be called with `10` if optional contains the value `10`, otherwise (when it contains
+`std::nullopt`) the function will not be called at all.
 
 ```
 void f(int)
-inspect/tee(f)
+tee(f)
 
             f()
            /
@@ -83,9 +82,6 @@ inspect/tee(f)
 
   nullopt ----------> nullopt
 ```
-
-(When any of those will be available, this tutorial will be updated. Until then `value_or` will be used in the
-rest of this tutorial.)
 
 ```cpp
 print_line(even(10).value_or(-100)); // 10
@@ -104,7 +100,7 @@ value_or
 
 ## Mapping
 
-`inspect`/`tee` is for doing some side effect, which generally does not return anything. Sometimes it is
+`tee` is for doing some side effect, which generally does not return anything. Sometimes it is
 useful to return something
 
 ```cpp
@@ -122,6 +118,8 @@ map(f)
 ```
 
 Map calls a function and return an optional containing its result. In case of `nullopt`, nothing happens.
+Note that in general `.map()` does not changes the value, but returns an other `optional` containing the new
+value.
 
 ## Mapping over types
 
