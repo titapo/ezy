@@ -232,6 +232,16 @@ namespace ezy::features
           return detail::map_error<Ret, trait, ReturnTrait>(std::forward<ST>(t), std::forward<FnErr>(fn_err));
         }
 
+        template <typename ST, typename Fn>
+        static constexpr void call_tee(ST&& t, Fn&& fn)
+        {
+          using Trait = Adapter<typename ezy::remove_cvref_t<ST>::type>;
+          if (Trait::is_success(t.get()))
+          {
+            ezy::invoke(fn, Trait::get_success(t.get()));
+          }
+        }
+
       };
 
       /**
@@ -422,6 +432,13 @@ namespace ezy::features
       constexpr decltype(auto) and_then(Fn&& fn) &&
       {
         return impl::and_then(std::move(*this).self(), std::forward<Fn>(fn));
+      }
+
+      template <typename Fn>
+      constexpr decltype(auto) tee(Fn&& fn) const&
+      {
+        impl::call_tee((*this).self(), std::forward<Fn>(fn));
+        return *this;
       }
     };
   };

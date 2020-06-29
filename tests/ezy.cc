@@ -537,6 +537,33 @@ SCENARIO("result-like continuation")
     const R r{10};
     REQUIRE(std::get<int>(r.and_then([](int i){ return R{i + 1};}).get()) == 11);
   }
+
+  GIVEN("tee and map")
+  {
+    using R = ezy::result<int, std::string>;
+    const R r{10};
+    auto result = 0;
+    const int value = r.tee([&result](int i) { result += i; }).map([](int i) {return i / 2;}).success();
+    REQUIRE(result == 10);
+    REQUIRE(value == 5);
+  }
+
+  GIVEN("tee on error")
+  {
+    using R = ezy::result<int, std::string>;
+    const R r{"error!"};
+    auto result = 0;
+    r.tee([&result](int i) { result += i; });
+    REQUIRE(result == 0);
+  }
+
+  GIVEN("tee on rvalue")
+  {
+    using R = ezy::result<int, std::string>;
+    auto result = 0;
+    R{11}.tee([&result](const int& i) { result += i; });
+    REQUIRE(result == 11);
+  }
 }
 
 SCENARIO("result like interface for std::optional")
@@ -569,7 +596,7 @@ SCENARIO("result like interface for std::optional")
   WHEN("map_or called on it")
   THEN("string not need to be passed on parameter side") // not created internally
   {
-using O = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    using O = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
     auto result = O{std::nullopt}.map_or(ezy::to_string, "foo");
     static_assert(std::is_same_v<decltype(result), std::string>);
     REQUIRE(result == "foo");
@@ -604,6 +631,25 @@ using O = ezy::strong_type<std::optional<int>, void, ezy::features::result_inter
     move_only result{4};
     REQUIRE(Om{move_only{10}}.and_then([&](move_only&& m) { result = std::move(m); return Om{2};}).get().value().i == 2);
     REQUIRE(result.i == 10);
+  }
+
+  GIVEN("tee and map")
+  {
+    using Opt = ezy::optional<int>;
+    const Opt opt{10};
+    int result{0};
+    const int value = opt.tee([&result](int i) { result += i; }).map([](int i) {return i / 2;}).value();
+    REQUIRE(result == 10);
+    REQUIRE(value == 5);
+  }
+
+  GIVEN("tee on nullopt")
+  {
+    using Opt = ezy::optional<int>;
+    const Opt r{std::nullopt};
+    auto result = 0;
+    r.tee([&result](int i) { result += i; });
+    REQUIRE(result == 0);
   }
 
 }
