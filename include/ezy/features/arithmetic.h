@@ -50,20 +50,20 @@ namespace ezy::features
     using base = feature<T, equal_comparable>;
     using base::self;
 
-    constexpr bool operator==(const T& rhs) const
+    friend constexpr bool operator==(const T& lhs, const T& rhs)
     {
-      return self().get() == rhs.get();
+      return lhs.get() == rhs.get();
     }
 
-    constexpr bool operator!=(const T& rhs) const
+    friend constexpr bool operator!=(const T& lhs, const T& rhs)
     {
       if constexpr (std::experimental::is_detected_v<ezy::features::detail::operator_ne_t, typename T::type>)
       {
-        return self().get() != rhs.get();
+        return lhs.get() != rhs.get();
       }
       else
       {
-        return !(self() == rhs);
+        return !(lhs == rhs);
       }
     }
   };
@@ -74,9 +74,9 @@ namespace ezy::features
     using base = feature<T, greater>;
     using base::self;
 
-    bool operator>(const T& rhs) const
+    friend bool operator>(const T& lhs, const T& rhs)
     {
-      return self().get() > rhs.get();
+      return lhs.get() > rhs.get();
     }
   };
 
@@ -86,9 +86,9 @@ namespace ezy::features
     using base = feature<T, greater_equal>;
     using base::self;
 
-    bool operator>=(const T& rhs) const
+    friend bool operator>=(const T& lhs, const T& rhs)
     {
-      return self().get() >= rhs.get();
+      return rhs.get() >= rhs.get();
     }
   };
 
@@ -98,9 +98,9 @@ namespace ezy::features
     using base = feature<T, less>;
     using base::self;
 
-    bool operator<(const T& rhs) const
+    friend bool operator<(const T& lhs, const T& rhs)
     {
-      return self().get() < rhs.get();
+      return lhs.get() < rhs.get();
     }
   };
 
@@ -110,9 +110,9 @@ namespace ezy::features
     using base = feature<T, less_equal>;
     using base::self;
 
-    bool operator<=(const T& rhs) const
+    friend bool operator<=(const T& lhs, const T& rhs)
     {
-      return self().get() <= rhs.get();
+      return lhs.get() <= rhs.get();
     }
   };
 
@@ -165,7 +165,7 @@ namespace ezy::features
       using base::self;
 
       using numtype = N;
-      T operator/(numtype other) const { return T(self().get() / detail::to_plain_type(other)); }
+      friend T operator/(const T& lhs, numtype other) { return T(lhs.get() / detail::to_plain_type(other)); }
       T& operator/=(numtype other)
       {
         self().get() /= detail::to_plain_type(other);
