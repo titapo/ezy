@@ -13,6 +13,15 @@ namespace ezy
 
   template <typename T>
   using remove_cvref_t = typename remove_cvref<T>::type;
+
+  template <typename T>
+  struct type_identity
+  {
+    using type = T;
+  };
+
+  template <typename T>
+  using type_identity_t = typename type_identity<T>::type;
 }
 
 #endif

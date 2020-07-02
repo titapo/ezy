@@ -24,20 +24,21 @@ namespace ezy::tuple_traits
    *    other -> tuple<other>
    *
    */
-  template <typename T, typename = void>
+  template <typename T>
   struct tuplify
   {
     using type = std::tuple<T>;
   };
 
-  template <typename T>
-  struct tuplify<T, std::enable_if_t<is_tuple_v<T>>>
+  template <typename... Ts>
+  struct tuplify<std::tuple<Ts...>>
   {
-    using type = T;
+    using type = std::tuple<Ts...>;
   };
 
-  template <typename T>
-  struct tuplify<T, std::enable_if_t<std::is_same_v<T, void>>>
+  //theoretically it does not correct unit_t should result std::tuple
+  template <>
+  struct tuplify<void>
   {
     using type = std::tuple<>;
   };

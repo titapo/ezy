@@ -3,6 +3,7 @@
 
 #include "strong_type.h"
 #include "tuple_traits.hh" // for contains
+#include "type_traits.h"
 
 namespace ezy
 {
@@ -20,27 +21,8 @@ namespace ezy
   template <typename ST>
   inline constexpr bool is_strong_type_v = is_strong_type<ST>::value;
 
-  template <typename T, typename = void>
-  struct plain_type;
-
-  template <typename ST>
-  struct plain_type<ST, std::enable_if_t<is_strong_type_v<ST>>>
-  {
-    using type = typename ST::type;
-  };
-
-  template <typename T>
-  struct plain_type<T, std::enable_if_t<!is_strong_type_v<T>>>
-  {
-    using type = T;
-  };
-
-  template <typename T>
-  using plain_type_t = typename plain_type<T>::type;
-
   template <typename S>
   struct extract_underlying_type;
-
 
   template <typename T, typename Tag, template <typename> class... Features>
   struct extract_underlying_type<strong_type<T, Tag, Features...>>
@@ -50,6 +32,19 @@ namespace ezy
 
   template <typename T>
   using extract_underlying_type_t = typename extract_underlying_type<T>::type;
+
+
+  template <typename T>
+  struct plain_type
+  {
+    using type = typename std::conditional_t<is_strong_type_v<T>,
+            extract_underlying_type<T>,
+            type_identity<T>
+          >::type;
+  };
+
+  template <typename T>
+  using plain_type_t = typename plain_type<T>::type;
 
   template <typename...>
   struct extract_tag
