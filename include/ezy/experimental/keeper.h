@@ -26,11 +26,11 @@ namespace ezy::experimental
   struct reference_category_tag {};
 
   /**
-   * basic keeper: a type which can either own or refer to an object. It helps to be explicit and catches errors
+   * keeper: a type which can either own or refer to an object. It helps to be explicit and catches errors
    * in compile time.
    * */
   template <typename CategoryTag, typename T>
-  struct basic_keeper;
+  struct keeper;
 
   /**
    * Represents an owner. It cannot be implicitly "casted" to reference.
@@ -42,7 +42,7 @@ namespace ezy::experimental
    * Note: there is not protection against use-after move
    */
   template <typename T>
-  struct basic_keeper<owner_category_tag, T> : detail::disable_implicit_copy
+  struct keeper<owner_category_tag, T> : detail::disable_implicit_copy
   {
     static_assert(!std::is_reference_v<T>, "T must not be a reference. Rather set the category!");
 
@@ -54,7 +54,7 @@ namespace ezy::experimental
 
     value_type t;
 
-    constexpr basic_keeper(T&& u)
+    constexpr keeper(T&& u)
       : t(std::forward<T>(u))
     {}
 
@@ -73,32 +73,32 @@ namespace ezy::experimental
       return std::move(t);
     }
 
-    constexpr basic_keeper<reference_category_tag, T> ref() &
+    constexpr keeper<reference_category_tag, T> ref() &
     {
-      return basic_keeper<reference_category_tag, T>(get());
+      return keeper<reference_category_tag, T>(get());
     }
 
-    constexpr basic_keeper<reference_category_tag, const T> ref() const &
+    constexpr keeper<reference_category_tag, const T> ref() const &
     {
-      return basic_keeper<reference_category_tag, const T>(get());
+      return keeper<reference_category_tag, const T>(get());
     }
 
-    constexpr basic_keeper<reference_category_tag, T> ref() && = delete;
+    constexpr keeper<reference_category_tag, T> ref() && = delete;
 
-    constexpr basic_keeper<owner_category_tag, T> copy() const &
+    constexpr keeper<owner_category_tag, T> copy() const &
     {
-      return basic_keeper<owner_category_tag, T>(T{get()});
+      return keeper<owner_category_tag, T>(T{get()});
     }
 
-    constexpr basic_keeper<owner_category_tag, std::remove_const_t<T>> mutable_copy() const &
+    constexpr keeper<owner_category_tag, std::remove_const_t<T>> mutable_copy() const &
     {
       using MutableT = std::remove_const_t<T>;
-      return basic_keeper<owner_category_tag, MutableT>(MutableT{get()});
+      return keeper<owner_category_tag, MutableT>(MutableT{get()});
     }
 
-    constexpr operator basic_keeper<owner_category_tag, const T>() &&
+    constexpr operator keeper<owner_category_tag, const T>() &&
     {
-      return basic_keeper<owner_category_tag, const T>{std::move(t)};
+      return keeper<owner_category_tag, const T>{std::move(t)};
     }
 
     template <typename Fn>
@@ -120,7 +120,7 @@ namespace ezy::experimental
    * Rebinding is currently not available
    * */
   template <typename T>
-  struct basic_keeper<reference_category_tag, T>
+  struct keeper<reference_category_tag, T>
   {
     static_assert(!std::is_reference_v<T>, "T must not be a reference. Rather set the category!");
 
@@ -132,7 +132,7 @@ namespace ezy::experimental
 
     reference t;
 
-    constexpr explicit basic_keeper(T& u)
+    constexpr explicit keeper(T& u)
       : t(u)
     {}
 
@@ -146,20 +146,20 @@ namespace ezy::experimental
       return t;
     }
 
-    constexpr basic_keeper<owner_category_tag, T> copy() &
+    constexpr keeper<owner_category_tag, T> copy() &
     {
-      return basic_keeper<owner_category_tag, T>(value_type{get()});
+      return keeper<owner_category_tag, T>(value_type{get()});
     }
 
-    constexpr basic_keeper<owner_category_tag, std::remove_const_t<T>> mutable_copy() const &
+    constexpr keeper<owner_category_tag, std::remove_const_t<T>> mutable_copy() const &
     {
       using MutableT = std::remove_const_t<T>;
-      return basic_keeper<owner_category_tag, MutableT>(MutableT{get()});
+      return keeper<owner_category_tag, MutableT>(MutableT{get()});
     }
 
-    constexpr operator basic_keeper<reference_category_tag, const T>()
+    constexpr operator keeper<reference_category_tag, const T>()
     {
-      return basic_keeper<reference_category_tag, const T>{t};
+      return keeper<reference_category_tag, const T>{t};
     }
 
     template <typename Fn>
@@ -173,28 +173,28 @@ namespace ezy::experimental
   // but it might not play well in generic code
 
   template <typename T>
-  using owner = basic_keeper<owner_category_tag, T>;
+  using owner = keeper<owner_category_tag, T>;
 
   template <typename T>
-  using reference_to = basic_keeper<reference_category_tag, T>;
+  using reference_to = keeper<reference_category_tag, T>;
 
   template <typename T>
   struct is_keeper : std::false_type {};
 
   template <typename Category, typename Value>
-  struct is_keeper<basic_keeper<Category, Value>> : std::true_type {};
+  struct is_keeper<keeper<Category, Value>> : std::true_type {};
 
   template <typename K, typename T>
   struct is_keeper_for : std::false_type {};
 
   template <typename Category, typename Value>
-  struct is_keeper_for<basic_keeper<Category, Value>, Value> : std::true_type {};
+  struct is_keeper_for<keeper<Category, Value>, Value> : std::true_type {};
 
-  static_assert(is_keeper_for<basic_keeper<owner_category_tag, int>, int>::value);
-  static_assert(!is_keeper_for<basic_keeper<owner_category_tag, int>, double>::value);
+  static_assert(is_keeper_for<keeper<owner_category_tag, int>, int>::value);
+  static_assert(!is_keeper_for<keeper<owner_category_tag, int>, double>::value);
 
-  static_assert(is_keeper_for<basic_keeper<reference_category_tag, int>, int>::value);
-  static_assert(!is_keeper_for<basic_keeper<reference_category_tag, int>, double>::value);
+  static_assert(is_keeper_for<keeper<reference_category_tag, int>, int>::value);
+  static_assert(!is_keeper_for<keeper<reference_category_tag, int>, double>::value);
 
   template <typename T>
   struct keeper_value_type
@@ -203,7 +203,7 @@ namespace ezy::experimental
   };
 
   template <typename Category, typename Value>
-  struct keeper_value_type<basic_keeper<Category, Value>>
+  struct keeper_value_type<keeper<Category, Value>>
   {
     using type = Value;
   };
@@ -231,9 +231,9 @@ namespace ezy::experimental
     static_assert(std::is_same_v<ownership_category_t<int&>, reference_category_tag>);
 
     // it does not care keepers
-    static_assert(std::is_same_v<ownership_category_t<basic_keeper<owner_category_tag, int>>, owner_category_tag>);
-    static_assert(std::is_same_v<ownership_category_t<basic_keeper<owner_category_tag, int>&>, reference_category_tag>);
-    static_assert(std::is_same_v<ownership_category_t<basic_keeper<owner_category_tag, int>&&>, owner_category_tag>);
+    static_assert(std::is_same_v<ownership_category_t<keeper<owner_category_tag, int>>, owner_category_tag>);
+    static_assert(std::is_same_v<ownership_category_t<keeper<owner_category_tag, int>&>, reference_category_tag>);
+    static_assert(std::is_same_v<ownership_category_t<keeper<owner_category_tag, int>&&>, owner_category_tag>);
 
     /**
      * keeper_category
@@ -242,7 +242,7 @@ namespace ezy::experimental
     struct keeper_category : ownership_category<T> {};
 
     template <typename Category, typename Value>
-    struct keeper_category<basic_keeper<Category, Value>>
+    struct keeper_category<keeper<Category, Value>>
     {
       using type = Category;
     };
@@ -252,7 +252,7 @@ namespace ezy::experimental
      * object or just refer to. Maybe it should have a better name
      * */
     template <typename Category, typename Value>
-    struct keeper_category<basic_keeper<Category, Value>&&>
+    struct keeper_category<keeper<Category, Value>&&>
     {
       using type = Category;
     };
@@ -266,17 +266,17 @@ namespace ezy::experimental
     static_assert(std::is_same_v<keeper_category_t<int&>, reference_category_tag>);
 
     // forwards keepers category
-    static_assert(std::is_same_v<keeper_category_t<basic_keeper<owner_category_tag, int>>, owner_category_tag>);
-    static_assert(std::is_same_v<keeper_category_t<basic_keeper<reference_category_tag, int>>, reference_category_tag>);
+    static_assert(std::is_same_v<keeper_category_t<keeper<owner_category_tag, int>>, owner_category_tag>);
+    static_assert(std::is_same_v<keeper_category_t<keeper<reference_category_tag, int>>, reference_category_tag>);
 
     // here it becomes weird
-    static_assert(std::is_same_v<keeper_category_t<basic_keeper<owner_category_tag, int>>, owner_category_tag>);
-    static_assert(std::is_same_v<keeper_category_t<basic_keeper<owner_category_tag, int>&>, reference_category_tag>); // reference, because it cannot be moved from it (without explicit move)
-    static_assert(std::is_same_v<keeper_category_t<basic_keeper<owner_category_tag, int>&&>, owner_category_tag>);
+    static_assert(std::is_same_v<keeper_category_t<keeper<owner_category_tag, int>>, owner_category_tag>);
+    static_assert(std::is_same_v<keeper_category_t<keeper<owner_category_tag, int>&>, reference_category_tag>); // reference, because it cannot be moved from it (without explicit move)
+    static_assert(std::is_same_v<keeper_category_t<keeper<owner_category_tag, int>&&>, owner_category_tag>);
 
-    static_assert(std::is_same_v<keeper_category_t<basic_keeper<reference_category_tag, int>>, reference_category_tag>);
-    static_assert(std::is_same_v<keeper_category_t<basic_keeper<reference_category_tag, int>&>, reference_category_tag>);
-    static_assert(std::is_same_v<keeper_category_t<basic_keeper<reference_category_tag, int>&&>, reference_category_tag>);
+    static_assert(std::is_same_v<keeper_category_t<keeper<reference_category_tag, int>>, reference_category_tag>);
+    static_assert(std::is_same_v<keeper_category_t<keeper<reference_category_tag, int>&>, reference_category_tag>);
+    static_assert(std::is_same_v<keeper_category_t<keeper<reference_category_tag, int>&&>, reference_category_tag>);
 
     template <typename T>
     constexpr decltype(auto) get_keeper_value(T&& t) noexcept
@@ -296,7 +296,7 @@ namespace ezy::experimental
     {
       using category_type = detail::keeper_category_t<T>;
       using value_type = keeper_value_type_t<std::remove_reference_t<T>>;
-      using type = basic_keeper<category_type, value_type>;
+      using type = keeper<category_type, value_type>;
     };
 
     template <typename T>

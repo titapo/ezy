@@ -813,9 +813,10 @@ namespace ezy::detail
   /**
    * range_view
    */
-  template <typename KeeperCategory, typename Range, typename Transformation>
+  template <typename Keeper, typename Transformation>
   struct range_view
   {
+    using Range = ezy::experimental::keeper_value_type_t<Keeper>;
     using _orig_const_iterator = decltype(std::cbegin(std::declval<Range>()));
     using const_iterator = iterator_adaptor<_orig_const_iterator, Transformation>;
 
@@ -825,7 +826,7 @@ namespace ezy::detail
     constexpr const_iterator end() const
     { return const_iterator(orig_range.get().end(), transformation); }
 
-    ezy::experimental::basic_keeper<KeeperCategory, Range> orig_range;
+    Keeper orig_range;
     Transformation transformation;
   };
 
@@ -857,14 +858,13 @@ namespace ezy::detail
   /**
    * range_view_slice
    */
-  template <typename KeeperCategory, typename Range>
+  template <typename Keeper>
   struct range_view_slice
   {
     public:
+      using Range = ezy::experimental::keeper_value_type_t<Keeper>;
       using const_iterator = typename Range::const_iterator;
       using difference_type = typename const_iterator::difference_type;
-
-      using Keeper = ezy::experimental::basic_keeper<KeeperCategory, Range>;
 
       range_view_slice(Keeper&& orig, difference_type f, difference_type u)
         : orig_range(std::move(orig))
@@ -995,11 +995,13 @@ namespace ezy::detail
       KeepersTuple keepers;
   };
 
-  template <typename KeeperCategory, typename RangeType>
+  template <typename Keeper>
   struct flattened_range_view
   {
     public:
-      using const_iterator = iterator_flattener<RangeType>;
+
+      using Range = ezy::experimental::keeper_value_type_t<Keeper>;
+      using const_iterator = iterator_flattener<Range>;
 
       using value_type = typename const_iterator::value_type;
       using pointer = typename const_iterator::pointer;
@@ -1017,17 +1019,17 @@ namespace ezy::detail
       }
 
     //private:
-      ezy::experimental::basic_keeper<KeeperCategory, RangeType> range;
+      Keeper range;
   };
 
-  template <typename KeeperCategory, typename RangeType>
+  template <typename Keeper>
   struct take_n_range_view
   {
     public:
-      using const_iterator = take_iterator<RangeType>;
-      using size_type = typename RangeType::size_type;
+      using Range = ezy::experimental::keeper_value_type_t<Keeper>;
 
-      using Keeper = ezy::experimental::basic_keeper<KeeperCategory, RangeType>;
+      using const_iterator = take_iterator<Range>;
+      using size_type = typename Range::size_type;
 
       const_iterator begin() const
       {
@@ -1043,14 +1045,13 @@ namespace ezy::detail
       size_type n;
   };
 
-  template <typename KeeperCategory, typename RangeType, typename Predicate>
+  template <typename Keeper, typename Predicate>
   struct take_while_range_view
   {
     public:
-      using const_iterator = take_while_iterator<RangeType, Predicate>;
-      using size_type = typename RangeType::size_type;
-
-      using Keeper = ezy::experimental::basic_keeper<KeeperCategory, RangeType>;
+      using Range = ezy::experimental::keeper_value_type_t<Keeper>;
+      using const_iterator = take_while_iterator<Range, Predicate>;
+      using size_type = typename Range::size_type;
 
       const_iterator begin() const
       {

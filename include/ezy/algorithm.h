@@ -16,13 +16,10 @@ namespace ezy
   namespace detail
   {
     template <typename Range>
-    struct deducer_helper
-    {
-      using orig_type = Range;
-      using underlying_range_type = std::remove_reference_t<orig_type>;
-      using category_tag = ezy::experimental::detail::ownership_category_t<orig_type>;
-      using keeper_type = ezy::experimental::basic_keeper<category_tag, underlying_range_type>;
-    };
+    using deduce_keeper_t = ezy::experimental::keeper<
+      ezy::experimental::detail::ownership_category_t<Range>,
+      std::remove_reference_t<Range>
+    >;
   }
 
   template <typename Range, typename UnaryFunction>
@@ -36,11 +33,9 @@ namespace ezy
   template <typename Range, typename UnaryFunction>
   constexpr decltype(auto) transform(Range&& range, UnaryFunction&& fn)
   {
-    using range_type = typename detail::deducer_helper<Range>::underlying_range_type;
-    using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
-    using result_range_type = detail::range_view<CategoryTag, range_type, UnaryFunction>;
+    using result_range_type = detail::range_view<detail::deduce_keeper_t<Range>, UnaryFunction>;
     return result_range_type{
-        ezy::experimental::basic_keeper<CategoryTag, range_type>{std::forward<Range>(range)},
+        ezy::experimental::make_keeper(std::forward<Range>(range)),
         std::forward<UnaryFunction>(fn)
       };
   }
@@ -48,7 +43,7 @@ namespace ezy
   template <typename Range, typename Predicate>
   /*constexpr*/ auto filter(Range&& range, Predicate&& pred)
   {
-    using result_range_type = detail::range_view_filter<typename detail::deducer_helper<Range>::keeper_type, Predicate>;
+    using result_range_type = detail::range_view_filter<detail::deduce_keeper_t<Range>, Predicate>;
     return result_range_type{
       ezy::experimental::make_keeper(std::forward<Range>(range)),
       std::forward<Predicate>(pred)
@@ -60,8 +55,8 @@ namespace ezy
   {
 
     using ResultRangeType = detail::concatenated_range_view<
-      typename detail::deducer_helper<Range1>::keeper_type,
-      typename detail::deducer_helper<Range2>::keeper_type
+      detail::deduce_keeper_t<Range1>,
+      detail::deduce_keeper_t<Range2>
       >;
 
     return ResultRangeType{
@@ -84,7 +79,7 @@ namespace ezy
   template <typename... Ranges>
   constexpr auto zip(Ranges&&... ranges)
   {
-    using ResultRangeType = detail::zip_range_view<make_tuple_fn, typename detail::deducer_helper<Ranges>::keeper_type... >;
+    using ResultRangeType = detail::zip_range_view<make_tuple_fn, detail::deduce_keeper_t<Ranges>... >;
     return ResultRangeType{
       make_tuple,
       ezy::experimental::make_keeper(std::forward<Ranges>(ranges))...
@@ -94,7 +89,7 @@ namespace ezy
   template <typename Zipper, typename... Ranges>
   /*constexpr*/ auto zip_with(Zipper&& zipper, Ranges&&... ranges)
   {
-    using ResultRangeType = detail::zip_range_view<Zipper, typename detail::deducer_helper<Ranges>::keeper_type... >;
+    using ResultRangeType = detail::zip_range_view<Zipper, typename detail::deduce_keeper_t<Ranges>... >;
     return ResultRangeType{
       std::forward<Zipper>(zipper),
       ezy::experimental::make_keeper(std::forward<Ranges>(ranges))...
@@ -104,11 +99,9 @@ namespace ezy
   template <typename Range>
   /*constexpr*/ auto slice(Range&& range, unsigned int from, unsigned int until) // TODO check size_type
   {
-    using RangeType = typename detail::deducer_helper<Range>::underlying_range_type;
-    using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
-    using ResultRangeType = detail::range_view_slice<CategoryTag, RangeType>;
+    using ResultRangeType = detail::range_view_slice<detail::deduce_keeper_t<Range>>;
     return ResultRangeType{
-      ezy::experimental::basic_keeper<CategoryTag, RangeType>(std::forward<Range>(range)),
+      ezy::experimental::make_keeper(std::forward<Range>(range)),
       from,
       until
     };
@@ -117,11 +110,9 @@ namespace ezy
   template <typename Range>
   /*constexpr*/ auto take(Range&& range, size_t n) // TODO check size_type
   {
-    using RangeType = typename detail::deducer_helper<Range>::underlying_range_type;
-    using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
-    using ResultRangeType = detail::take_n_range_view<CategoryTag, RangeType>;
+    using ResultRangeType = detail::take_n_range_view<detail::deduce_keeper_t<Range>>;
     return ResultRangeType{
-      ezy::experimental::basic_keeper<CategoryTag, RangeType>(std::forward<Range>(range)),
+      ezy::experimental::make_keeper(std::forward<Range>(range)),
       n
     };
   }
@@ -129,11 +120,9 @@ namespace ezy
   template <typename Range, typename Predicate>
   /*constexpr*/ auto take_while(Range&& range, Predicate&& pred)
   {
-    using RangeType = typename detail::deducer_helper<Range>::underlying_range_type;
-    using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
-    using ResultRangeType = detail::take_while_range_view<CategoryTag, RangeType, ezy::remove_cvref_t<Predicate>>;
+    using ResultRangeType = detail::take_while_range_view<detail::deduce_keeper_t<Range>, ezy::remove_cvref_t<Predicate>>;
     return ResultRangeType{
-      ezy::experimental::basic_keeper<CategoryTag, RangeType>(std::forward<Range>(range)),
+      ezy::experimental::make_keeper(std::forward<Range>(range)),
       std::forward<Predicate>(pred)
     };
   }
@@ -141,11 +130,9 @@ namespace ezy
   template <typename Range>
   /*constexpr*/ auto flatten(Range&& range)
   {
-    using RangeType = typename detail::deducer_helper<Range>::underlying_range_type;
-    using CategoryTag = typename detail::deducer_helper<Range>::category_tag;
-    using ResultRangeType = detail::flattened_range_view<CategoryTag, RangeType>;
+    using ResultRangeType = detail::flattened_range_view<detail::deduce_keeper_t<Range>>;
     return ResultRangeType{
-      ezy::experimental::basic_keeper<CategoryTag, RangeType>(std::forward<Range>(range))
+      ezy::experimental::make_keeper(std::forward<Range>(range))
     };
   }
 
@@ -316,7 +303,7 @@ namespace ezy
   template <typename Range>
   constexpr auto cycle(Range&& range)
   {
-    return detail::cycle_view<typename detail::deducer_helper<Range>::keeper_type>{
+    return detail::cycle_view<detail::deduce_keeper_t<Range>>{
       ezy::experimental::make_keeper(std::forward<Range>(range))
     };
   }
