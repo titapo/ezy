@@ -132,7 +132,7 @@ namespace ezy
       using self_type = strong_type;
 
       using _base = detail::strong_type_base<T, detail::is_tag_extended<Tag>::value>;
-      using _base::strong_type_base;
+      using _base::_base;
   };
 
   // TODO if not already a reference?
