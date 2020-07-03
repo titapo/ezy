@@ -308,6 +308,12 @@ namespace ezy
     };
   }
 
+  template <typename T>
+  constexpr auto repeat(T&& t)
+  {
+    return ezy::detail::repeat_view<T>{std::forward<T>(t)};
+  }
+
   template <typename Range, typename Init>
   Init accumulate(Range&& range, Init&& init)
   {

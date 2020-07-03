@@ -593,3 +593,10 @@ SCENARIO("cycle")
   const auto joined = join_as_strings(ezy::take(cycled, 7), ",");
   REQUIRE(joined == "2,3,4,2,3,4,2");
 }
+
+SCENARIO("repeat")
+{
+  const auto repeated = ezy::repeat(4);
+  const auto joined = join_as_strings(ezy::take(repeated, 5), ",");
+  REQUIRE(joined == "4,4,4,4,4");
+}

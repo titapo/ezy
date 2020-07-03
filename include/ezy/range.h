@@ -1177,6 +1177,57 @@ namespace ezy::detail
 
     Keeper range;
   };
+
+  template <typename T>
+  struct repeat_iterator
+  {
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using value_type = T;
+    using pointer = T*;
+    using reference = T&;
+    using iterator_category = std::forward_iterator_tag; // random_access
+
+    decltype(auto) operator*()
+    {
+      return t;
+    }
+
+    decltype(auto) operator*() const
+    {
+      return t;
+    }
+
+    repeat_iterator& operator++()
+    {
+      return *this;
+    }
+
+    bool operator!=(const repeat_iterator&) const
+    {
+      return true;
+    }
+
+    T t;
+  };
+
+  template <typename T>
+  struct repeat_view
+  {
+    using iterator = repeat_iterator<T>;
+    using const_iterator = repeat_iterator<T>;
+
+    using size_type = size_t;
+
+
+    const_iterator begin() const
+    { return const_iterator{t}; }
+
+    const_iterator end() const
+    { return const_iterator{t}; }
+
+    T t; // as keeper?
+  };
 }
 
 // TODO these should be in another header
