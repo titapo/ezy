@@ -1436,18 +1436,51 @@ const auto str_plus_int = [](const std::string& s, const int i)
 
 SCENARIO("curry")
 {
-  using namespace ezy::experimental::function;
+  using namespace ezy::experimental;
+  using namespace std::string_literals;
 
   GIVEN("a function object")
   {
     WHEN("curried")
     {
-      const auto curried = curry<int, int>(std::plus<int>{});
-      const auto addFive = curried(5);
+      const auto addInt = curried{std::plus<int>{}};
+      const auto addFive = addInt(5);
       REQUIRE(addFive(10) == 15);
-
     }
   }
+
+  GIVEN("a generic function object")
+  {
+    const auto add = curried{std::plus<>{}};
+    REQUIRE(add(3)(5) == 8);
+    REQUIRE(add("a"s)("10") == "a10");
+  }
+
+  GIVEN("a unary member function")
+  {
+    const auto length = curried{&std::string::size};
+    REQUIRE(length(""s) == 0);
+    REQUIRE(length("hello"s) == 5);
+  }
+
+  // TODO this is a different concept: rename to lazy value or similar
+  GIVEN("lazy value")
+  {
+    const auto five = curried{5};
+    REQUIRE(five() == 5);
+  }
+
+  // curry(nullary) -> not accepted
+
+  GIVEN("function with 3 parameters")
+  {
+    auto sum3 = curried_with_args{[](int i, int j, int k) { return i + j + k; }};
+    REQUIRE(sum3(10)(5)(-20) == -5);
+
+  }
+
+  // TODO curry(n-ary > 2)
+  // const auto length = curry<std::string>(&std::string::size); // constrain argument?
 
   GIVEN("a lambda with different types")
   {
@@ -1455,7 +1488,7 @@ SCENARIO("curry")
 
     WHEN("curried")
     {
-      const auto curried = curry<std::string, int>(str_plus_int);
+      const auto curried = curry(str_plus_int);
       const auto prefixed = curried("number: ");
       REQUIRE(prefixed(123) == "number: 123");
     }
