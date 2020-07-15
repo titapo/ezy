@@ -13,7 +13,7 @@ namespace ezy::experimental
     curried_with_args() = default;
 
     template <typename... Ts>
-    curried_with_args(Ts&&... ts)
+    constexpr curried_with_args(Ts&&... ts)
       : storage{std::forward<Ts>(ts)...}
     {}
 

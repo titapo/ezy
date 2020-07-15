@@ -1490,6 +1490,13 @@ SCENARIO("curry")
       REQUIRE(prefixed(123) == "number: 123");
     }
   }
+
+  GIVEN("currying works in constexpr context")
+  {
+    constexpr auto add = curried{std::plus<>{}};
+    constexpr auto add5 = add(5);
+    static_assert(add5(10) == 15);
+  }
 }
 
 SCENARIO("flip")
