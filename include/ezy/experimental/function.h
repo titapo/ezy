@@ -6,14 +6,25 @@
 
 namespace ezy::experimental
 {
+  namespace detail
+  {
+    struct piecewise_tag_t {};
+  }
+
   template <typename Fn, typename...Args>
   struct curried_with_args
   {
 
     curried_with_args() = default;
 
+    // enabed only if Args is empty
+    constexpr curried_with_args(Fn fn)
+      : storage{std::forward<Fn>(fn)}
+    {}
+
+    // for internal use only
     template <typename... Ts>
-    constexpr curried_with_args(Ts&&... ts)
+    constexpr explicit curried_with_args(detail::piecewise_tag_t, Ts&&... ts)
       : storage{std::forward<Ts>(ts)...}
     {}
 
@@ -51,7 +62,7 @@ namespace ezy::experimental
       template <typename U, size_t... Is>
       static constexpr decltype(auto) defer(const Tuple& tup, U&& u, std::index_sequence<Is...>)
       {
-        return curried_with_args<Fn, Args..., U>{std::get<Is>(tup)..., std::forward<U>(u)};
+        return curried_with_args<Fn, Args..., U>(detail::piecewise_tag_t{}, std::get<Is>(tup)..., std::forward<U>(u));
       }
   };
 
