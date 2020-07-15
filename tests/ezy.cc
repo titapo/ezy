@@ -1479,9 +1479,6 @@ SCENARIO("curry")
 
   }
 
-  // TODO curry(n-ary > 2)
-  // const auto length = curry<std::string>(&std::string::size); // constrain argument?
-
   GIVEN("a lambda with different types")
   {
     REQUIRE(str_plus_int("a", 2) == "a2");
@@ -1493,6 +1490,14 @@ SCENARIO("curry")
       REQUIRE(prefixed(123) == "number: 123");
     }
   }
+}
+
+SCENARIO("flip")
+{
+  using ezy::experimental::flip;
+  using namespace std::string_literals;
+  const auto append = flip(std::plus<>{});
+  REQUIRE(append("foo"s, "bar"s) == "barfoo");
 }
 
 SCENARIO("compose")
