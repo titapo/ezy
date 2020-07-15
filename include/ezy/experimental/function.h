@@ -9,6 +9,14 @@ namespace ezy::experimental
   template <typename Fn, typename...Args>
   struct curried_with_args
   {
+
+    curried_with_args() = default;
+
+    template <typename... Ts>
+    curried_with_args(Ts&&... ts)
+      : storage{std::forward<Ts>(ts)...}
+    {}
+
     // this case should be handled differently
     constexpr decltype(auto) operator()() const noexcept
     {
@@ -28,11 +36,11 @@ namespace ezy::experimental
       }
     }
 
-    using Tuple = std::tuple<Fn, Args...>;
-    std::tuple<Fn, Args...> storage;
 
     private:
+      using Tuple = std::tuple<Fn, Args...>;
       using IndexSequence = std::index_sequence_for<Fn, Args...>;
+      std::tuple<Fn, Args...> storage;
 
       template <typename U, size_t... Is>
       static constexpr decltype(auto) apply(const Tuple& tup, U&& u, std::index_sequence<Is...>)
@@ -43,7 +51,7 @@ namespace ezy::experimental
       template <typename U, size_t... Is>
       static constexpr decltype(auto) defer(const Tuple& tup, U&& u, std::index_sequence<Is...>)
       {
-        return curried_with_args<Fn, Args..., U>{std::forward_as_tuple(std::get<Is>(tup)..., std::forward<U>(u))};
+        return curried_with_args<Fn, Args..., U>{std::get<Is>(tup)..., std::forward<U>(u)};
       }
   };
 
