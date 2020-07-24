@@ -7,51 +7,6 @@
 
 namespace ezy
 { 
-  namespace detail
-  {
-      template <typename... Types>
-      struct identity
-      {};
-
-      template <typename T, typename Identity, typename = void>
-      struct is_braces_constructible : std::false_type
-      {};
-
-      template <typename T, typename... Args>
-      struct is_braces_constructible<T, identity<Args...>, std::void_t<decltype(T{std::declval<Args>()...})>> : std::true_type
-      {};
-
-      template  <typename... List>
-      struct headof;
-
-      template <typename Head, typename... Tail>
-      struct headof<Head, Tail...>
-      {
-        using type = Head;
-      };
-
-      template <>
-      struct headof<>
-      {
-        using type = void;
-      };
-
-      template <bool Condition>
-      using disable_if = std::enable_if<!Condition>;
-
-      template <bool Condition>
-      using disable_if_t = std::enable_if_t<!Condition>;
-
-      /**
-       * Theoretically the same as std::integral_constant, just deduce the type automatically
-       */
-      template <auto Const>
-      struct constant
-      {
-        constexpr static auto value = Const;
-      };
-
-  }
 
   using notag_t = void;
   using extended_tag_t = void;
@@ -112,15 +67,26 @@ namespace ezy
       constexpr T& get() & { return this->_value; }
       constexpr decltype(auto) get() &&
       {
-        if constexpr (std::is_lvalue_reference_v<T>)
-          return this->_value;
-        else
-          return std::move(this->_value);
+        return get_forwarded(std::is_lvalue_reference<T>{});
       }
       constexpr const T& get() const & { return this->_value; }
 
       explicit operator T() { return this->_value; }
       explicit operator T() const { return this->_value; }
+
+      private:
+
+        // lvalue_reference
+        constexpr decltype(auto) get_forwarded(std::true_type)
+        {
+          return this->_value;
+        }
+
+        // not lvalue_reference
+        constexpr decltype(auto) get_forwarded(std::false_type)
+        {
+          return std::move(this->_value);
+        }
     };
   }
 
@@ -160,7 +126,7 @@ namespace ezy
   template <typename Tag, template <typename> class... Features, typename T>
   constexpr auto make_strong_reference_const(T&& t)
   {
-    static_assert(std::is_lvalue_reference_v<T>, "Cannot form reference to an rvalue!");
+    static_assert(std::is_lvalue_reference<T>::value, "Cannot form reference to an rvalue!");
     return strong_type_reference<std::add_const_t<std::remove_reference_t<T>>, Tag, Features...>(std::forward<T>(t));
   }
 
