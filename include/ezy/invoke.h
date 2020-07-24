@@ -6,23 +6,38 @@
 
 namespace ezy
 {
-  template <typename T, typename FnRet, typename Obj, typename...Args>
-  constexpr decltype(auto) invoke(FnRet T::* fn, Obj&& t, Args&&... args)
+  namespace detail
   {
-    using Fn = decltype(fn);
-    if constexpr (std::is_member_function_pointer_v<Fn>)
+    // member function pointer
+    template <typename T, typename FnRet, typename Obj, typename...Args>
+    constexpr decltype(auto) invoke_member(std::true_type, FnRet T::* fn, Obj&& t, Args&&... args)
     {
       return ((t).*fn)(std::forward<Args>(args)...);
     }
-    else
+
+    // member pointer
+    template <typename T, typename FnRet, typename Obj, typename...Args>
+    constexpr decltype(auto) invoke_member(std::false_type, FnRet T::* fn, Obj&& t, Args&&... args)
     {
       static_assert(sizeof...(Args) == 0, "Args cannot be provided for member pointer");
       return t.*fn;
     }
   }
 
+  template <typename T, typename FnRet, typename Obj, typename...Args>
+  constexpr decltype(auto) invoke(FnRet T::* fn, Obj&& t, Args&&... args)
+  {
+    using Fn = decltype(fn);
+    return detail::invoke_member(
+        std::is_member_function_pointer<Fn>{},
+        fn,
+        std::forward<Obj>(t),
+        std::forward<Args>(args)...);
+  }
+
   template <typename Fn, typename... Args>
-  constexpr decltype(auto) invoke(Fn&& fn, Args&&... args) noexcept(std::is_nothrow_invocable_v<Fn, Args...>)
+  constexpr decltype(auto) invoke(Fn&& fn, Args&&... args)
+      noexcept(noexcept(std::forward<Fn>(fn)(std::forward<Args>(args)...)))
   {
     return std::forward<Fn>(fn)(std::forward<Args>(args)...);
   }
