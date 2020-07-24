@@ -5,9 +5,9 @@
 #include "../strong_type_traits.h"
 #include "../invoke.h"
 
-#include <variant> // std::get
-
-namespace ezy::features
+namespace ezy
+{
+namespace features
 {
   /**
    * Requirements for Adapter<T> (where T is the underlying type):
@@ -179,7 +179,10 @@ namespace ezy::features
           using return_type = rebind_strong_type_t<dST, new_underlying_type>;
 
           using new_trait = Adapter<typename return_type::type>;
-          static_assert(std::is_same_v<typename new_trait::error_type, typename trait::error_type>, "error types must be the same");
+          static_assert(
+              std::is_same<typename new_trait::error_type, typename trait::error_type>::value,
+              "error types must be the same"
+          );
 
           if (trait::is_success(t.get()))
             return return_type(ezy::invoke(std::forward<Fn>(fn), trait::get_success(std::forward<ST>(t).get())));
@@ -442,6 +445,7 @@ namespace ezy::features
       }
     };
   };
+}
 }
 
 #endif

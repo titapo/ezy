@@ -5,10 +5,13 @@
 
 #include <ostream>
 
-namespace ezy::features
+namespace ezy
+{
+namespace features
 {
   template <typename T>
   using printable = typename left_shiftable_with<std::ostream&>::template impl<T>;
+}
 }
 
 #endif

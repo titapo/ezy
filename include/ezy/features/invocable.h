@@ -1,9 +1,12 @@
 #ifndef EZY_FEATURES_INVOCABLE_INCLUDED
 #define EZY_FEATURES_INVOCABLE_INCLUDED
 
-#include "../strong_type.h"
+#include "../feature.h"
+#include "../invoke.h"
 
-namespace ezy::features
+namespace ezy
+{
+namespace features
 {
   template <typename T>
   struct invocable : feature<T, invocable>
@@ -13,7 +16,7 @@ namespace ezy::features
       template <typename ST, typename... Ts>
       static constexpr decltype(auto) invoke(ST&& t, Ts&&... ts)
       {
-        return std::invoke(std::forward<ST>(t).get(), std::forward<Ts>(ts)...);
+        return ezy::invoke(std::forward<ST>(t).get(), std::forward<Ts>(ts)...);
       }
     };
 
@@ -35,6 +38,7 @@ namespace ezy::features
       return impl::invoke(std::move(*this).self(), std::forward<Ts>(ts)...);
     }
   };
+}
 }
 
 #endif

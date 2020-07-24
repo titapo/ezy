@@ -19,7 +19,7 @@ namespace ezy
   {};
 
   template <typename ST>
-  inline constexpr bool is_strong_type_v = is_strong_type<ST>::value;
+  constexpr bool is_strong_type_v = is_strong_type<ST>::value;
 
   template <typename S>
   struct extract_underlying_type;
@@ -176,7 +176,7 @@ namespace ezy
   >;
 
   template <typename ST, template <typename> class Feature>
-  inline constexpr bool has_feature_v = has_feature<ST, Feature>::value;
+  constexpr bool has_feature_v = has_feature<ST, Feature>::value;
 }
 
 

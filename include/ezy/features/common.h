@@ -6,7 +6,9 @@
 
 #include <cstddef>
 
-namespace ezy::features
+namespace ezy
+{
+namespace features
 {
   template <typename T>
   struct operator_arrow : feature<T, operator_arrow>
@@ -53,10 +55,7 @@ namespace ezy::features
     constexpr decltype(auto) operator[](size_type_local pos) const
     { return base::underlying()[pos]; }
   };
-}
 
-namespace ezy::features
-{
   /**
    * features
    */
@@ -103,6 +102,7 @@ namespace ezy::features
       return base::underlying;
     }
   };
+}
 }
 
 

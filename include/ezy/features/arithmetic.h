@@ -5,7 +5,9 @@
 #include "../strong_type_traits.h"
 #include <experimental/type_traits>
 
-namespace ezy::features
+namespace ezy
+{
+namespace features
 {
 
   namespace detail
@@ -45,6 +47,23 @@ namespace ezy::features
   template <typename T>
   struct additive : addable<T>, subtractable<T> {};
 
+  namespace detail
+  {
+    // !=
+    template <typename T>
+    constexpr bool not_equal(std::true_type, const T& lhs, const T& rhs)
+    {
+      return lhs != rhs;
+    }
+
+    // synthetize from ==
+    template <typename T>
+    constexpr bool not_equal(std::false_type, const T& lhs, const T& rhs)
+    {
+      return !(lhs == rhs);
+    }
+  }
+
   template <typename T>
   struct equal_comparable : feature<T, equal_comparable>
   {
@@ -58,14 +77,11 @@ namespace ezy::features
 
     friend constexpr bool operator!=(const T& lhs, const T& rhs)
     {
-      if constexpr (std::experimental::is_detected_v<ezy::features::detail::operator_ne_t, typename T::type>)
-      {
-        return lhs.get() != rhs.get();
-      }
-      else
-      {
-        return !(lhs == rhs);
-      }
+      return detail::not_equal(
+          std::experimental::is_detected<ezy::features::detail::operator_ne_t, typename T::type>{},
+          lhs.get(),
+          rhs.get()
+          );
     }
   };
 
@@ -139,7 +155,7 @@ namespace ezy::features
       using numtype = N;
       friend T operator*(const T& lhs, numtype rhs) { return T(lhs.get() * detail::to_plain_type(rhs)); }
 
-      template <typename B = bool, typename = std::enable_if_t<!std::is_same_v<T, N>, B>>
+      template <typename B = bool, typename = std::enable_if_t<!std::is_same<T, N>::value, B>>
       friend T operator*(numtype lhs, const T& rhs) { return T(detail::to_plain_type(lhs) * rhs.get()); }
 
       T& operator*=(numtype other)
@@ -200,6 +216,6 @@ namespace ezy::features
   template <typename T>
   struct multiplicative : multipliable<T>, divisible<T> {};
 
-}
+}}
 
 #endif
