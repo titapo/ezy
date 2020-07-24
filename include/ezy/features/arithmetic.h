@@ -2,6 +2,7 @@
 #define EZY_FEATURES_ARITHMETIC_H_INCLUDED
 
 #include "../feature.h"
+#include "../strong_type_traits.h"
 #include <experimental/type_traits>
 
 namespace ezy::features
