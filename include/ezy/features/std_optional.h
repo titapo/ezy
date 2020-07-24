@@ -99,7 +99,7 @@ namespace ezy::features
     }
 
     template <typename... Ts>
-    static decltype(auto) make_underlying_error(Ts&&... ts)
+    static decltype(auto) make_underlying_error(Ts&&...)
     {
       return type{error_value};
     }
