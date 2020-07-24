@@ -1509,9 +1509,9 @@ SCENARIO("flip")
 
 SCENARIO("compose")
 {
-  using namespace ezy::experimental::function;
+  using namespace ezy::experimental;
   using ezy::experimental::compose;
-  auto addHundred = curry<int, int>(std::plus<int>{})(100);
+  auto addHundred = curry_as<int, int>(std::plus<int>{})(100);
 
   WHEN("composed with same type")
   {
@@ -1522,7 +1522,7 @@ SCENARIO("compose")
   WHEN("composed with different type")
   {
     // TODO const lambdas are not accepted!
-    auto formatNumber = curry<std::string, int>(str_plus_int)("result is: ");
+    auto formatNumber = curry_as<std::string, int>(str_plus_int)("result is: ");
     auto calculate = compose(addHundred, formatNumber);
     REQUIRE(calculate(23) == "result is: 123");
   }
