@@ -4,7 +4,7 @@
 #include <tuple>
 #include <type_traits>
 
-namespace ezy::tuple_traits
+namespace ezy { namespace tuple_traits
 {
   template <typename>
   struct is_tuple: std::false_type {};
@@ -123,7 +123,7 @@ namespace ezy::tuple_traits
   {
     using type = extend_t<
                           std::conditional_t<
-                            !std::is_same_v<Head, T>,
+                            !std::is_same<Head, T>::value,
                             std::tuple<Head>,
                             std::tuple<>
                           >,
@@ -159,7 +159,7 @@ namespace ezy::tuple_traits
   {};
 
   template <typename Tuple, template <typename> class Predicate>
-  inline constexpr bool any_of_v = any_of<Tuple, Predicate>::value;
+  constexpr bool any_of_v = any_of<Tuple, Predicate>::value;
 
   /**
    * none_of
@@ -180,7 +180,7 @@ namespace ezy::tuple_traits
   {};
 
   template <typename Tuple, template <typename> class Predicate>
-  inline constexpr bool none_of_v = none_of<Tuple, Predicate>::value;
+  constexpr bool none_of_v = none_of<Tuple, Predicate>::value;
 
   /**
    * all_of
@@ -202,7 +202,7 @@ namespace ezy::tuple_traits
   {};
 
   template <typename Tuple, template <typename> class Predicate>
-  inline constexpr bool all_of_v = all_of<Tuple, Predicate>::value;
+  constexpr bool all_of_v = all_of<Tuple, Predicate>::value;
 
 
   /**
@@ -221,7 +221,7 @@ namespace ezy::tuple_traits
   struct contains<std::tuple<T, Tail...>, T> : std::true_type {};
 
   template <typename Tuple, typename T>
-  inline constexpr bool contains_v = contains<Tuple, T>::value;
+  constexpr bool contains_v = contains<Tuple, T>::value;
 
   /**
    * filter
@@ -375,7 +375,8 @@ namespace ezy::tuple_traits
   template <typename Head1, typename... Tail1, typename Head2, typename... Tail2>
   struct zip<std::tuple<Head1, Tail1...>, std::tuple<Head2, Tail2...>>
   {
-    static_assert(std::tuple_size_v<std::tuple<Head1, Tail1...>> == std::tuple_size_v<std::tuple<Head2, Tail2...>>,
+    static_assert(
+        std::tuple_size<std::tuple<Head1, Tail1...>>::value == std::tuple_size<std::tuple<Head2, Tail2...>>::value,
         "zipped tuples must have the same size");
 
     using type = extend_t<
@@ -443,6 +444,7 @@ namespace ezy::tuple_traits
 
   template <typename T>
   using extract_t = typename extract<T>::type;
-}
+
+}} // ezy::tuple_traits
 
 #endif
