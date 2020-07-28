@@ -2,6 +2,7 @@
 
 #include <ezy/features/nullable.h>
 #include <ezy/features/nullable_result.h>
+#include <ezy/experimental/value_provider.h>
 
 SCENARIO("default_nullable")
 {

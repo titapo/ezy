@@ -4,21 +4,11 @@
 #include "../feature.h"
 #include "../strong_type_traits.h"
 
-namespace ezy::experimental
+namespace ezy
 {
-  template <auto N>
-  struct value_provider
-  {
-    using value_type = decltype(N);
-
-    constexpr value_type operator()() const
-    {
-      return N;
-    }
-  };
-}
-
-namespace ezy::features::experimental
+namespace features
+{
+namespace experimental
 {
   namespace detail
   {
@@ -201,10 +191,11 @@ namespace ezy::features::experimental
 
   template <typename T>
   using basic_nullable_ptr = typename basic_nullable_as<
-    ezy::experimental::value_provider<nullptr>,
+    std::integral_constant<std::nullptr_t, nullptr>,
     std::equal_to<>,
     detail::dereference_fn
   >::template apply<T>;
-}
+
+}}}
 
 #endif
