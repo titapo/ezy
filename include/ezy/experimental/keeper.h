@@ -3,9 +3,11 @@
 
 #include <type_traits>
 #include <utility> // forward
-#include <functional> //invoke
+#include "../invoke.h"
 
-namespace ezy::experimental
+namespace ezy
+{
+namespace experimental
 {
   namespace detail
   {
@@ -44,7 +46,7 @@ namespace ezy::experimental
   template <typename T>
   struct keeper<owner_category_tag, T> : detail::disable_implicit_copy
   {
-    static_assert(!std::is_reference_v<T>, "T must not be a reference. Rather set the category!");
+    static_assert(!std::is_reference<T>::value, "T must not be a reference. Rather set the category!");
 
     using category_tag = owner_category_tag;
 
@@ -104,13 +106,13 @@ namespace ezy::experimental
     template <typename Fn>
     constexpr decltype(auto) apply(Fn&& fn) &
     {
-      return std::invoke(std::forward<Fn>(fn), t);
+      return ezy::invoke(std::forward<Fn>(fn), t);
     }
 
     template <typename Fn>
     constexpr decltype(auto) apply(Fn&& fn) &&
     {
-      return std::invoke(std::forward<Fn>(fn), std::move(t));
+      return ezy::invoke(std::forward<Fn>(fn), std::move(t));
     }
 
   };
@@ -122,7 +124,7 @@ namespace ezy::experimental
   template <typename T>
   struct keeper<reference_category_tag, T>
   {
-    static_assert(!std::is_reference_v<T>, "T must not be a reference. Rather set the category!");
+    static_assert(!std::is_reference<T>::value, "T must not be a reference. Rather set the category!");
 
     using category_tag = reference_category_tag;
 
@@ -165,7 +167,7 @@ namespace ezy::experimental
     template <typename Fn>
     constexpr decltype(auto) apply(Fn&& fn)
     {
-      return std::invoke(fn, t);
+      return ezy::invoke(fn, t);
     }
   };
 
@@ -190,11 +192,11 @@ namespace ezy::experimental
   template <typename Category, typename Value>
   struct is_keeper_for<keeper<Category, Value>, Value> : std::true_type {};
 
-  static_assert(is_keeper_for<keeper<owner_category_tag, int>, int>::value);
-  static_assert(!is_keeper_for<keeper<owner_category_tag, int>, double>::value);
+  static_assert(is_keeper_for<keeper<owner_category_tag, int>, int>::value, "");
+  static_assert(!is_keeper_for<keeper<owner_category_tag, int>, double>::value, "");
 
-  static_assert(is_keeper_for<keeper<reference_category_tag, int>, int>::value);
-  static_assert(!is_keeper_for<keeper<reference_category_tag, int>, double>::value);
+  static_assert(is_keeper_for<keeper<reference_category_tag, int>, int>::value, "");
+  static_assert(!is_keeper_for<keeper<reference_category_tag, int>, double>::value, "");
 
   template <typename T>
   struct keeper_value_type
@@ -214,26 +216,28 @@ namespace ezy::experimental
 
   namespace detail
   {
+    template <typename T, typename U>
+    constexpr bool is_same_v = std::is_same<T, U>::value;
     /**
      * ownership_category is general, decides ownership category tag, based on T's value category.
      * It is so generic that it does not care keepers at all.
      * (better name?)
      */
     template <typename T>
-    struct ownership_category : std::conditional<std::is_lvalue_reference_v<T>, reference_category_tag, owner_category_tag>
+    struct ownership_category : std::conditional<std::is_lvalue_reference<T>::value, reference_category_tag, owner_category_tag>
     {};
 
     template <typename T>
     using ownership_category_t = typename ownership_category<T>::type;
 
-    static_assert(std::is_same_v<ownership_category_t<int>, owner_category_tag>);
-    static_assert(std::is_same_v<ownership_category_t<int&&>, owner_category_tag>);
-    static_assert(std::is_same_v<ownership_category_t<int&>, reference_category_tag>);
+    static_assert(is_same_v<ownership_category_t<int>, owner_category_tag>, "");
+    static_assert(is_same_v<ownership_category_t<int&&>, owner_category_tag>, "");
+    static_assert(is_same_v<ownership_category_t<int&>, reference_category_tag>, "");
 
     // it does not care keepers
-    static_assert(std::is_same_v<ownership_category_t<keeper<owner_category_tag, int>>, owner_category_tag>);
-    static_assert(std::is_same_v<ownership_category_t<keeper<owner_category_tag, int>&>, reference_category_tag>);
-    static_assert(std::is_same_v<ownership_category_t<keeper<owner_category_tag, int>&&>, owner_category_tag>);
+    static_assert(is_same_v<ownership_category_t<keeper<owner_category_tag, int>>, owner_category_tag>, "");
+    static_assert(is_same_v<ownership_category_t<keeper<owner_category_tag, int>&>, reference_category_tag>, "");
+    static_assert(is_same_v<ownership_category_t<keeper<owner_category_tag, int>&&>, owner_category_tag>, "");
 
     /**
      * keeper_category
@@ -261,34 +265,41 @@ namespace ezy::experimental
     using keeper_category_t = typename keeper_category<T>::type;
 
     // for non-keepers the same as ownership_category
-    static_assert(std::is_same_v<keeper_category_t<int>, owner_category_tag>);
-    static_assert(std::is_same_v<keeper_category_t<int&&>, owner_category_tag>);
-    static_assert(std::is_same_v<keeper_category_t<int&>, reference_category_tag>);
+    static_assert(is_same_v<keeper_category_t<int>, owner_category_tag>, "");
+    static_assert(is_same_v<keeper_category_t<int&&>, owner_category_tag>, "");
+    static_assert(is_same_v<keeper_category_t<int&>, reference_category_tag>, "");
 
     // forwards keepers category
-    static_assert(std::is_same_v<keeper_category_t<keeper<owner_category_tag, int>>, owner_category_tag>);
-    static_assert(std::is_same_v<keeper_category_t<keeper<reference_category_tag, int>>, reference_category_tag>);
+    static_assert(is_same_v<keeper_category_t<keeper<owner_category_tag, int>>, owner_category_tag>, "");
+    static_assert(is_same_v<keeper_category_t<keeper<reference_category_tag, int>>, reference_category_tag>, "");
 
     // here it becomes weird
-    static_assert(std::is_same_v<keeper_category_t<keeper<owner_category_tag, int>>, owner_category_tag>);
-    static_assert(std::is_same_v<keeper_category_t<keeper<owner_category_tag, int>&>, reference_category_tag>); // reference, because it cannot be moved from it (without explicit move)
-    static_assert(std::is_same_v<keeper_category_t<keeper<owner_category_tag, int>&&>, owner_category_tag>);
+    static_assert(is_same_v<keeper_category_t<keeper<owner_category_tag, int>>, owner_category_tag>, "");
+    static_assert(is_same_v<keeper_category_t<keeper<owner_category_tag, int>&>, reference_category_tag>, ""); // reference, because it cannot be moved from it (without explicit move)
+    static_assert(is_same_v<keeper_category_t<keeper<owner_category_tag, int>&&>, owner_category_tag>, "");
 
-    static_assert(std::is_same_v<keeper_category_t<keeper<reference_category_tag, int>>, reference_category_tag>);
-    static_assert(std::is_same_v<keeper_category_t<keeper<reference_category_tag, int>&>, reference_category_tag>);
-    static_assert(std::is_same_v<keeper_category_t<keeper<reference_category_tag, int>&&>, reference_category_tag>);
+    static_assert(is_same_v<keeper_category_t<keeper<reference_category_tag, int>>, reference_category_tag>, "");
+    static_assert(is_same_v<keeper_category_t<keeper<reference_category_tag, int>&>, reference_category_tag>, "");
+    static_assert(is_same_v<keeper_category_t<keeper<reference_category_tag, int>&&>, reference_category_tag>, "");
+
+    // from keeper
+    template <typename T>
+    constexpr decltype(auto) get_keeper_value_impl(std::true_type, T&& t) noexcept
+    {
+      return std::forward<T>(t).get();
+    }
+
+    // from non-keeper
+    template <typename T>
+    constexpr decltype(auto) get_keeper_value_impl(std::false_type, T&& t) noexcept
+    {
+      return std::forward<T>(t);
+    }
 
     template <typename T>
     constexpr decltype(auto) get_keeper_value(T&& t) noexcept
     {
-      if constexpr (is_keeper<std::remove_reference_t<T>>::value)
-      {
-        return std::forward<T>(t).get();
-      }
-      else
-      {
-        return std::forward<T>(t);
-      }
+      return get_keeper_value_impl(is_keeper<std::remove_reference_t<T>>{}, std::forward<T>(t));
     }
 
     template <typename T>
@@ -321,6 +332,7 @@ namespace ezy::experimental
   auto r = ref(p);
   */
 
+}
 }
 
 
