@@ -9,6 +9,7 @@
 #include "bits_empty_size.h"
 
 #include <numeric> // accumulate
+#include <algorithm>
 
 
 namespace ezy

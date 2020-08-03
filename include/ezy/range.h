@@ -12,6 +12,7 @@
 
 #include <cstddef>
 #include <tuple>
+#include <limits>
 
 namespace ezy::detail
 {
