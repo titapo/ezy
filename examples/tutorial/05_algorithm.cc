@@ -1,4 +1,6 @@
 #include <ezy/algorithm.h>
+#include <vector>
+#include <string>
 
 std::vector<std::string> get_words_longer_than(const std::vector<std::string>& words, size_t treshold)
 {
