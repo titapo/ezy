@@ -319,6 +319,34 @@ SCENARIO("zip_with")
   }
 }
 
+// consider a builtin algorithm (eg. zip_forward)
+SCENARIO("zip mutable reference")
+{
+  std::vector ref{1, 2, 3, 4, 5};
+  const std::vector addition{10, 20, 30, 40, 50};
+
+  for (const auto [r, add] : ezy::zip_with(ezy::forward_as_tuple, ref, addition))
+  {
+    r += add;
+  }
+
+  const auto joined = ezy::join(ezy::transform(ref, ezy::to_string), ",");
+  REQUIRE(joined == "11,22,33,44,55");
+}
+
+SCENARIO("zip rvalue ")
+{
+  std::vector ref{1, 2, 3, 4, 5};
+
+  for (const auto [r, add] : ezy::zip_with(ezy::forward_as_tuple, ref, std::vector{10, 20, 30, 40, 50}))
+  {
+    r += add;
+  }
+
+  const auto joined = ezy::join(ezy::transform(ref, ezy::to_string), ",");
+  REQUIRE(joined == "11,22,33,44,55");
+}
+
 SCENARIO("slice")
 {
   std::vector<int> v{1,2,3,4,5,6,7,8};

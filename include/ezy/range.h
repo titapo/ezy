@@ -28,7 +28,7 @@ namespace ezy::detail
   template <typename T>
   struct iterator_type
   {
-    using type = decltype(std::begin(std::declval<T>()));
+    using type = decltype(std::declval<T>().begin());
   };
 
   template <typename T>
@@ -125,14 +125,14 @@ namespace ezy::detail
       {}
 
       template <typename... Ranges>
-      constexpr static iterator_tracker begin_from_ranges(const Ranges&... ranges)
+      constexpr static iterator_tracker begin_from_ranges(Ranges&... ranges)
       {
         using std::begin;
         return iterator_tracker(begin(ranges)...);
       }
 
       template <typename... Ranges>
-      constexpr static iterator_tracker end_from_ranges(const Ranges&... ranges)
+      constexpr static iterator_tracker end_from_ranges(Ranges&... ranges)
       {
         using std::end;
         return iterator_tracker(end(ranges)...);
@@ -196,7 +196,7 @@ namespace ezy::detail
 
       range_tracker(const Ranges&... ranges)
         : ranges(ranges...)
-        , current(std::begin(ranges)...)
+        , current(ranges.begin()...)
       {}
 
       range_tracker(const Ranges&... ranges, end_marker_t&&)
@@ -254,7 +254,7 @@ namespace ezy::detail
         return ++std::get<N>(current);
       }
 
-      void next_all()
+      constexpr void next_all()
       {
         ezy::experimental::static_for_each(current, [](auto& it){ ++it; });
       }
@@ -556,15 +556,17 @@ namespace ezy::detail
       using reference = std::add_lvalue_reference_t<value_type>;
       using iterator_category = std::input_iterator_tag; // forward_iterator_tag?
 
+      using DEBUG = std::tuple<Ranges...>;
+      using DEBUG2 = std::tuple<iterator_type_t<Ranges>...>;
       using tracker_type = iterator_tracker_for<Ranges...>;
 
       static constexpr auto cardinality = sizeof...(Ranges);
 
-      constexpr iterator_zipper(Zipper zipper, const Ranges&... rs)
+      constexpr iterator_zipper(Zipper zipper, Ranges&... rs)
         : storage(zipper, tracker_type::begin_from_ranges(rs...))
       {}
 
-      constexpr iterator_zipper(Zipper zipper, const Ranges&... rs, end_marker_t&&)
+      constexpr iterator_zipper(Zipper zipper, Ranges&... rs, end_marker_t&&)
         : storage(zipper, tracker_type::end_from_ranges(rs...))
       {}
 
@@ -920,8 +922,8 @@ namespace ezy::detail
   {
     public:
       using const_iterator = iterator_concatenator<
-        ezy::experimental::keeper_value_type_t<Keeper1>,
-        ezy::experimental::keeper_value_type_t<Keeper2>
+        const ezy::experimental::keeper_value_type_t<Keeper1>,
+        const ezy::experimental::keeper_value_type_t<Keeper2>
       >;
       using difference_type = typename const_iterator::difference_type;
 
@@ -943,7 +945,8 @@ namespace ezy::detail
     public:
       using KeepersTuple = std::tuple<Keepers...>;
 
-      using const_iterator = iterator_zipper<Zipper, ezy::experimental::keeper_value_type_t<Keepers>...>;
+      using iterator = iterator_zipper<Zipper, ezy::experimental::keeper_value_type_t<Keepers>...>;
+      using const_iterator = iterator_zipper<Zipper, const ezy::experimental::keeper_value_type_t<Keepers>...>;
       using difference_type = typename const_iterator::difference_type;
       using value_type = typename const_iterator::value_type;
       using size_type = size_t;
@@ -964,7 +967,22 @@ namespace ezy::detail
         return const_iterator(zipper, std::get<Is>(keepers).get()...);
       }
 
+      template <size_t... Is>
+      constexpr static iterator get_begin_helper(
+          Zipper zipper,
+          KeepersTuple& keepers,
+          std::index_sequence<Is...>
+        )
+      {
+        return iterator(zipper, std::get<Is>(keepers).get()...);
+      }
+
       constexpr static const_iterator get_begin(Zipper zipper, const KeepersTuple& keepers)
+      {
+        return get_begin_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
+      }
+
+      constexpr static iterator get_begin(Zipper zipper, KeepersTuple& keepers)
       {
         return get_begin_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
       }
@@ -979,7 +997,22 @@ namespace ezy::detail
         return const_iterator(zipper, std::get<Is>(keepers).get()..., end_marker_t{});
       }
 
+      template <size_t... Is>
+      constexpr static iterator get_end_helper(
+          Zipper zipper,
+          KeepersTuple& keepers,
+          std::index_sequence<Is...>
+        )
+      {
+        return iterator(zipper, std::get<Is>(keepers).get()..., end_marker_t{});
+      }
+
       constexpr static const_iterator get_end(Zipper zipper, const KeepersTuple& keepers)
+      {
+        return get_end_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
+      }
+
+      constexpr static iterator get_end(Zipper zipper, KeepersTuple& keepers)
       {
         return get_end_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
       }
@@ -987,7 +1020,13 @@ namespace ezy::detail
       constexpr const_iterator begin() const
       { return get_begin(zipper, keepers); }
 
-      constexpr auto end() const
+      constexpr const_iterator end() const
+      { return get_end(zipper, keepers); }
+
+      constexpr iterator begin()
+      { return get_begin(zipper, keepers); }
+
+      constexpr iterator end()
       { return get_end(zipper, keepers); }
 
     public:
@@ -1002,7 +1041,7 @@ namespace ezy::detail
     public:
 
       using Range = ezy::experimental::keeper_value_type_t<Keeper>;
-      using const_iterator = iterator_flattener<Range>;
+      using const_iterator = iterator_flattener<const Range>;
 
       using value_type = typename const_iterator::value_type;
       using pointer = typename const_iterator::pointer;
@@ -1029,7 +1068,7 @@ namespace ezy::detail
     public:
       using Range = ezy::experimental::keeper_value_type_t<Keeper>;
 
-      using const_iterator = take_iterator<Range>;
+      using const_iterator = take_iterator<const Range>;
       using size_type = typename Range::size_type;
 
       const_iterator begin() const
@@ -1051,7 +1090,7 @@ namespace ezy::detail
   {
     public:
       using Range = ezy::experimental::keeper_value_type_t<Keeper>;
-      using const_iterator = take_while_iterator<Range, Predicate>;
+      using const_iterator = take_while_iterator<const Range, Predicate>;
       using size_type = typename Range::size_type;
 
       const_iterator begin() const
@@ -1158,7 +1197,7 @@ namespace ezy::detail
   {
     using Range = ezy::experimental::keeper_value_type_t<Keeper>;
     using iterator = cycle_iterator<Range>;
-    using const_iterator = cycle_iterator<Range>;
+    using const_iterator = cycle_iterator<const Range>;
 
     using size_type = typename Range::size_type;
 

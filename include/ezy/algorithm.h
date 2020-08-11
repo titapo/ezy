@@ -77,6 +77,18 @@ namespace ezy
 
   inline constexpr make_tuple_fn make_tuple{};
 
+  struct forward_as_tuple_fn
+  {
+    template <typename... Args>
+    constexpr auto operator()(Args&&... args) const
+    {
+      return std::forward_as_tuple(std::forward<decltype(args)>(args)...);
+    }
+  };
+
+  inline constexpr forward_as_tuple_fn forward_as_tuple{};
+
+
   template <typename... Ranges>
   constexpr auto zip(Ranges&&... ranges)
   {
