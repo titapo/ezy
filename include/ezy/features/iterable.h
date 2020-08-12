@@ -315,6 +315,27 @@ namespace ezy::features
           );
     }
 
+    auto drop(size_t n) const &
+    {
+      return make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::drop((*this).underlying(), n)
+          );
+    }
+
+    auto drop(size_t n) & /*mutable accessor*/
+    {
+      return make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::drop((*this).underlying(), n)
+          );
+    }
+
+    auto drop(size_t n) &&
+    {
+      return make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+          ezy::drop(std::move(*this).underlying(), n)
+          );
+    }
+
     template <typename ResultContainer>
     constexpr ResultContainer to() const &
     {

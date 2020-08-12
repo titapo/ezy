@@ -573,13 +573,42 @@ SCENARIO("strong type extensions")
     }
     // take until?
 
+    WHEN("drop")
+    {
+      COMPARE_RANGES(numbers.drop(0), (std::array{1,2,3,4,5,6,7,8,9,10}));
+      COMPARE_RANGES(numbers.drop(1), (std::array{2,3,4,5,6,7,8,9,10}));
+      COMPARE_RANGES(numbers.drop(2), (std::array{3,4,5,6,7,8,9,10}));
+      COMPARE_RANGES(numbers.drop(5), (std::array{6,7,8,9,10}));
+      COMPARE_RANGES(numbers.drop(10), (std::array<int, 0>{}));
+      COMPARE_RANGES(numbers.drop(15), (std::array<int, 0>{}));
+    }
+
+    WHEN("drop multiple times")
+    {
+      COMPARE_RANGES(numbers.drop(2).drop(4).drop(1), (std::array{8,9,10}));
+    }
+
+    WHEN("drop rvalue")
+    {
+      auto remaining = MyNumbers{1,2,3,4}.drop(2);
+      COMPARE_RANGES(remaining, (std::array{3, 4}));
+    }
+
+    WHEN("drop then mutate")
+    {
+      MyNumbers nums{1,2,3,4};
+      auto remaining = nums.drop(2);
+      *remaining.begin() = 10;
+      COMPARE_RANGES(remaining, (std::array{10, 4}));
+      COMPARE_RANGES(nums, (std::array{1, 2, 10, 4}));
+    }
+
     //
     // TODO fold
     // TODO span(unary): similar to partition, just splitting at first !unary(element)
     // TODO break(unary): span with inverted condition
-    // TODO drop(n: index): removes the first n elements
     // TODO split_at(index)
-    // TODO head/tail
+    // TODO head/tail (take(1)/drop(1) does the job)
     // TODO unzip
     // TODO grouping?
     //
