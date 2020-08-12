@@ -250,6 +250,7 @@ SCENARIO("zip")
 
   THEN("value type is what expected")
   {
+    // TODO assertions against for zip_forward(?) value_types
     using Zipped = std::remove_const_t<decltype(zipped)>;
     static_assert(std::is_same_v<typename Zipped::const_iterator::value_type, std::tuple<int, int>>);
     static_assert(std::is_same_v<typename Zipped::value_type, std::tuple<int, int>>);
@@ -403,6 +404,40 @@ SCENARIO("zipped and taken")
 
     REQUIRE(join_zipped(result) == "1+-1;2+-2;3+-3;4+-4;5+-5;6+-6;7+-7;8+-8;");
   }
+}
+
+SCENARIO("drop")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  REQUIRE(join_as_strings(ezy::drop(v, 3)) == "45678");
+}
+
+SCENARIO("drop: mutate element in remaining range")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  auto remaining = ezy::drop(v, 5);
+  *(remaining.begin()) -= 3;
+  REQUIRE(join_as_strings(remaining) == "378");
+}
+
+SCENARIO("drop from rvalue")
+{
+  REQUIRE(join_as_strings(ezy::drop(std::vector{1,2,3,4,5}, 2)) == "345");
+}
+
+SCENARIO("drop from rvalue and it mutating")
+{
+  /* It works because `remaining` stores the original range by value*/
+  auto remaining = ezy::drop(std::vector{1,2,3,4,5}, 2);
+  *(remaining.begin()) -= 3;
+  REQUIRE(join_as_strings(remaining) == "045");
+}
+
+SCENARIO("drop from lazy range and it mutating")
+{
+  auto remaining = ezy::drop(ezy::iterate(1, [](int i) { return ++i; }), 2);
+  *(remaining.begin()) -= 3; // modifies a temporary, it has no effect
+  REQUIRE(join_as_strings(ezy::take(remaining, 3)) == "345");
 }
 
 SCENARIO("flatten")

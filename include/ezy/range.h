@@ -194,15 +194,27 @@ namespace ezy::detail
     public:
       constexpr static auto size = sizeof...(Ranges);
 
-      range_tracker(const Ranges&... ranges)
+      range_tracker(Ranges&... ranges)
         : ranges(ranges...)
         , current(ranges.begin()...)
       {}
 
-      range_tracker(const Ranges&... ranges, end_marker_t&&)
+      range_tracker(Ranges&... ranges, end_marker_t&&)
         : ranges(ranges...)
         , current(std::end(ranges)...)
       {}
+
+      range_tracker(const range_tracker& rhs)
+        : ranges(rhs.ranges)
+        , current(rhs.current)
+      {}
+
+      template <typename... OtherRanges>
+      range_tracker(const range_tracker<OtherRanges...>& rhs)
+        : ranges(rhs.ranges)
+        , current(rhs.current)
+      {
+      }
 
       range_tracker& operator=(const range_tracker& rhs)
       {
@@ -270,7 +282,7 @@ namespace ezy::detail
       template <typename RangeType>
       using const_it_type = ezy::detail::iterator_type_t<RangeType>; //typename RangeType::const_iterator;
 
-      std::tuple<std::reference_wrapper<const Ranges>...> ranges;
+      std::tuple<std::reference_wrapper<Ranges>...> ranges;
       std::tuple<const_it_type<Ranges>...> current;
   };
 
@@ -798,6 +810,61 @@ namespace ezy::detail
       Predicate predicate;
   };
 
+  template <typename Range>
+  struct drop_iterator
+  {
+    using _iter_traits = std::iterator_traits<iterator_type_t<Range>>;
+    using difference_type = typename _iter_traits::difference_type;
+    using value_type = typename _iter_traits::value_type;
+    using pointer = typename _iter_traits::pointer;
+    using reference = typename _iter_traits::reference;
+    using iterator_category = std::forward_iterator_tag; // TODO
+
+    constexpr explicit drop_iterator(Range& range, typename Range::size_type n)
+      : tracker(range)
+    {
+      while (tracker.template has_next<0>() && n > 0)
+      {
+        tracker.template next<0>();
+        --n;
+      }
+    }
+
+    constexpr explicit drop_iterator(Range& range, end_marker_t)
+      : tracker(range, end_marker_t{})
+    {
+    }
+
+    template <typename OtherRange, typename = std::enable_if_t<std::is_convertible_v<OtherRange&, Range&>>>
+    constexpr drop_iterator(const drop_iterator<OtherRange>& other)
+      : tracker(other.tracker)
+    {
+    }
+
+    constexpr inline drop_iterator& operator++()
+    {
+      tracker.template next<0>();
+      return *this;
+    }
+
+    constexpr decltype(auto) operator*()
+    {
+      return *(tracker.template get<0>().first);
+    }
+
+    constexpr bool operator!=(const drop_iterator&) const
+    {
+      return (tracker.template has_next<0>());
+    }
+
+    constexpr bool operator==(const drop_iterator& rhs) const
+    {
+      return !(*this != rhs);
+    }
+
+    range_tracker<Range> tracker;
+  };
+
   /**
    * basic_range_view
    */
@@ -1083,6 +1150,38 @@ namespace ezy::detail
 
       Keeper range;
       size_type n;
+  };
+
+  template <typename Keeper>
+  struct drop_range_view
+  {
+    using Range = ezy::experimental::keeper_value_type_t<Keeper>;
+    using const_iterator = drop_iterator<const Range>;
+    using iterator = drop_iterator<Range>;
+    using size_type = typename Range::size_type;
+
+    constexpr const_iterator begin() const
+    {
+      return const_iterator(range.get(), n);
+    }
+
+    constexpr const_iterator end() const
+    {
+      return const_iterator(range.get(), end_marker_t{});
+    }
+
+    constexpr iterator begin()
+    {
+      return iterator(range.get(), n);
+    }
+
+    constexpr iterator end()
+    {
+      return iterator(range.get(), end_marker_t{});
+    }
+
+    Keeper range;
+    const size_type n;
   };
 
   template <typename Keeper, typename Predicate>
