@@ -385,7 +385,7 @@ SCENARIO("zipped and taken")
   {
     auto result = ezy::take(
         ezy::zip(
-          ezy::iterate(1, [](int i){return i + 1; }),
+          ezy::iterate(1),
           std::vector{-1,-2,-3,-4}
         ),
         8);
@@ -435,7 +435,7 @@ SCENARIO("drop from rvalue and it mutating")
 
 SCENARIO("drop from lazy range and it mutating")
 {
-  auto remaining = ezy::drop(ezy::iterate(1, [](int i) { return ++i; }), 2);
+  auto remaining = ezy::drop(ezy::iterate(1), 2);
   *(remaining.begin()) -= 3; // modifies a temporary, it has no effect
   REQUIRE(join_as_strings(ezy::take(remaining, 3)) == "345");
 }
@@ -635,6 +635,13 @@ SCENARIO("iterate")
   const auto it = ezy::iterate(1, [](int i) { return i * 2;});
   const auto joined = join_as_strings(ezy::take(it, 7), ",");
   REQUIRE(joined == "1,2,4,8,16,32,64");
+}
+
+SCENARIO("iterate increments by one as a default")
+{
+  const auto it = ezy::iterate(4);
+  const auto joined = join_as_strings(ezy::take(it, 5), ",");
+  REQUIRE(joined == "4,5,6,7,8");
 }
 
 SCENARIO("enumerate")

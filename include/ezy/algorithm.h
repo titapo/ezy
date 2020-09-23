@@ -316,6 +316,25 @@ namespace ezy
     return ezy::detail::iterate_view<T, Fn>{std::forward<T>(t), std::forward<Fn>(fn)};
   }
 
+  namespace detail
+  {
+    struct pre_increment
+    {
+      template <typename T>
+      constexpr decltype(auto) operator()(T&& t) const
+      {
+        return ++t;
+      }
+    };
+  }
+
+  template <typename T>
+  constexpr auto iterate(T&& t)
+  {
+    using Fn = detail::pre_increment;
+    return ezy::detail::iterate_view<T, Fn>{std::forward<T>(t), Fn{}};
+  }
+
   template <typename Range>
   constexpr auto enumerate(Range&& range)
   {
