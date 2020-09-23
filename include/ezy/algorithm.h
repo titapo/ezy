@@ -338,7 +338,8 @@ namespace ezy
   template <typename Range>
   constexpr auto enumerate(Range&& range)
   {
-    return ezy::zip(ezy::iterate(0, [](auto i) {return ++i; }), std::forward<Range>(range));
+    using SizeType = typename ezy::remove_cvref_t<Range>::size_type;
+    return ezy::zip(ezy::iterate<SizeType>({}), std::forward<Range>(range));
   }
 
   template <typename Range>

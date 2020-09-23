@@ -889,6 +889,7 @@ namespace ezy::detail
     using Range = ezy::experimental::keeper_value_type_t<Keeper>;
     using _orig_const_iterator = decltype(std::cbegin(std::declval<Range>()));
     using const_iterator = iterator_adaptor<_orig_const_iterator, Transformation>;
+    using size_type = typename Range::size_type;
 
     constexpr const_iterator begin() const
     { return const_iterator(orig_range.get().begin(), transformation); }
@@ -908,6 +909,7 @@ namespace ezy::detail
   {
     using Range = ezy::experimental::keeper_value_type_t<Keeper>;
     using const_iterator = iterator_filter<typename Range::const_iterator, FilterPredicate>;
+    using size_type = typename Range::size_type;
 
     range_view_filter(Keeper&& keeper, FilterPredicate pred)
       : orig_range(std::move(keeper))
@@ -935,6 +937,7 @@ namespace ezy::detail
       using Range = ezy::experimental::keeper_value_type_t<Keeper>;
       using const_iterator = typename Range::const_iterator;
       using difference_type = typename const_iterator::difference_type;
+      using size_type = typename Range::difference_type;
 
       range_view_slice(Keeper&& orig, difference_type f, difference_type u)
         : orig_range(std::move(orig))
@@ -993,6 +996,7 @@ namespace ezy::detail
         const ezy::experimental::keeper_value_type_t<Keeper2>
       >;
       using difference_type = typename const_iterator::difference_type;
+      using size_type = typename ezy::experimental::keeper_value_type_t<Keeper1>::size_type;
 
       const_iterator begin() const
       { return const_iterator(range1.get(), range2.get()); }
@@ -1114,6 +1118,7 @@ namespace ezy::detail
       using pointer = typename const_iterator::pointer;
       using reference = typename const_iterator::reference;
       using difference_type = typename const_iterator::difference_type;
+      using size_type = typename Range::size_type;
 
       const_iterator begin() const
       {
