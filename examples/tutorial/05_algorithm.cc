@@ -20,5 +20,16 @@ int main()
 
   auto quote = [](const std::string &s) { return std::string() + "\"" + s + "\""; };
   std::cout << ezy::join(ezy::transform(long_words, quote), ", ") << "\n";
+
+  //
+  const auto print_with_number = [](const auto& element)
+  {
+    const auto& [i, word] = element;
+    std::cout << i << ". " << word << "\n";
+  };
+
+  ezy::for_each(ezy::enumerate(long_words), print_with_number);
+
+  ezy::for_each(ezy::zip(ezy::iterate(1), long_words), print_with_number);
   return 4;
 }
