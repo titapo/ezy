@@ -215,7 +215,32 @@ namespace features
   struct division_by_results
   {
     template <typename T>
-    struct impl : ezy::feature<T, impl>
+    struct no_self_divisible {};
+
+    template <typename T>
+    struct self_divisible : ezy::feature<T, self_divisible>
+    {
+      using base = ezy::feature<T, self_divisible>;
+      using base::self;
+
+      T& operator/=(const Divisor& other)
+      {
+        self().get() /= other;
+        return self();
+      }
+    };
+
+    template <typename T>
+    struct helper_selector :
+      std::conditional<
+        std::is_same<T, Result>::value,
+        self_divisible<T>,
+        no_self_divisible<T>
+      >::type
+    {};
+
+    template <typename T>
+    struct impl : ezy::feature<T, impl>, helper_selector<T>
     {
       using base = ezy::feature<T, impl>;
       using base::self;
@@ -224,13 +249,6 @@ namespace features
 
       friend Result operator/(const T& lhs, const Divisor& other)
       { return Result(lhs.get() / ezy::features::detail::forward_plain_type(other)); }
-
-      // TODO conditionally disable if !is_closed
-      T& operator/=(const Divisor& other)
-      {
-        self().get() /= other;
-        return self();
-      }
     };
   };
 
