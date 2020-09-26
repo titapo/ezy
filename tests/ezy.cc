@@ -1260,6 +1260,7 @@ SCENARIO("strong type constructions")
   }
 }
 
+template <typename >struct pt;
 /**
  * strong type features: arithmetic features
  */
@@ -1347,6 +1348,63 @@ SCENARIO("strong type integer arithmetic")
       static_assert(std::is_same_v<Mult, decltype(b * a)>);
       REQUIRE((b * a).get() == 15);
     }
+  }
+
+  WHEN("closed_divisible")
+  {
+    using Div = ezy::strong_type<int, struct Tag, ezy::features::closed_divisible>;
+    THEN("division returns the same type")
+    {
+      Div a{8};
+      Div b{2};
+      static_assert(std::is_same_v<Div, decltype(a/b)>);
+      REQUIRE((a / b).get() == 4);
+      a /= b;
+      REQUIRE(a.get() == 4);
+      REQUIRE(b.get() == 2);
+    }
+  }
+
+  WHEN("division_by_results")
+  {
+    using Div = ezy::strong_type<int, struct Tag, ezy::features::division_by_results<float, double>::impl>;
+    Div a{10};
+    static_assert(std::is_same_v<decltype(a/5.1), double>);
+    static_assert(std::is_same_v<decltype(a/5), double>);
+    // implicit cast of divisor is allowed now. Should we have a stricter version?
+    REQUIRE((a / 4) == 2.5);
+  }
+
+  WHEN("divisible_by_scalar")
+  {
+    using Div = ezy::strong_type<int, struct Tag, ezy::features::divisible_by_scalar>;
+    Div a{8};
+    static_assert(std::is_same_v<decltype(a / 5), Div>);
+    REQUIRE((a / 5).get() == 1);
+    a /= 2; // this should work
+    REQUIRE(a.get() == 4);
+  }
+
+  WHEN("division_results_scalar")
+  {
+    using Div = ezy::strong_type<int, struct Tag, ezy::features::division_results_scalar>;
+    Div a{8};
+    Div b{6};
+    static_assert(std::is_same_v<decltype(a / b), int>);
+    REQUIRE((a / b) == 1);
+  }
+
+  WHEN("divisible")
+  {
+    using Div = ezy::strong_type<int, struct Tag, ezy::features::divisible>;
+    Div a{8};
+    Div b{6};
+    static_assert(std::is_same_v<decltype(a / b), int>);
+    static_assert(std::is_same_v<decltype(a / 2), Div>);
+    REQUIRE((a / b) == 1);
+    REQUIRE((a / 2).get() == 4);
+    a /= 4;
+    REQUIRE(a.get() == 2);
   }
 }
 

@@ -140,6 +140,19 @@ namespace features
     {
       return static_cast<ezy::plain_type_t<std::remove_reference_t<T>>>(t); // forwarding?
     }
+
+    template <typename T>
+    decltype(auto) forward_plain_type(T&& t)
+    {
+      if constexpr (ezy::is_strong_type_v<ezy::remove_cvref_t<T>>)
+      {
+        return static_cast<T&&>(t).get();
+      }
+      else
+      {
+        return static_cast<T&&>(t);
+      }
+    }
   }
 
   // nicer solution?
@@ -172,41 +185,75 @@ namespace features
   template <typename T>
   using multipliable_with_underlying = typename multipliable_by<ezy::extract_underlying_type_t<T>>::template internal<T>;
 
-  template <typename N>
-  struct divisible_by
+  // division
+  template <typename Divisor, typename Result>
+  struct division_by_results
   {
     template <typename T>
-    struct internal : feature<T, internal>
+    struct impl : ezy::feature<T, impl>
     {
-      using base = feature<T, internal>;
+      using base = ezy::feature<T, impl>;
       using base::self;
 
-      using numtype = N;
-      friend T operator/(const T& lhs, numtype other) { return T(lhs.get() / detail::to_plain_type(other)); }
-      T& operator/=(numtype other)
+      static constexpr bool is_closed = std::is_same_v<T, Result>;
+
+      friend Result operator/(const T& lhs, const Divisor& other)
+      { return Result(lhs.get() / ezy::features::detail::forward_plain_type(other)); }
+
+      // TODO conditionally disable if !is_closed
+      T& operator/=(const Divisor& other)
       {
-        self().get() /= detail::to_plain_type(other);
+        self().get() /= other;
+        return self();
+      }
+    };
+  };
+
+  template <typename Divisor>
+  struct closed_divisible_by
+  {
+    template <typename T>
+    struct impl : feature<T, impl>
+    {
+      using base = feature<T, impl>;
+      using base::self;
+
+      using Result = T;
+
+      friend Result operator/(const T& lhs, const Divisor& other)
+      {
+        return Result(lhs.get() / ezy::features::detail::forward_plain_type(other));
+      }
+
+      T& operator/=(const Divisor& other)
+      {
+        self().get() /= detail::forward_plain_type(other);
         return self();
       }
     };
   };
 
   template <typename T>
-  using divisible = typename divisible_by<T>::template internal<T>;
+  using closed_divisible = typename closed_divisible_by<T>::template impl<T>;
+
+
+  //scalar means underlying here
+  template <typename T>
+  using divisible_by_scalar = typename division_by_results<ezy::extract_underlying_type_t<T>, T>::template impl<T>;
 
   template <typename T>
-  using divisible_by_int = divisible_by<int>::internal<T>;
+  using division_results_scalar = typename division_by_results<T, ezy::extract_underlying_type_t<T>>::template impl<T>;
 
   template <typename T>
-  using divisible_with_underlying = typename divisible_by<ezy::extract_underlying_type_t<T>>::template internal<T>;
+  struct divisible : divisible_by_scalar<T>, division_results_scalar<T>
+  {};
 
   template <typename N>
   struct multiplicative_by
   {
     template <typename T>
-    struct internal : multipliable_by<N>::template internal<T>, divisible_by<N>::template internal<T>
+    struct internal : multipliable_by<N>::template internal<T>, closed_divisible_by<N>::template internal<T>
     {
-      //using numtype = N;
     };
   };
 
@@ -214,7 +261,7 @@ namespace features
   using multiplicative_by_int = multiplicative_by<int>::internal<T>;
 
   template <typename T>
-  struct multiplicative : multipliable<T>, divisible<T> {};
+  struct multiplicative : multipliable<T>, closed_divisible<T> {};
 
 }}
 
