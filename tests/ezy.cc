@@ -1306,7 +1306,7 @@ SCENARIO("strong type integer arithmetic")
 
   WHEN("multipliable")
   {
-    using Mult = ezy::strong_type<int, struct Tag, ezy::features::multipliable>;
+    using Mult = ezy::strong_type<int, struct Tag, ezy::features::closed_multipliable>;
     THEN("multiplication works and returns the same type (closed multiplication)")
     {
       Mult a(5);

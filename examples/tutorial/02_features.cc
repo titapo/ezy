@@ -56,8 +56,8 @@ namespace ns3
   void entry()
   {
     Integer a{5};
-    a += Integer{10} * Integer{5};
-    a /= Integer{11};
+    a += Integer{10} * 5;
+    a /= 11;
     std::cout << std::boolalpha << a << "\n";
   }
 }

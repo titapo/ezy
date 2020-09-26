@@ -156,34 +156,59 @@ namespace features
   }
 
   // nicer solution?
-  template <typename N>
-  struct multipliable_by
+  template <typename Multiplier, typename Result>
+  struct multiplication_by_results
   {
     template <typename T>
-    struct internal : feature<T, internal>
+    struct impl : feature<T, impl>
     {
-      using base = feature<T, internal>;
+      using base = feature<T, impl>;
       using base::self;
 
-      using numtype = N;
-      friend T operator*(const T& lhs, numtype rhs) { return T(lhs.get() * detail::to_plain_type(rhs)); }
+      friend Result operator*(const T& lhs, const Multiplier& rhs) { return Result(lhs.get() * detail::forward_plain_type(rhs)); }
+
+      template <typename B = bool, typename = std::enable_if_t<!std::is_same<T, Multiplier>::value, B>>
+      friend Result operator*(const Multiplier& lhs, const T& rhs) { return Result(detail::forward_plain_type(lhs) * rhs.get()); }
+
+      // TODO conditionally constrain
+      T& operator*=(const Multiplier& other)
+      {
+        self().get() *= detail::forward_plain_type(other);
+        return self();
+      }
+    };
+  };
+
+  template <typename N>
+  struct closed_multipliable_by
+  {
+    template <typename T>
+    struct impl : feature<T, impl>
+    {
+      using base = feature<T, impl>;
+      using base::self;
+
+      friend T operator*(const T& lhs, const N& rhs) { return T(lhs.get() * detail::forward_plain_type(rhs)); }
 
       template <typename B = bool, typename = std::enable_if_t<!std::is_same<T, N>::value, B>>
-      friend T operator*(numtype lhs, const T& rhs) { return T(detail::to_plain_type(lhs) * rhs.get()); }
+      friend T operator*(const N& lhs, const T& rhs) { return T(detail::forward_plain_type(lhs) * rhs.get()); }
 
-      T& operator*=(numtype other)
+      T& operator*=(const N& other)
       {
-        self().get() *= detail::to_plain_type(other);
+        self().get() *= detail::forward_plain_type(other);
         return self();
       }
     };
   };
 
   template <typename T>
-  using multipliable = typename multipliable_by<T>::template internal<T>;
+  using closed_multipliable = typename closed_multipliable_by<T>::template impl<T>;
 
   template <typename T>
-  using multipliable_with_underlying = typename multipliable_by<ezy::extract_underlying_type_t<T>>::template internal<T>;
+  using multipliable_with_underlying = typename multiplication_by_results<ezy::extract_underlying_type_t<T>, T>::template impl<T>;
+
+  template <typename T>
+  using multipliable = multipliable_with_underlying<T>;
 
   // division
   template <typename Divisor, typename Result>
@@ -236,7 +261,6 @@ namespace features
   template <typename T>
   using closed_divisible = typename closed_divisible_by<T>::template impl<T>;
 
-
   //scalar means underlying here
   template <typename T>
   using divisible_by_scalar = typename division_by_results<ezy::extract_underlying_type_t<T>, T>::template impl<T>;
@@ -252,17 +276,13 @@ namespace features
   struct multiplicative_by
   {
     template <typename T>
-    struct internal : multipliable_by<N>::template internal<T>, closed_divisible_by<N>::template internal<T>
+    struct impl : closed_multipliable_by<N>::template impl<T>, closed_divisible_by<N>::template impl<T>
     {
     };
   };
 
   template <typename T>
-  using multiplicative_by_int = multiplicative_by<int>::internal<T>;
-
-  template <typename T>
-  struct multiplicative : multipliable<T>, closed_divisible<T> {};
-
+  struct multiplicative : multipliable<T>, divisible<T> {};
 }}
 
 #endif
