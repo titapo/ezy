@@ -5,6 +5,7 @@ project(ezy LANGUAGES CXX)
 add_subdirectory(thirdparty/catch)
 add_subdirectory(include)
 add_subdirectory(tests)
+add_subdirectory(examples)
 
 
 if (USE_SANITIZER STREQUAL "address")
@@ -34,4 +35,4 @@ endif()
 ## enable_testing()
 ## add_subdirectory( tests )
 ## 
-## install(DIRECTORY include/ezy DESTINATION include)
+install(DIRECTORY include/ezy DESTINATION include)
