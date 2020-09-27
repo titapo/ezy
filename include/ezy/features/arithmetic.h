@@ -142,16 +142,21 @@ namespace features
     }
 
     template <typename T>
+    decltype(auto) forward_plain_type_helper(T&& t, std::true_type)
+    {
+      return static_cast<T&&>(t).get();
+    }
+
+    template <typename T>
+    decltype(auto) forward_plain_type_helper(T&& t, std::false_type)
+    {
+      return static_cast<T&&>(t);
+    }
+
+    template <typename T>
     decltype(auto) forward_plain_type(T&& t)
     {
-      if constexpr (ezy::is_strong_type_v<ezy::remove_cvref_t<T>>)
-      {
-        return static_cast<T&&>(t).get();
-      }
-      else
-      {
-        return static_cast<T&&>(t);
-      }
+      return forward_plain_type_helper(static_cast<T&&>(t), ezy::is_strong_type<ezy::remove_cvref_t<T>>{});
     }
   }
 
@@ -244,8 +249,6 @@ namespace features
     {
       using base = ezy::feature<T, impl>;
       using base::self;
-
-      static constexpr bool is_closed = std::is_same_v<T, Result>;
 
       friend Result operator/(const T& lhs, const Divisor& other)
       { return Result(lhs.get() / ezy::features::detail::forward_plain_type(other)); }
