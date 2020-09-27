@@ -1304,7 +1304,7 @@ SCENARIO("strong type integer arithmetic")
     }
   }
 
-  WHEN("multipliable")
+  WHEN("closed multipliable")
   {
     using Mult = ezy::strong_type<int, struct Tag, ezy::features::closed_multipliable>;
     THEN("multiplication works and returns the same type (closed multiplication)")
@@ -1323,9 +1323,9 @@ SCENARIO("strong type integer arithmetic")
     }
   }
 
-  WHEN("multipliable_with_underlying")
+  WHEN("multipliable")
   {
-    using Mult = ezy::strong_type<int, struct Tag, ezy::features::multipliable_with_underlying>;
+    using Mult = ezy::strong_type<int, struct Tag, ezy::features::multipliable>;
     THEN("multiplication works and returns the same type (closed multiplication)")
     {
       Mult a(5);
@@ -1347,6 +1347,13 @@ SCENARIO("strong type integer arithmetic")
       int b{3};
       static_assert(std::is_same_v<Mult, decltype(b * a)>);
       REQUIRE((b * a).get() == 15);
+    }
+
+    THEN("multiply-assign works")
+    {
+      Mult a{5};
+      a *= 4;
+      REQUIRE(a.get() == 20);
     }
   }
 
