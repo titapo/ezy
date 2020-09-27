@@ -556,6 +556,28 @@ SCENARIO("accumulate")
   REQUIRE(ezy::accumulate(v, 1, std::multiplies{}) == 120);
 }
 
+SCENARIO("accumulate works with member function")
+{
+  struct string
+  {
+    std::string m;
+
+    string& append(const std::string& str)
+    {
+      m += str;
+      return *this;
+    }
+  };
+  std::vector<std::string> v{"Hello", " ", "world!"};
+  REQUIRE(ezy::accumulate(v, string{"#"}, &string::append).m == "#Hello world!");
+}
+
+SCENARIO("accumulate in compile time")
+{
+  constexpr std::array a{1,2,3,4,5};
+  static_assert(ezy::accumulate(a, 0) == 15);
+  static_assert(ezy::accumulate(a, 1, std::multiplies{}) == 120);
+}
 
 bool operator==(const move_only& lhs, const move_only& rhs)
 {
