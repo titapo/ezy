@@ -62,22 +62,42 @@ namespace ezy
     }
   };
 
-  inline constexpr empty_fn empty = {};
+  static constexpr empty_fn empty = {};
 
-  template <typename T>
-  [[nodiscard]] constexpr auto size(const T& t)
+  namespace detail
   {
-    if constexpr (std::experimental::is_detected<detail::size_mem_fn_t, T>::value)
-    {
-      return t.size();
-    }
-    else
+    template <typename T>
+    constexpr auto impl_size(const T& t, priority_tag<0>)
     {
       using std::begin;
       using std::end;
       return std::distance(begin(t), end(t));
     }
+
+    template <typename T>
+    constexpr auto impl_size(const T& t, priority_tag<1>) -> decltype(size(t))
+    {
+      return size(t);
+    }
+
+    template <typename T>
+    constexpr auto impl_size(const T& t, priority_tag<2>) -> decltype(t.size())
+    {
+      return t.size();
+    }
+
   }
+
+  struct size_fn
+  {
+    template <typename T>
+    [[nodiscard]] constexpr auto operator()(const T& t) const
+    {
+      return detail::impl_size(t, priority_tag<2>{});
+    }
+  };
+
+  static constexpr size_fn size = {};
 }
 
 #endif

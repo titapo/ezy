@@ -83,6 +83,16 @@ namespace
   {
     return t.v == 0;
   }
+
+  struct external_size_check_t
+  {
+    size_t v{0};
+  };
+
+  size_t size(const external_size_check_t& t)
+  {
+    return t.v;
+  }
 }
 
 SCENARIO("empty")
@@ -130,6 +140,12 @@ SCENARIO("size")
   {
     REQUIRE(ezy::size(empty_t{true}) == 0);
     REQUIRE(ezy::size(empty_t{false}) == 1);
+  }
+
+  GIVEN("a type with external size")
+  {
+    REQUIRE(ezy::size(external_size_check_t{0}) == 0);
+    REQUIRE(ezy::size(external_size_check_t{3}) == 3);
   }
 
   GIVEN("a type with begin and end")
