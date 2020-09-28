@@ -2,8 +2,8 @@
 #define EZY_APPLY_H_INCLUDED
 
 #include "invoke.h"
-#include <utility>
 #include <cstddef>
+#include <tuple>
 
 /**
  * ezy::apply is a polyfill for pre-c++17 clients. For newer version std::apply is recommended

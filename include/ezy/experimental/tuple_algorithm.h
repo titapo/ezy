@@ -26,7 +26,7 @@ namespace experimental
   template <typename Tuple, typename Fn>
   constexpr void static_for_each(Tuple&& t, Fn&& fn)
   {
-    std::apply([&fn](auto&&... e) { (fn(std::forward<decltype(e)>(e)), ...);}, std::forward<Tuple>(t));
+    ezy::apply([&fn](auto&&... e) { (fn(std::forward<decltype(e)>(e)), ...);}, std::forward<Tuple>(t));
   }
 
   namespace detail
