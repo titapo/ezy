@@ -4,7 +4,9 @@
 #include <functional>
 #include <ezy/invoke.h>
 
-namespace ezy::experimental
+namespace ezy
+{
+namespace experimental
 {
   namespace detail
   {
@@ -37,21 +39,27 @@ namespace ezy::experimental
     template <typename U>
     constexpr auto operator()(U&& u) const noexcept
     {
-      if constexpr (std::is_invocable_v<Fn, Args..., U>)
-      {
-        return apply(storage, std::forward<U>(u), IndexSequence{});
-      }
-      else
-      {
-        return defer(storage, std::forward<U>(u), IndexSequence{});
-      }
+      return impl_call(std::forward<U>(u), std::is_invocable<Fn, Args..., U>{});
     }
-
 
     private:
       using Tuple = std::tuple<Fn, Args...>;
       using IndexSequence = std::index_sequence_for<Fn, Args...>;
       std::tuple<Fn, Args...> storage;
+
+      // invocable
+      template <typename U>
+      constexpr auto impl_call(U&& u, std::true_type) const
+      {
+        return apply(storage, std::forward<U>(u), IndexSequence{});
+      }
+
+      // not invocable
+      template <typename U>
+      constexpr auto impl_call(U&& u, std::false_type) const
+      {
+        return defer(storage, std::forward<U>(u), IndexSequence{});
+      }
 
       template <typename U, size_t... Is>
       static constexpr decltype(auto) apply(const Tuple& tup, U&& u, std::index_sequence<Is...>)
@@ -101,10 +109,11 @@ namespace ezy::experimental
   {
     return [=](T a) {
       return [=](U b) {
-        return std::invoke(f, a, b);
+        return ezy::invoke(f, a, b);
       };
     };
   }
-}
+
+}}
 
 #endif

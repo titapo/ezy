@@ -6,7 +6,6 @@
 #include "invoke.h"
 
 #include <type_traits>
-#include <experimental/type_traits>
 #include <utility>
 #include <iterator>
 
@@ -14,7 +13,9 @@
 #include <tuple>
 #include <limits>
 
-namespace ezy::detail
+namespace ezy
+{
+namespace detail
 {
   template <typename T>
   struct const_iterator_type
@@ -52,14 +53,20 @@ namespace ezy::detail
   template <typename T>
   using const_value_type_t = typename const_value_type<T>::type;
 }
+}
 
-namespace ezy::detail
+namespace ezy
+{
+namespace detail
 {
   template <typename F>
   using IsFunction = typename std::enable_if<std::is_function<F>::value, F>;
 }
+}
 
-namespace ezy::detail
+namespace ezy
+{
+namespace detail
 {
   template <typename orig_type>
   struct basic_iterator_adaptor
@@ -408,16 +415,22 @@ namespace ezy::detail
 
       inline iterator_concatenator& operator++()
       {
-        if (auto [it, end] = tracking_info<0>(); it != end)
         {
-          ++it;
-          return *this;
+          auto tracked = tracking_info<0>();
+          if (tracked.first != tracked.second)
+          {
+            ++tracked.first;
+            return *this;
+          }
         }
 
-        if (auto [it, end] = tracking_info<1>(); it != end)
         {
-          ++it;
-          return *this;
+          auto tracked = tracking_info<1>();
+          if (tracked.first != tracked.second)
+          {
+            ++tracked.first;
+            return *this;
+          }
         }
 
         return *this;
@@ -425,36 +438,43 @@ namespace ezy::detail
 
       auto operator*()
       {
-        if (auto [it, end] = tracking_info<0>(); it != end)
+        auto tracked = tracking_info<0>();
+        if (tracked.first != tracked.second)
         {
-          return *it;
+          return *tracked.first;
         }
 
-        auto [it, end] = tracking_info<1>();
-        return *it;
+        return *tracking_info<1>().first;
       }
 
       bool operator==(const iterator_concatenator& rhs) const
       {
-        if (auto [it, end] = tracking_info<0>(); it != end)
         {
-          if (auto [r_it, r_end] = rhs.tracking_info<0>(); r_it != r_end)
-            return (r_it == it);
-          else
-            return false;
+          const auto tracked = tracking_info<0>();
+          if (tracked.first != tracked.second)
+          {
+            const auto r_tracked = rhs.tracking_info<0>();
+            if (r_tracked.first != r_tracked.second)
+              return (r_tracked.first == tracked.first);
+            else
+              return false;
+          }
         }
 
-        if (auto [it, end] = tracking_info<1>(); it != end)
         {
-          if (auto [r_it, r_end] = rhs.tracking_info<1>(); r_it != r_end)
-            return (r_it == it);
-          else
-            return false;
+          const auto tracked = tracking_info<1>();
+          if (tracked.first != tracked.second)
+          {
+            const auto r_tracked = rhs.tracking_info<1>();
+            if (r_tracked.first != r_tracked.second)
+              return (r_tracked.first == tracked.first);
+            else
+              return false;
+          }
         }
 
         // this ended
-        auto [it, end] = rhs.tracking_info<1>();
-        return it == end;
+        return !rhs.tracker.template has_next<1>();
       }
 
       bool operator!=(const iterator_concatenator& rhs) const
@@ -494,25 +514,25 @@ namespace ezy::detail
       iterator_flattener(const range_type& range)
         : tracker(range)
       {
-        if (auto [it, end] = tracker.template get<0>(); it != end) // not empty
+        if (tracker.template has_next<0>())
           inner = outer()->begin();
       }
 
       iterator_flattener(const range_type& range, end_marker_t&&)
         : tracker(range, end_marker_t{})
       {
-        if (auto [it, end] = tracker.template get<0>(); it != end) // not empty
+        if (tracker.template has_next<0>())
           inner = outer()->end();
       }
 
       iterator_flattener& operator++()
       {
         ++inner;
-        auto [outer_it, outer_end] = tracker.template get<0>();
-        while (outer_it != outer_end && inner == outer_it->end()) // end of current subrange
+        auto outer_tracked = tracker.template get<0>();
+        while (outer_tracked.first != outer_tracked.second && inner == outer_tracked.first->end()) // end of current subrange
         {
-          ++outer_it;
-          if (outer_it != outer_end) // not finished
+          ++outer_tracked.first;
+          if (outer_tracked.first != outer_tracked.second) // not finished
           {
             inner = outer()->begin();
           }
@@ -763,7 +783,10 @@ namespace ezy::detail
         : tracker(range)
         , predicate(std::move(p))
       {
-        if (auto [it, end] = tracker.template get<0>(); it != end && !predicate(*it))
+        const auto tracked = tracker.template get<0>();
+        const auto &it = tracked.first;
+        const auto &end = tracked.second;
+        if (it != end && !predicate(*it))
           tracker.template set_to<0>(end);
       }
 
@@ -771,19 +794,20 @@ namespace ezy::detail
         : tracker(range)
         , predicate(std::move(p))
       {
-        const auto [it, end] = tracker.template get<0>();
-        tracker.template set_to<0>(end);
+        const auto tracked = tracker.template get<0>();
+        tracker.template set_to<0>(tracked.second);
       }
 
       inline take_while_iterator& operator++()
       {
         tracker.template next<0>();
-        const auto [it, end] = tracker.template get<0>();
-        if (it == end)
+
+        const auto tracked = tracker.template get<0>();
+        if (tracked.first == tracked.second)
           return *this;
 
-        if (!predicate(*it))
-          tracker.template set_to<0>(end);
+        if (!predicate(*tracked.first))
+          tracker.template set_to<0>(tracked.second);
 
         return *this;
       }
@@ -796,8 +820,8 @@ namespace ezy::detail
       bool operator!=(const take_while_iterator&) const
       {
         // TODO fix it
-        const auto [it, end] = tracker.template get<0>();
-        return it != end;
+        const auto tracked = tracker.template get<0>();
+        return tracked.first != tracked.second;
       }
 
       bool operator==(const take_while_iterator& rhs) const
@@ -835,7 +859,7 @@ namespace ezy::detail
     {
     }
 
-    template <typename OtherRange, typename = std::enable_if_t<std::is_convertible_v<OtherRange&, Range&>>>
+    template <typename OtherRange, typename = std::enable_if_t<std::is_convertible<OtherRange&, Range&>::value>>
     constexpr drop_iterator(const drop_iterator<OtherRange>& other)
       : tracker(other.tracker)
     {
@@ -1050,12 +1074,12 @@ namespace ezy::detail
 
       constexpr static const_iterator get_begin(Zipper zipper, const KeepersTuple& keepers)
       {
-        return get_begin_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
+        return get_begin_helper(zipper, keepers, std::make_index_sequence<std::tuple_size<KeepersTuple>::value>());
       }
 
       constexpr static iterator get_begin(Zipper zipper, KeepersTuple& keepers)
       {
-        return get_begin_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
+        return get_begin_helper(zipper, keepers, std::make_index_sequence<std::tuple_size<KeepersTuple>::value>());
       }
 
       template <size_t... Is>
@@ -1080,12 +1104,12 @@ namespace ezy::detail
 
       constexpr static const_iterator get_end(Zipper zipper, const KeepersTuple& keepers)
       {
-        return get_end_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
+        return get_end_helper(zipper, keepers, std::make_index_sequence<std::tuple_size<KeepersTuple>::value>());
       }
 
       constexpr static iterator get_end(Zipper zipper, KeepersTuple& keepers)
       {
-        return get_end_helper(zipper, keepers, std::make_index_sequence<std::tuple_size_v<KeepersTuple>>());
+        return get_end_helper(zipper, keepers, std::make_index_sequence<std::tuple_size<KeepersTuple>::value>());
       }
 
       constexpr const_iterator begin() const
@@ -1372,6 +1396,7 @@ namespace ezy::detail
 
     T t; // as keeper?
   };
+}
 }
 
 // TODO these should be in another header
