@@ -1626,7 +1626,6 @@ SCENARIO("compose")
 
 SCENARIO("pickers")
 {
-  // TODO by value or by reference?
   GIVEN("a tuple")
   {
     std::tuple<int, double, std::string, int> t{10, 12.5, "hello", 8};

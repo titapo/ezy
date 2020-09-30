@@ -456,6 +456,20 @@ SCENARIO("drop from lazy range and it mutating")
   REQUIRE(join_as_strings(ezy::take(remaining, 3)) == "345");
 }
 
+SCENARIO("step_by")
+{
+  auto remaining = ezy::step_by(ezy::iterate(0), 3);
+  REQUIRE(join_as_strings(ezy::take(remaining, 5), ",") == "0,3,6,9,12");
+}
+
+SCENARIO("step_by mutating")
+{
+  std::vector<int> v{1,2,3,4,5,6,7};
+  auto remaining = ezy::step_by(v, 3);
+  *(std::next(remaining.begin())) += 10;
+  REQUIRE(join_as_strings(remaining, ",") == "1,14,7");
+}
+
 SCENARIO("flatten")
 {
   std::vector<std::vector<int>> v{std::vector{1,2,3,4,5,6,7,8}, {}, std::vector{0,0,0}};

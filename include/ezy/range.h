@@ -78,7 +78,7 @@ namespace detail
       using reference = typename std::iterator_traits<orig_type>::reference;
       using iterator_category = typename std::iterator_traits<orig_type>::iterator_category;
 
-      constexpr explicit basic_iterator_adaptor(orig_type original)
+      constexpr explicit basic_iterator_adaptor(const orig_type& original)
           : orig(original)
       {}
 
@@ -268,7 +268,7 @@ namespace detail
       }
 
       template <unsigned N>
-      auto next()
+      decltype(auto) next()
       {
         return ++std::get<N>(current);
       }
@@ -315,7 +315,7 @@ namespace detail
       {}
       */
 
-      constexpr iterator_adaptor(orig_type original, const converter_type& c)
+      constexpr iterator_adaptor(const orig_type& original, const converter_type& c)
         : base(original)
         , converter(c)
       {}
@@ -889,6 +889,60 @@ namespace detail
     range_tracker<Range> tracker;
   };
 
+  template <typename Range>
+  struct step_by_iterator
+  {
+    using _iter_traits = std::iterator_traits<iterator_type_t<Range>>;
+    using difference_type = typename _iter_traits::difference_type;
+    using value_type = typename _iter_traits::value_type;
+    using pointer = typename _iter_traits::pointer;
+    using reference = typename _iter_traits::reference;
+    using iterator_category = std::forward_iterator_tag; // TODO
+
+    constexpr explicit step_by_iterator(Range& range, typename Range::size_type n)
+      : tracker(range)
+      , n(n)
+    {}
+
+    constexpr explicit step_by_iterator(Range& range, end_marker_t)
+      : tracker(range, end_marker_t{})
+    {}
+
+    template <typename OtherRange, typename = std::enable_if_t<std::is_convertible<OtherRange&, Range&>::value>>
+    constexpr explicit step_by_iterator(const step_by_iterator<OtherRange>& other)
+      : tracker(other.tracker)
+      , n(other.n)
+    {}
+
+    constexpr step_by_iterator& operator++()
+    {
+      typename Range::size_type step = 0;
+      while (step++ < n && tracker.template has_next<0>())
+      {
+        tracker.template next<0>();
+      }
+      return *this;
+    }
+
+    constexpr decltype(auto) operator*()
+    {
+      return *(tracker.template get<0>().first);
+    }
+
+    constexpr bool operator!=(const step_by_iterator& rhs) const
+    {
+      return tracker.template get<0>() != rhs.tracker.template get<0>();
+    }
+
+    constexpr bool operator==(const step_by_iterator& rhs) const
+    {
+      return !(*this != rhs);
+    }
+
+    range_tracker<Range> tracker;
+    const typename Range::size_type n{1};
+  };
+
   /**
    * basic_range_view
    */
@@ -916,10 +970,10 @@ namespace detail
     using size_type = typename Range::size_type;
 
     constexpr const_iterator begin() const
-    { return const_iterator(orig_range.get().begin(), transformation); }
+    { return const_iterator(std::cbegin(orig_range.get()), transformation); }
 
     constexpr const_iterator end() const
-    { return const_iterator(orig_range.get().end(), transformation); }
+    { return const_iterator(std::cend(orig_range.get()), transformation); }
 
     Keeper orig_range;
     Transformation transformation;
@@ -1213,6 +1267,38 @@ namespace detail
     const size_type n;
   };
 
+  template <typename Keeper>
+  struct step_by_range_view
+  {
+    using Range = ezy::experimental::keeper_value_type_t<Keeper>;
+    using const_iterator = step_by_iterator<const Range>;
+    using iterator = step_by_iterator<Range>;
+    using size_type = typename Range::size_type;
+
+    constexpr const_iterator begin() const
+    {
+      return const_iterator(keeper.get(), n);
+    }
+
+    constexpr const_iterator end() const
+    {
+      return const_iterator(keeper.get(), end_marker_t{});
+    }
+
+    constexpr iterator begin()
+    {
+      return iterator(keeper.get(), n);
+    }
+
+    constexpr iterator end()
+    {
+      return iterator(keeper.get(), end_marker_t{});
+    }
+
+    Keeper keeper;
+    size_type n{1};
+  };
+
   template <typename Keeper, typename Predicate>
   struct take_while_range_view
   {
@@ -1256,6 +1342,10 @@ namespace detail
     constexpr bool operator!=(const iterate_iterator&) const noexcept
     {
       return true;
+    }
+    constexpr bool operator==(const iterate_iterator& rhs) const noexcept
+    {
+      return !(*this != rhs);
     }
 
     constexpr iterate_iterator& operator++()

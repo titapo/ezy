@@ -150,6 +150,15 @@ namespace ezy
   }
 
   template <typename Range>
+  constexpr auto step_by(Range&& range, size_t n)
+  {
+    using ResultRange = detail::step_by_range_view<detail::deduce_keeper_t<Range>>;
+    return ResultRange{
+      ezy::experimental::make_keeper(std::forward<Range>(range)), n
+    };
+  }
+
+  template <typename Range>
   /*constexpr*/ auto flatten(Range&& range)
   {
     using ResultRangeType = detail::flattened_range_view<detail::deduce_keeper_t<Range>>;
