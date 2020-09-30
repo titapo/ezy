@@ -718,12 +718,12 @@ namespace detail
       using iterator_category = std::forward_iterator_tag; // ?? TODO use the origin
 
       explicit take_iterator(RangeType& range, typename RangeType::size_type n)
-        : tracker(range)
+        : tracker(std::begin(range))
         , n(n)
       {}
 
       explicit take_iterator(RangeType& range, end_marker_t)
-        : tracker(range)
+        : tracker(std::end(range))
         , n(0)
       {}
 
@@ -734,15 +734,6 @@ namespace detail
         return *this;
       }
 
-      /*
-      take_iterator& operator=(take_iterator&& rhs) //noexcept
-      {
-        tracker = std::move(rhs.tracker);
-        n = rhs.n;
-        return *this;
-      }
-      */
-
       inline take_iterator& operator++()
       {
         tracker.template next<0>();
@@ -752,21 +743,21 @@ namespace detail
 
       decltype(auto) operator*()
       {
-        return *(tracker.template get<0>().first);
+        return *(tracker.template get<0>());
       }
 
-      bool operator!=(const take_iterator&) const
+      constexpr bool operator!=(const take_iterator& rhs) const
       {
-        return (n != 0 && tracker.template has_next<0>());
+        return (n != 0 && (tracker.template get<0>() != rhs.tracker.template get<0>()));
       }
 
-      bool operator==(const take_iterator& rhs) const
+      constexpr bool operator==(const take_iterator& rhs) const
       {
         return !(*this != rhs);
       }
 
     private:
-      range_tracker<RangeType> tracker;
+      iterator_tracker_for<RangeType> tracker;
       typename RangeType::size_type n;
   };
 
