@@ -376,10 +376,28 @@ SCENARIO("take")
   REQUIRE(join_as_strings(ezy::take(v, 5)) == "12345");
 }
 
+SCENARIO("take allows mutating")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  auto taken = ezy::take(v, 5);
+  (*std::next(std::begin(taken), 2)) += 4;
+  REQUIRE(join_as_strings(taken) == "12745");
+  REQUIRE(join_as_strings(v) == "12745678");
+}
+
 SCENARIO("take_while")
 {
   std::vector<int> v{1,2,3,4,5,6,7,8};
   REQUIRE(join_as_strings(ezy::take_while(v, [](int i) { return i != 5; })) == "1234");
+}
+
+SCENARIO("take_while allows mutating")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  auto taken = ezy::take_while(v, [](int i) { return i != 5; });
+  (*std::next(std::begin(taken), 3)) += 4;
+  REQUIRE(join_as_strings(taken) == "1238");
+  REQUIRE(join_as_strings(v) == "12385678");
 }
 
 SCENARIO("take_while temporary")

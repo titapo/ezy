@@ -710,18 +710,19 @@ namespace detail
   struct take_iterator
   {
     public:
-      using difference_type = typename RangeType::const_iterator::difference_type;
-      using value_type = typename RangeType::const_iterator::value_type;
-      using pointer = typename RangeType::const_iterator::pointer;
-      using reference = typename RangeType::const_iterator::reference;
-      using iterator_category = std::forward_iterator_tag; // ??
+      using _iter_traits = std::iterator_traits<iterator_type_t<RangeType>>;
+      using difference_type = typename _iter_traits::difference_type;
+      using value_type = typename _iter_traits::value_type;
+      using pointer = typename _iter_traits::pointer;
+      using reference = typename _iter_traits::reference;
+      using iterator_category = std::forward_iterator_tag; // ?? TODO use the origin
 
-      explicit take_iterator(const RangeType& range, typename RangeType::size_type n)
+      explicit take_iterator(RangeType& range, typename RangeType::size_type n)
         : tracker(range)
         , n(n)
       {}
 
-      explicit take_iterator(const RangeType& range, end_marker_t)
+      explicit take_iterator(RangeType& range, end_marker_t)
         : tracker(range)
         , n(0)
       {}
@@ -773,13 +774,14 @@ namespace detail
   struct take_while_iterator
   {
     public:
-      using difference_type = typename RangeType::const_iterator::difference_type;
-      using value_type = typename RangeType::const_iterator::value_type;
-      using pointer = typename RangeType::const_iterator::pointer;
-      using reference = typename RangeType::const_iterator::reference;
+      using _iter_traits = std::iterator_traits<iterator_type_t<RangeType>>;
+      using difference_type = typename _iter_traits::difference_type;
+      using value_type = typename _iter_traits::value_type;
+      using pointer = typename _iter_traits::pointer;
+      using reference = typename _iter_traits::reference;
       using iterator_category = std::forward_iterator_tag; // ??
 
-      explicit take_while_iterator(const RangeType& range, Predicate p)
+      explicit take_while_iterator(RangeType& range, Predicate p)
         : tracker(range)
         , predicate(std::move(p))
       {
@@ -790,7 +792,7 @@ namespace detail
           tracker.template set_to<0>(end);
       }
 
-      explicit take_while_iterator(const RangeType& range, Predicate p, end_marker_t)
+      explicit take_while_iterator(RangeType& range, Predicate p, end_marker_t)
         : tracker(range)
         , predicate(std::move(p))
       {
@@ -1218,8 +1220,19 @@ namespace detail
     public:
       using Range = ezy::experimental::keeper_value_type_t<Keeper>;
 
+      using iterator = take_iterator<Range>;
       using const_iterator = take_iterator<const Range>;
       using size_type = typename Range::size_type;
+
+      iterator begin()
+      {
+        return iterator(range.get(), n);
+      }
+
+      iterator end()
+      {
+        return iterator(range.get(), end_marker_t{});
+      }
 
       const_iterator begin() const
       {
@@ -1304,8 +1317,19 @@ namespace detail
   {
     public:
       using Range = ezy::experimental::keeper_value_type_t<Keeper>;
+      using iterator = take_while_iterator<Range, Predicate>;
       using const_iterator = take_while_iterator<const Range, Predicate>;
       using size_type = typename Range::size_type;
+
+      iterator begin()
+      {
+        return iterator(range.get(), pred);
+      }
+
+      iterator end()
+      {
+        return iterator(range.get(), pred, end_marker_t{});
+      }
 
       const_iterator begin() const
       {
@@ -1360,6 +1384,7 @@ namespace detail
   template <typename T, typename Operation>
   struct iterate_view
   {
+    using iterator = iterate_iterator<T, Operation>;
     using const_iterator = iterate_iterator<T, Operation>;
 
     using size_type = size_t;
@@ -1386,6 +1411,7 @@ namespace detail
     using value_type = typename orig_traits::value_type;
     using pointer = typename orig_traits::pointer;
     using reference = typename orig_traits::reference;
+    using iterator_category = std::forward_iterator_tag;
 
     decltype(auto) operator*()
     {
