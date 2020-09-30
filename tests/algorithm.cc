@@ -376,6 +376,12 @@ SCENARIO("take")
   REQUIRE(join_as_strings(ezy::take(v, 5)) == "12345");
 }
 
+SCENARIO("take longer than element size")
+{
+  std::vector<int> v{1,2,3};
+  REQUIRE(join_as_strings(ezy::take(v, 5), ",") == "1,2,3");
+}
+
 SCENARIO("take allows mutating")
 {
   std::vector<int> v{1,2,3,4,5,6,7,8};
