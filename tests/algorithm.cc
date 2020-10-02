@@ -754,3 +754,17 @@ SCENARIO("repeat")
   const auto joined = join_as_strings(ezy::take(repeated, 5), ",");
   REQUIRE(joined == "4,4,4,4,4");
 }
+
+SCENARIO("chunk")
+{
+  const std::vector<int> v{1,2,3,4,5,6,7,8,9};
+  const auto chunks = ezy::chunk(v, 4);
+  REQUIRE(ezy::size(chunks) == 3);
+  auto it = std::begin(chunks);
+  REQUIRE(join_as_strings(*it, ",") == "1,2,3,4");
+  REQUIRE(join_as_strings(*std::next(it, 1), ",") == "5,6,7,8");
+  REQUIRE(join_as_strings(*std::next(it, 2), ",") == "9");
+  REQUIRE(std::next(it, 3) == std::end(chunks));
+
+  REQUIRE(join_as_strings(ezy::flatten(chunks)) == "123456789");
+}

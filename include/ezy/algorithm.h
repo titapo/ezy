@@ -400,6 +400,13 @@ namespace ezy
   {
     return detail::accumulate(std::begin(range), std::end(range), std::forward<Init>(init), std::forward<BinaryOp>(op));
   }
+
+  template <typename Range>
+  constexpr auto chunk(Range&& range, size_t chunk_size)
+  {
+    using ResultRange = detail::chunk_range_view<detail::deduce_keeper_t<Range>>;
+    return ResultRange{ezy::experimental::make_keeper(std::forward<Range>(range)), chunk_size};
+  }
 }
 
 #endif

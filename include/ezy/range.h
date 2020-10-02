@@ -68,6 +68,18 @@ namespace ezy
 {
 namespace detail
 {
+
+  /* Based on the post:  https://quuxplusone.github.io/blog/2019/02/06/arrow-proxy/ */
+  template <typename T>
+  struct arrow_proxy
+  {
+    T t;
+    T* operator->()
+    {
+      return &t;
+    }
+  };
+
   template <typename orig_type>
   struct basic_iterator_adaptor
   {
@@ -502,8 +514,8 @@ namespace detail
   struct iterator_flattener
   {
     public:
-      using orig_iterator = typename range_type::const_iterator;
-      using inner_iterator = typename orig_iterator::value_type::const_iterator;
+      using orig_iterator = iterator_type_t<range_type>;
+      using inner_iterator = decltype(std::begin(*std::declval<orig_iterator>()));
 
       using value_type = typename inner_iterator::value_type;
       using difference_type = typename inner_iterator::difference_type;
@@ -542,6 +554,11 @@ namespace detail
       }
 
       const value_type& operator*() const
+      {
+        return *inner;
+      }
+
+      decltype(auto) operator*()
       {
         return *inner;
       }
@@ -710,6 +727,7 @@ namespace detail
   struct take_iterator
   {
     public:
+      using _orig_iterator = iterator_type_t<RangeType>;
       using _iter_traits = std::iterator_traits<iterator_type_t<RangeType>>;
       using difference_type = typename _iter_traits::difference_type;
       using value_type = typename _iter_traits::value_type;
@@ -717,8 +735,15 @@ namespace detail
       using reference = typename _iter_traits::reference;
       using iterator_category = std::forward_iterator_tag; // ?? TODO use the origin
 
+      take_iterator() = default;
+
       explicit take_iterator(RangeType& range, typename RangeType::size_type n)
         : tracker(std::begin(range))
+        , n(n)
+      {}
+
+      explicit take_iterator(const _orig_iterator& iter, typename RangeType::size_type n)
+        : tracker(iter)
         , n(n)
       {}
 
@@ -1183,12 +1208,9 @@ namespace detail
     public:
 
       using Range = ezy::experimental::keeper_value_type_t<Keeper>;
+      using iterator = iterator_flattener<Range>;
       using const_iterator = iterator_flattener<const Range>;
 
-      using value_type = typename const_iterator::value_type;
-      using pointer = typename const_iterator::pointer;
-      using reference = typename const_iterator::reference;
-      using difference_type = typename const_iterator::difference_type;
       using size_type = typename Range::size_type;
 
       const_iterator begin() const
@@ -1199,6 +1221,16 @@ namespace detail
       const_iterator end() const
       {
         return const_iterator(range.get(), end_marker_t{});
+      }
+
+      iterator begin()
+      {
+        return iterator(range.get());
+      }
+
+      iterator end()
+      {
+        return iterator(range.get(), end_marker_t{});
       }
 
     //private:
@@ -1502,6 +1534,128 @@ namespace detail
     { return const_iterator{t}; }
 
     T t; // as keeper?
+  };
+
+  template <typename Iter, typename Sentinel = Iter>
+  struct subrange_view
+  {
+    using size_type = size_t; // TODO not general
+
+    Iter first;
+    Sentinel last;
+
+    Iter begin()
+    {
+      return first;
+    }
+
+    Sentinel end()
+    {
+      return last;
+    }
+
+    Iter begin() const
+    {
+      return first;
+    }
+
+    Sentinel end() const
+    {
+      return last;
+    }
+  };
+
+  template <typename Range>
+  struct chunk_iterator
+  {
+    using _iter_traits = std::iterator_traits<iterator_type_t<Range>>;
+    using _nested_iterator = take_iterator<Range>;
+    using difference_type = typename _iter_traits::difference_type;
+    using value_type = typename _iter_traits::value_type;
+    using reference = subrange_view<_nested_iterator>; // typename _iter_traits::reference;
+    using pointer = arrow_proxy<reference>;
+    using iterator_category = std::forward_iterator_tag; // TODO
+
+
+    constexpr explicit chunk_iterator(Range& range, typename Range::size_type size)
+      : tracker(range)
+      , size(size)
+    {}
+
+    constexpr explicit chunk_iterator(Range& range, end_marker_t)
+      : tracker(range, end_marker_t{})
+    {}
+
+    // same as step_by_iterator::op++
+    constexpr chunk_iterator& operator++()
+    {
+      typename Range::size_type step = 0;
+      while (step++ < size && tracker.template has_next<0>())
+      {
+        tracker.template next<0>();
+      }
+      return *this;
+    }
+
+    reference operator*()
+    {
+      const auto tracked = tracker.template get<0>();
+      return reference{
+        _nested_iterator(tracked.first, size),
+        _nested_iterator(tracked.second, 0)
+      };
+    }
+
+    pointer operator->()
+    {
+      return pointer{operator*()};
+    }
+
+    constexpr bool operator!=(const chunk_iterator& rhs) const
+    {
+      return tracker.template get<0>().first != rhs.tracker.template get<0>().first;
+    }
+
+    constexpr bool operator==(const chunk_iterator& rhs) const
+    {
+      return !(*this != rhs);
+    }
+
+    range_tracker<Range> tracker;
+    typename Range::size_type size{1};
+  };
+
+  template <typename Keeper>
+  struct chunk_range_view
+  {
+    using Range = ezy::experimental::keeper_value_type_t<Keeper>;
+    using const_iterator = chunk_iterator<const Range>;
+    using iterator = chunk_iterator<Range>;
+    using size_type = typename Range::size_type;
+
+    constexpr const_iterator begin() const
+    {
+      return const_iterator(keeper.get(), size);
+    }
+
+    constexpr const_iterator end() const
+    {
+      return const_iterator(keeper.get(), end_marker_t{});
+    }
+
+    constexpr iterator begin()
+    {
+      return iterator(keeper.get(), size);
+    }
+
+    constexpr iterator end()
+    {
+      return iterator(keeper.get(), end_marker_t{});
+    }
+
+
+    Keeper keeper;
+    const size_type size;
   };
 }
 }
