@@ -304,6 +304,16 @@ namespace features
 
   template <typename T>
   struct multiplicative : multipliable<T>, divisible<T> {};
+
+  template <typename T>
+  struct negatable : feature<T, negatable>
+  {
+    friend T operator-(const T& t)
+    {
+      return T{-t.get()};
+    }
+  };
+
 }}
 
 #endif

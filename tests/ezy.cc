@@ -1415,6 +1415,21 @@ SCENARIO("strong type integer arithmetic")
   }
 }
 
+SCENARIO("negatable")
+{
+  using Neg = ezy::strong_type<int, struct Tag, ezy::features::negatable>;
+  const Neg n{10};
+  const auto result = -n;
+  static_assert(std::is_same_v<decltype(result), const Neg>);
+  REQUIRE(result.get() == -10);
+}
+
+SCENARIO("negatable should not work with char")
+{
+  // compilation fails with narrowing conversion
+  //using Neg = ezy::strong_type<char, void, ezy::features::negatable>;
+}
+
 SCENARIO("strong type comparisons")
 {
   WHEN("equal_comparable")
