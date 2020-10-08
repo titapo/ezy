@@ -3,6 +3,7 @@
 
 #include <type_traits>
 #include <experimental/type_traits>
+#include "bits_priority_tag.h"
 
 namespace ezy
 {
@@ -20,9 +21,6 @@ namespace ezy
 
   template <typename...>
   constexpr auto always_false = false;
-
-  template <size_t I> struct priority_tag : priority_tag<I - 1> {};
-  template <> struct priority_tag<0>{};
 
   namespace detail
   {
@@ -58,7 +56,7 @@ namespace ezy
     template <typename T>
     [[nodiscard]] constexpr auto operator()(const T& t) const
     {
-      return detail::impl_empty(t, priority_tag<3>{});
+      return detail::impl_empty(t, detail::priority_tag<3>{});
     }
   };
 
@@ -93,7 +91,7 @@ namespace ezy
     template <typename T>
     [[nodiscard]] constexpr auto operator()(const T& t) const
     {
-      return detail::impl_size(t, priority_tag<2>{});
+      return detail::impl_size(t, detail::priority_tag<2>{});
     }
   };
 
