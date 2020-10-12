@@ -5,9 +5,11 @@
 /**
  * strong type traits
  */
+
 SCENARIO("compilation tests")
 {
   using Simple = ezy::strong_type<int, struct Tag>;
+  using SimpleDouble = ezy::strong_type<double, struct Tag>;
   using SimpleRef = ezy::strong_type_reference<int, struct Tag>;
   using OneFeature = ezy::strong_type<int, struct Tag, ezy::features::addable>;
   using MoreFeatures = ezy::strong_type<int, struct Tag, ezy::features::addable, ezy::features::subtractable, ezy::features::equal_comparable>;
@@ -72,8 +74,15 @@ SCENARIO("compilation tests")
   static_assert(std::is_same_v<ezy::rebind_features_t<OneFeature, ezy::features::addable>, OneFeature>);
   static_assert(std::is_same_v<ezy::rebind_features_t<MoreFeatures, ezy::features::addable>, OneFeature>);
 
-  // TODO works with tuple
-  //static_assert(std::is_same_v<ezy::rebind_features_t<Simple, ezy::extract_features_t<MoreFeatures>>, MoreFeatures>);
+  static_assert(std::is_same_v<
+      ezy::rebind_features_from_tuple_t<Simple, std::tuple<ezy::detail::feature_wrapper<ezy::features::addable>>>,
+      OneFeature
+      >);
+
+  static_assert(std::is_same_v<
+      ezy::rebind_features_from_other_t<SimpleDouble, MoreFeatures>,
+      ezy::strong_type<double, struct Tag, ezy::features::addable, ezy::features::subtractable, ezy::features::equal_comparable>
+      >);
 }
 
 

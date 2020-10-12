@@ -60,6 +60,9 @@ namespace ezy
   template <typename... Args>
   using extract_tag_t = typename extract_tag<Args...>::type;
 
+  /**
+   * extract_features
+   */
   template <typename...>
   struct extract_features
   {
@@ -74,6 +77,39 @@ namespace ezy
   template <typename... Args>
   using extract_features_t = typename extract_features<Args...>::type;
 
+  /**
+   * extract_wrapped_features
+   */
+  namespace detail
+  {
+    template <template <typename> class>
+    struct feature_wrapper {};
+
+    template <typename Feature>
+    struct wrap_feature;
+
+    template <template <typename> class Feature, typename T>
+    struct wrap_feature<Feature<T>>
+    {
+      using type = feature_wrapper<Feature>;
+    };
+
+    template <typename Feature>
+    using wrap_feature_t = typename wrap_feature<Feature>::type;
+  }
+
+  template <typename ST>
+  struct extract_wrapped_features
+  {
+    using type = ezy::tuple_traits::map_t<ezy::extract_features_t<ST>, detail::wrap_feature_t>;
+  };
+
+  template <typename ST>
+  using extract_wrapped_features_t = typename extract_wrapped_features<ST>::type;
+
+  /**
+   * rebind_features
+   */
   namespace detail
   {
     template <typename Feature, typename T>
@@ -102,6 +138,48 @@ namespace ezy
   template <typename ST, template <typename> class... NewFeatures>
   using rebind_features_t = typename rebind_features<ST, NewFeatures...>::type;
 
+  /**
+   * rebind_features_from_tuple
+   *
+   * tuple must contain detail::feature_wrapper<> types
+   */
+  template <typename ST, typename FeaturesTuple>
+  struct rebind_features_from_tuple;
+
+  template <typename ST, template <typename> class... Features>
+  struct rebind_features_from_tuple<ST, std::tuple<detail::feature_wrapper<Features>...>>
+  {
+    using type = ezy::rebind_features_t<ST, Features...>;
+  };
+
+  template <typename ST, typename FeaturesTuple>
+  using rebind_features_from_tuple_t = typename rebind_features_from_tuple<ST, FeaturesTuple>::type;
+
+  /**
+   * rebind_features_from_tuple<ST1, ST2>
+   *
+   * where ST1 = strong_type<T1, Tag1, F1a, F1b>
+   * and ST2 = strong_type<T2, Tag2, F2a, F2b>
+   *
+   * returns: strong_type<T1, Tag1, F2a, F2b>
+   */
+
+  template <typename ST, typename OtherST>
+  struct rebind_features_from_other
+  {
+    using type = rebind_features_from_tuple_t<ST, extract_wrapped_features_t<OtherST> >;
+  };
+
+  template <typename ST, typename OtherST>
+  using rebind_features_from_other_t = typename rebind_features_from_other<ST, OtherST>::type;
+
+  /**
+   * strip_strong_type<ST>
+   *
+   * Strips features from `ST`
+   * Returns: strong_type<T, Tag>
+   */
+
   template <typename ST>
   struct strip_strong_type : rebind_features<ST>
   {};
@@ -109,6 +187,11 @@ namespace ezy
   template <typename ST>
   using strip_strong_type_t = typename strip_strong_type<ST>::type;
 
+  /**
+   * rebind_strong_type
+   *
+   * rebinds underlying type
+   */
   template <typename ST, typename U>
   struct rebind_strong_type
   {};
