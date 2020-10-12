@@ -36,7 +36,8 @@ namespace ezy::features
         ezy::extract_wrapped_features_t<ReferenceST>
       >(std::forward<T>(t));
     }
-  };
+  }
+
   template <typename T>
   struct has_iterator : feature<T, has_iterator>
   {
