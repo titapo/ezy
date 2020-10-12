@@ -447,6 +447,18 @@ SCENARIO("strong type extensions")
       REQUIRE(result.value_or(99) == 1);
     }
 
+    WHEN("find_if returns reference-like")
+    {
+      MyNumbers v{6, 4, 3};
+      const auto result = v.find_if(less_than(5));
+      REQUIRE(result.has_value());
+      REQUIRE(result.value_or(9) == 4);
+
+      // reference like:
+      *std::next(v.begin(), 1) += 2;
+      REQUIRE(result.value_or(9) == 6);
+    }
+
     WHEN("find_if non existing")
     {
       const auto result = numbers.find_if(less_than(0));

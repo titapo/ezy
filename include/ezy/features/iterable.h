@@ -13,6 +13,30 @@
 
 namespace ezy::features
 {
+  namespace detail
+  {
+    template <typename T, typename Tag, typename WrappedFeatures>
+    struct strong_type_from;
+
+    template <typename T, typename Tag, template <typename> class... Features>
+    struct strong_type_from<T, Tag, std::tuple<ezy::detail::feature_wrapper<Features>...>>
+    {
+      using type = ezy::strong_type<T, Tag, Features...>;
+    };
+
+    template <typename T, typename Tag, typename WrappedFeatures>
+    using strong_type_from_t = typename strong_type_from<T, Tag, WrappedFeatures>::type;
+
+    template <typename ReferenceST, typename T>
+    constexpr auto make_extended_from(T&& t)
+    {
+      return strong_type_from_t<
+        ezy::remove_cvref_t<T>,
+        ezy::notag_t,
+        ezy::extract_wrapped_features_t<ReferenceST>
+      >(std::forward<T>(t));
+    }
+  };
   template <typename T>
   struct has_iterator : feature<T, has_iterator>
   {
@@ -36,6 +60,24 @@ namespace ezy::features
   };
 
   template <typename T>
+  struct algo_find : feature<T, algo_find>
+  {
+    using base = feature<T, algo_find>;
+
+    template <typename Element>
+    auto find(Element&& element) const
+    {
+      return ezy::find((*this).underlying(), std::forward<Element>(element));
+    }
+
+    template <typename Predicate>
+    auto find_if(Predicate&& predicate) const
+    {
+      return ezy::find_if((*this).underlying(), std::forward<Predicate>(predicate));
+    }
+  };
+
+  template <typename T>
   struct algo_iterable : feature<T, algo_iterable>
   {
     using base = feature<T, algo_iterable>;
@@ -55,7 +97,7 @@ namespace ezy::features
     template <typename UnaryFunction>
     constexpr auto map(UnaryFunction&& f) const &
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::transform((*this).underlying(), std::forward<UnaryFunction>(f))
         );
     }
@@ -63,7 +105,7 @@ namespace ezy::features
     template <typename UnaryFunction>
     constexpr auto map(UnaryFunction&& f) &&
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::transform(std::move(*this).underlying(), std::forward<UnaryFunction>(f))
         );
     }
@@ -83,7 +125,7 @@ namespace ezy::features
     template <typename RhsRange>
     auto concatenate(RhsRange&& rhs) const &
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::concatenate((*this).underlying(), std::forward<RhsRange>(rhs))
           );
     }
@@ -91,7 +133,7 @@ namespace ezy::features
     template <typename RhsRange>
     auto concatenate(RhsRange&& rhs) &&
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::concatenate(std::move(*this).underlying(), std::forward<RhsRange>(rhs))
           );
     }
@@ -99,7 +141,7 @@ namespace ezy::features
     template <typename Predicate>
     auto filter(Predicate&& predicate) const &
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::filter((*this).underlying(), std::forward<Predicate>(predicate))
         );
     }
@@ -107,27 +149,9 @@ namespace ezy::features
     template <typename Predicate>
     auto filter(Predicate&& predicate) &&
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::filter(std::move(*this).underlying(), std::forward<Predicate>(predicate))
         );
-    }
-
-    template <typename Element>
-    auto find(Element&& element) const
-    {
-      return ezy::find((*this).underlying(), std::forward<Element>(element));
-    }
-
-    template <typename Predicate>
-    auto find_if(Predicate&& predicate) const
-    {
-      using range_type = typename std::remove_reference<typename T::type>::type;
-      using result_type = ezy::optional<typename range_type::value_type>;
-      const auto found = std::find_if(base::underlying().begin(), base::underlying().end(), std::forward<Predicate>(predicate));
-      if (found != base::underlying().end())
-        return result_type(*found);
-      else
-        return result_type();
     }
 
     [[nodiscard]] constexpr auto empty() const
@@ -161,7 +185,7 @@ namespace ezy::features
     /*
      * not found in gcc even if numeric has been included
     template <typename Type>
-    Type reduce(Type init) 
+    Type reduce(Type init)
     {
       return std::reduce(base::underlying().begin(), base::underlying().end(), init);
     }
@@ -189,14 +213,14 @@ namespace ezy::features
 
     auto slice(const unsigned from, const unsigned until) const &
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::slice((*this).underlying(), from, until)
           );
     }
 
     auto slice(const unsigned from, const unsigned until) &&
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::slice(std::move(*this).underlying(), from, until)
           );
     }
@@ -235,7 +259,7 @@ namespace ezy::features
     template <typename... OtherRanges>
     auto zip(OtherRanges&&... other_ranges) const &
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
         ezy::zip((*this).underlying(), std::forward<OtherRanges>(other_ranges)...)
       );
     }
@@ -243,7 +267,7 @@ namespace ezy::features
     template <typename... OtherRanges>
     auto zip(OtherRanges&&... other_ranges) &&
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
         ezy::zip(std::move(*this).underlying(), std::forward<OtherRanges>(other_ranges)...)
       );
     }
@@ -251,7 +275,7 @@ namespace ezy::features
     template <typename Zipper, typename... OtherRanges>
     auto zip_with(Zipper&& zipper, OtherRanges&&... other_ranges) const &
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
         ezy::zip_with(
           std::forward<Zipper>(zipper),
           (*this).underlying(),
@@ -262,7 +286,7 @@ namespace ezy::features
     template <typename Zipper, typename... OtherRanges>
     auto zip_with(Zipper&& zipper, OtherRanges&&... other_ranges) &&
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
         ezy::zip_with(
           std::forward<Zipper>(zipper),
           std::move(*this).underlying(),
@@ -273,28 +297,28 @@ namespace ezy::features
     //template <typename OtherRange> // TODO constrain to be a raised (flattenable) range
     auto flatten() const &
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
         ezy::flatten((*this).underlying())
       );
     }
 
     auto flatten() &&
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
         ezy::flatten(std::move(*this).underlying())
       );
     }
 
     auto take(size_t n) const &
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::take((*this).underlying(), n)
           );
     }
 
     auto take(size_t n) &&
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
         ezy::take(std::move(*this).underlying(), n)
       );
     }
@@ -302,7 +326,7 @@ namespace ezy::features
     template <typename Predicate>
     auto take_while(Predicate&& pred) const &
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::take_while((*this).underlying(), std::forward<Predicate>(pred))
           );
     }
@@ -310,28 +334,28 @@ namespace ezy::features
     template <typename Predicate>
     auto take_while(Predicate&& pred) &&
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::take_while(std::move(*this).underlying(), std::forward<Predicate>(pred))
           );
     }
 
     auto drop(size_t n) const &
     {
-      return make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::drop((*this).underlying(), n)
           );
     }
 
     auto drop(size_t n) & /*mutable accessor*/
     {
-      return make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::drop((*this).underlying(), n)
           );
     }
 
     auto drop(size_t n) &&
     {
-      return make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::drop(std::move(*this).underlying(), n)
           );
     }
@@ -363,7 +387,7 @@ namespace ezy::features
     template <typename ResultContainer>
     constexpr auto to_iterable() const
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::collect<ResultContainer>((*this).underlying())
           );
     }
@@ -376,35 +400,39 @@ namespace ezy::features
 
     constexpr auto enumerate() const &
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
         ezy::enumerate((*this).underlying())
         );
     }
 
     constexpr auto enumerate() &&
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
         ezy::enumerate(std::move(*this).underlying())
         );
     }
 
     constexpr auto cycle() const &
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::cycle((*this).underlying())
           );
     }
 
     constexpr auto cycle() &&
     {
-      return ezy::make_strong<ezy::notag_t, has_iterator, algo_iterable>(
+      return detail::make_extended_from<T>(
           ezy::cycle(std::move(*this).underlying())
           );
     }
   };
 
   template <typename T>
-  struct iterable : has_iterator<T>, algo_iterable<T> {};
+  struct iterable :
+    has_iterator<T>,
+    algo_find<T>,
+    algo_iterable<T>
+  {};
 
 }
 
