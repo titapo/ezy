@@ -9,6 +9,7 @@ add_executable(unit_test
   algorithm.cc
   nullable_feature.cc
   to_string.cc
+  custom_finder.cc
 )
 
 target_link_libraries(unit_test
