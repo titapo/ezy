@@ -3,7 +3,7 @@
 
 #include <type_traits>
 #include <experimental/type_traits>
-#include "bits_priority_tag.h"
+#include "priority_tag.h"
 
 namespace ezy
 {

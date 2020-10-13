@@ -1,10 +1,10 @@
 #ifndef EZY_BITS_ALGORITHM_H_INCLUDED
 #define EZY_BITS_ALGORITHM_H_INCLUDED
 
-#include "experimental/keeper.h"
-#include "range.h"
+#include <ezy/experimental/keeper.h>
+#include <ezy/range.h>
 
-#include "bits_empty_size.h"
+#include "empty_size.h"
 
 #include <numeric> // accumulate
 #include <algorithm>

@@ -1,10 +1,10 @@
 #ifndef EZY_BITS_FIND_H_INCLUDED
 #define EZY_BITS_FIND_H_INCLUDED
 
-#include "bits_algorithm.h" // find_element*
+#include "algorithm.h" // find_element*
 
-#include "optional"
-#include "pointer.h"
+#include <ezy/optional>
+#include <ezy/pointer.h>
 
 namespace ezy
 {
