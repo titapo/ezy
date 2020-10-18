@@ -1617,15 +1617,14 @@ SCENARIO("compose")
     REQUIRE(calculate(s) == 103);
   }
 
-  WHEN("invoked in constexpr context") // TODO
+  WHEN("invoked in constexpr context")
   {
-    /*
-    constexpr auto plus_4 = [](auto i) {return i + 4;};
-    constexpr auto plus_10 = [](auto i) {return i + 10;};
+    // 'static' is required here.
+    static constexpr auto plus_4 = [](auto i) {return i + 4;};
+    static constexpr auto plus_10 = [](auto i) {return i + 10;};
 
     constexpr auto plus_14 = compose(plus_4, plus_10);
     static_assert(plus_14(6) == 20);
-    */
   }
 
   WHEN("composing more")
