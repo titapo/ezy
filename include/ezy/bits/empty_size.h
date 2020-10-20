@@ -2,23 +2,10 @@
 #define EZY_BITS_EMPTY_SIZE_H_INCLUDED
 
 #include <type_traits>
-#include <experimental/type_traits>
 #include "priority_tag.h"
 
 namespace ezy
 {
-  namespace detail
-  {
-    template <typename T>
-    using empty_mem_fn_t = decltype(std::declval<T>().empty());
-
-    template <typename T>
-    using empty_free_fn_t = decltype(empty(std::declval<T>()));
-
-    template <typename Range>
-    using size_mem_fn_t = decltype(std::declval<Range>().size());
-  }
-
   template <typename...>
   constexpr auto always_false = false;
 

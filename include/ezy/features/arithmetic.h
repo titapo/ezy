@@ -3,19 +3,13 @@
 
 #include "../feature.h"
 #include "../strong_type_traits.h"
-#include <experimental/type_traits>
+//#include <experimental/type_traits>
+#include "../bits/priority_tag.h"
 
 namespace ezy
 {
 namespace features
 {
-
-  namespace detail
-  {
-    template <typename T>
-    using operator_ne_t = decltype(std::declval<T>() != std::declval<T>());
-  }
-
   template <typename T>
   struct addable : feature<T, addable>
   {
@@ -49,19 +43,20 @@ namespace features
 
   namespace detail
   {
+    // synthetize from ==
+    template <typename T>
+    constexpr bool not_equal(const T& lhs, const T& rhs, ezy::detail::priority_tag<0>)
+    {
+      return !(lhs == rhs);
+    }
+
     // !=
     template <typename T>
-    constexpr bool not_equal(std::true_type, const T& lhs, const T& rhs)
+    constexpr auto not_equal(const T& lhs, const T& rhs, ezy::detail::priority_tag<1>) -> decltype(lhs != rhs)
     {
       return lhs != rhs;
     }
 
-    // synthetize from ==
-    template <typename T>
-    constexpr bool not_equal(std::false_type, const T& lhs, const T& rhs)
-    {
-      return !(lhs == rhs);
-    }
   }
 
   template <typename T>
@@ -78,9 +73,9 @@ namespace features
     friend constexpr bool operator!=(const T& lhs, const T& rhs)
     {
       return detail::not_equal(
-          std::experimental::is_detected<ezy::features::detail::operator_ne_t, typename T::type>{},
           lhs.get(),
-          rhs.get()
+          rhs.get(),
+          ezy::detail::priority_tag<1>{}
           );
     }
   };

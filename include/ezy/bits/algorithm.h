@@ -167,8 +167,20 @@ namespace ezy
 
   namespace detail
   {
-    template <typename Range, typename Key>
-    using find_mem_fn_t = decltype(std::declval<Range>().find(std::declval<Key>()));
+    template <typename Range, typename Needle>
+    constexpr auto find_element_impl(Range&& range, Needle&& needle, priority_tag<0>)
+    {
+      using std::begin;
+      using std::end;
+      return std::find(begin(range), end(range), std::forward<Needle>(needle));
+    }
+
+    template <typename Range, typename Needle>
+    constexpr auto find_element_impl(Range&& range, Needle&& needle, priority_tag<1>)
+      -> decltype(range.find(std::forward<Needle>(needle)))
+    {
+      return range.find(std::forward<Needle>(needle));
+    }
   }
 
   template <typename Range, typename Needle>
@@ -179,16 +191,7 @@ namespace ezy
         ezy::experimental::reference_category_tag
         >, "Range must be a reference! Cannot form an iterator to a temporary!");
 
-    using std::begin;
-    using std::end;
-    if constexpr (std::experimental::is_detected<detail::find_mem_fn_t, Range, Needle>::value)
-    {
-      return range.find(std::forward<Needle>(needle));
-    }
-    else
-    {
-      return std::find(begin(range), end(range), std::forward<Needle>(needle));
-    }
+    return detail::find_element_impl(std::forward<Range>(range), std::forward<Needle>(needle), detail::priority_tag<1>{});
   }
 
   template <typename Range, typename Predicate>
