@@ -75,7 +75,7 @@ Output:
 
 `ezy::transform` is logically the same as `.map()` for `ezy::features::iterable`.
 
-~~[Why doeas iterable feature and algorithms use different names?](discussion)~~
+[Why doeas iterable feature and algorithms use different names?](../discussion/redefining_standard_names.md)
 
 ## Enumerate the results
 
