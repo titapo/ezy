@@ -265,3 +265,4 @@ return names
   .for_each(print_line);
 ```
 
+Next: [Extending types](04_extended_type.md)

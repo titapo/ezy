@@ -159,5 +159,4 @@ outputs:
 3. with, comma, and, space
 ```
 
-
-
+Next: [ezy::optional](06_optional.md)

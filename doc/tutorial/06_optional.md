@@ -190,3 +190,4 @@ types into an `optional` would cause redundancy, not mentioning the space overhe
 (currently called `nullable`) to simply extend their interface with these functions. (They are marked
 `experimental`, because naming is not finalized yet.)
 
+Next: [ezy::result](07_result.md)

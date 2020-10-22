@@ -131,3 +131,4 @@ size_t get_number_of_words_longer_than(const std::vector<std::string>& words, si
 }
 ```
 
+Next: [Algorithms](05_algorithm.md)
