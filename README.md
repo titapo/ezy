@@ -18,10 +18,6 @@ code readability and safety without hurting performance.
 
 More [components](doc/discussion/components.md).
 
-## Design Principles
-
-[Design Principles](doc/discussion/design_principles)
-
 ## Documentation
 
 > Writing documentation is in progress and currently insufficient.
