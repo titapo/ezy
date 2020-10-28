@@ -159,6 +159,13 @@ SCENARIO("size")
     REQUIRE(ezy::size(external_iterable_t{}) == 0);
     REQUIRE(ezy::size(external_iterable_t{4}) == 4);
   }
+
+  GIVEN("a c-style array")
+  {
+    const int a[] = {1, 4, 5};
+    REQUIRE(ezy::size(a) == 3);
+    static_assert(std::is_same<decltype(ezy::size(a)), std::size_t>::value);
+  }
 }
 
 SCENARIO("for_each")

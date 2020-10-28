@@ -59,14 +59,20 @@ namespace ezy
       return std::distance(begin(t), end(t));
     }
 
+    template <typename T, std::size_t N>
+    constexpr std::size_t impl_size(const T (&t)[N], priority_tag<1>)
+    {
+      return N;
+    }
+
     template <typename T>
-    constexpr auto impl_size(const T& t, priority_tag<1>) -> decltype(size(t))
+    constexpr auto impl_size(const T& t, priority_tag<2>) -> decltype(size(t))
     {
       return size(t);
     }
 
     template <typename T>
-    constexpr auto impl_size(const T& t, priority_tag<2>) -> decltype(t.size())
+    constexpr auto impl_size(const T& t, priority_tag<3>) -> decltype(t.size())
     {
       return t.size();
     }
@@ -78,7 +84,7 @@ namespace ezy
     template <typename T>
     [[nodiscard]] constexpr auto operator()(const T& t) const
     {
-      return detail::impl_size(t, detail::priority_tag<2>{});
+      return detail::impl_size(t, detail::priority_tag<3>{});
     }
   };
 
