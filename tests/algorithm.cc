@@ -185,6 +185,14 @@ SCENARIO("for_each on strong type")
   REQUIRE(r == "123");
 }
 
+SCENARIO("for_each on array")
+{
+  int a[] = {2, 3, 4};
+  std::string r;
+  ezy::for_each(a, [&](int i) { r += std::to_string(i); });
+  REQUIRE(r == "234");
+}
+
 SCENARIO("join empty range")
 {
   std::vector<std::string> v{};
@@ -225,6 +233,20 @@ SCENARIO("transform")
   REQUIRE(join_as_strings(mapped) == "234");
 }
 
+SCENARIO("filter")
+{
+  std::vector<int> v{1,2,3,4,5,6};
+  auto filtered = ezy::filter(v, [](int i) { return i % 2 == 0; });
+  REQUIRE(join_as_strings(filtered) == "246");
+}
+
+SCENARIO("filter array")
+{
+  const int a[] = {1,2,3,4,5,6};
+  auto filtered = ezy::filter(a, [](int i) { return i % 2 == 0; });
+  REQUIRE(join_as_strings(filtered) == "246");
+}
+
 SCENARIO("concatenate")
 {
   std::vector<int> v1{1,2,3};
@@ -250,6 +272,14 @@ SCENARIO("concatenate - when the second is a temporary")
 SCENARIO("concatenate - when the both are temporaries")
 {
   const auto concatenated = ezy::concatenate(std::vector{1,2,3}, std::vector{4,5,6});
+  REQUIRE(join_as_strings(concatenated) == "123456");
+}
+
+SCENARIO("concatenate - on array")
+{
+  int a1[] = {1, 2, 3};
+  int a2[] = {4, 5, 6};
+  const auto concatenated = ezy::concatenate(a1, a2);
   REQUIRE(join_as_strings(concatenated) == "123456");
 }
 
@@ -375,6 +405,12 @@ SCENARIO("slice")
 {
   std::vector<int> v{1,2,3,4,5,6,7,8};
   REQUIRE(join_as_strings(ezy::slice(v, 0, 3)) == "123");
+}
+
+SCENARIO("slice on array")
+{
+  int a[] = {1,2,3,4,5,6,7,8};
+  REQUIRE(join_as_strings(ezy::slice(a, 2, 5)) == "345");
 }
 
 SCENARIO("take")

@@ -4,6 +4,7 @@
 #include "experimental/tuple_algorithm.h"
 #include "experimental/keeper.h"
 #include "invoke.h"
+#include "bits/empty_size.h" // ezy::size
 
 #include <type_traits>
 #include <utility>
@@ -29,7 +30,7 @@ namespace detail
   template <typename T>
   struct iterator_type
   {
-    using type = decltype(std::declval<T>().begin());
+    using type = decltype(std::begin(std::declval<T&>()));
   };
 
   template <typename T>
@@ -52,6 +53,15 @@ namespace detail
 
   template <typename T>
   using const_value_type_t = typename const_value_type<T>::type;
+
+  template <typename T>
+  struct size_type
+  {
+    using type = decltype(ezy::size(std::declval<T>()));
+  };
+
+  template <typename T>
+  using size_type_t = typename size_type<T>::type;
 }
 }
 
@@ -215,7 +225,7 @@ namespace detail
 
       range_tracker(Ranges&... ranges)
         : ranges(ranges...)
-        , current(ranges.begin()...)
+        , current(std::begin(ranges)...)
       {}
 
       range_tracker(Ranges&... ranges, end_marker_t&&)
@@ -249,16 +259,16 @@ namespace detail
       auto get()
       {
         using it_type = decltype(std::get<N>(current));
-        using end_it_type = decltype(std::get<N>(ranges).get().end());
-        return std::pair<it_type, const end_it_type>(std::get<N>(current), std::get<N>(ranges).get().end());
+        using end_it_type = decltype(std::end(std::get<N>(ranges).get()));
+        return std::pair<it_type, const end_it_type>(std::get<N>(current), std::end(std::get<N>(ranges).get()));
       }
 
       template <unsigned N>
       auto get() const
       {
         using it_type = decltype(std::get<N>(current));
-        using end_it_type = decltype(std::get<N>(ranges).get().end());
-        return std::pair<it_type, const end_it_type>(std::get<N>(current), std::get<N>(ranges).get().end());
+        using end_it_type = decltype(std::end(std::get<N>(ranges).get()));
+        return std::pair<it_type, const end_it_type>(std::get<N>(current), std::end(std::get<N>(ranges).get()));
       }
 
       template <unsigned N, typename ItT>
@@ -276,7 +286,7 @@ namespace detail
       template <unsigned N>
       void set_to_end()
       {
-        set_to<N>(std::get<N>(ranges).get().end());
+        set_to<N>(std::end(std::get<N>(ranges).get()));
       }
 
       template <unsigned N>
@@ -293,7 +303,7 @@ namespace detail
       template <unsigned N>
       bool has_next() const
       {
-        return std::get<N>(current) != std::get<N>(ranges).get().end();
+        return std::get<N>(current) != std::end(std::get<N>(ranges).get());
       }
 
     private:
@@ -408,11 +418,11 @@ namespace detail
   struct iterator_concatenator
   {
     public:
-      using orig_type = typename first_range_type::const_iterator;
+      using orig_type = const_iterator_type_t<first_range_type>;
       using value_type = decltype(*std::declval<orig_type>());
       using pointer = std::add_pointer_t<value_type>;
       using reference = std::add_lvalue_reference_t<value_type>;
-      using difference_type = typename orig_type::difference_type;
+      using difference_type = typename std::iterator_traits<orig_type>::difference_type;
       using iterator_category = std::input_iterator_tag; // forward_iterator_tag?
 
       // constructor
@@ -983,7 +993,7 @@ namespace detail
   struct range_view
   {
     using Range = ezy::experimental::keeper_value_type_t<Keeper>;
-    using _orig_const_iterator = decltype(std::cbegin(std::declval<Range>()));
+    using _orig_const_iterator = const_iterator_type_t<Range>;
     using const_iterator = iterator_adaptor<_orig_const_iterator, Transformation>;
     using size_type = typename Range::size_type;
 
@@ -1004,8 +1014,8 @@ namespace detail
   struct range_view_filter
   {
     using Range = ezy::experimental::keeper_value_type_t<Keeper>;
-    using const_iterator = iterator_filter<typename Range::const_iterator, FilterPredicate>;
-    using size_type = typename Range::size_type;
+    using const_iterator = iterator_filter<const_iterator_type_t<Range>, FilterPredicate>;
+    using size_type = size_type_t<Range>;
 
     range_view_filter(Keeper&& keeper, FilterPredicate pred)
       : orig_range(std::move(keeper))
@@ -1013,10 +1023,10 @@ namespace detail
     {}
 
     const_iterator begin() const
-    { return const_iterator(orig_range.get().begin(), predicate, orig_range.get().end()); }
+    { return const_iterator(std::begin(orig_range.get()), predicate, std::end(orig_range.get())); }
 
     const_iterator end() const
-    { return const_iterator(orig_range.get().end(), predicate, orig_range.get().end()); }
+    { return const_iterator(std::end(orig_range.get()), predicate, std::end(orig_range.get())); }
 
     private:
       Keeper orig_range;
@@ -1031,11 +1041,11 @@ namespace detail
   {
     public:
       using Range = ezy::experimental::keeper_value_type_t<Keeper>;
-      using const_iterator = typename Range::const_iterator;
-      using difference_type = typename const_iterator::difference_type;
-      using size_type = typename Range::difference_type;
+      using const_iterator = const_iterator_type_t<Range>;
+      using difference_type = typename std::iterator_traits<const_iterator>::difference_type;
+      using size_type = size_type_t<Range>; //difference_type; // TODO
 
-      range_view_slice(Keeper&& orig, difference_type f, difference_type u)
+      range_view_slice(Keeper&& orig, size_type f, size_type u)
         : orig_range(std::move(orig))
         , from(f)
         , until(u)
@@ -1045,15 +1055,15 @@ namespace detail
       }
 
       const_iterator begin() const
-      { return const_iterator(std::next(orig_range.get().begin(), bounded(from))); }
+      { return const_iterator(std::next(std::begin(orig_range.get()), bounded(from))); }
 
       const_iterator end() const
-      { return const_iterator(std::next(orig_range.get().begin(), bounded(until))); }
+      { return const_iterator(std::next(std::begin(orig_range.get()), bounded(until))); }
 
     private:
       difference_type get_range_size() const
       {
-        return std::distance(orig_range.get().begin(), orig_range.get().end());
+        return std::distance(std::begin(orig_range.get()), std::end(orig_range.get()));
       }
 
       difference_type bounded(difference_type difference) const
@@ -1062,8 +1072,8 @@ namespace detail
       }
 
       Keeper orig_range;
-      const difference_type from;
-      const difference_type until;
+      const size_type from;
+      const size_type until;
   };
 
   template <typename Range>
@@ -1087,12 +1097,14 @@ namespace detail
   struct concatenated_range_view
   {
     public:
+      using Range1 = ezy::experimental::keeper_value_type_t<Keeper1>;
+      using Range2 = ezy::experimental::keeper_value_type_t<Keeper2>;
       using const_iterator = iterator_concatenator<
-        const ezy::experimental::keeper_value_type_t<Keeper1>,
-        const ezy::experimental::keeper_value_type_t<Keeper2>
+        const Range1,
+        const Range2
       >;
       using difference_type = typename const_iterator::difference_type;
-      using size_type = typename ezy::experimental::keeper_value_type_t<Keeper1>::size_type;
+      using size_type = size_type_t<Range1>;
 
       const_iterator begin() const
       { return const_iterator(range1.get(), range2.get()); }
