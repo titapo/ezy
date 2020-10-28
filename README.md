@@ -11,7 +11,7 @@ code readability and safety without hurting performance.
 - [strong_type](doc/tutorial/01_strong_type.md): yet another strong type library (originally inspired by [NamedType](https://github.com/joboccara/NamedType))
   - traits for strong types
   - features for inheriting underlying types' capabilities (not exhaustive)
-  - introduces the idea of extending features (eg. [iterable feature](doc/tutorial/iterable)) and so [extended types](doc/tutorial/04_extended_type.md)
+  - introduces the idea of extending features (eg. [iterable feature](doc/tutorial/03_iterable.md)) and so [extended types](doc/tutorial/04_extended_type.md)
 - strong vocabulary types
   - on the top of the strong types wraps some commonly used standard types and extends them to make them extremely powerful (eg [optional](doc/tutorial/06_optional.md), variant, [result](doc/tutorial/07_result.md))
 - algorithms
