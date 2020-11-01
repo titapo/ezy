@@ -784,6 +784,13 @@ SCENARIO("enumerator has proper type")
   static_assert(std::is_same_v<std::remove_reference_t<decltype(std::get<0>(*enumerated.begin()))>, size_t>);
 }
 
+SCENARIO("enumerate on classic array")
+{
+  double doubles[] = {1.2, 3.4};
+  const auto enumerated = ezy::enumerate(doubles);
+  static_assert(std::is_same_v<std::remove_reference_t<decltype(std::get<0>(*enumerated.begin()))>, size_t>);
+}
+
 SCENARIO("cycle")
 {
   const auto cycled = ezy::cycle(std::vector{2, 3, 4});
