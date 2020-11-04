@@ -54,10 +54,19 @@ namespace detail
   template <typename T>
   using const_value_type_t = typename const_value_type<T>::type;
 
-  template <typename T>
+  template <typename T, typename = void>
   struct size_type
   {
     using type = decltype(ezy::size(std::declval<T>()));
+  };
+
+  template <typename...>
+  using void_t = void;
+
+  template <typename T>
+  struct size_type<T, void_t<typename ezy::remove_cvref_t<T>::size_type>>
+  {
+    using type = typename ezy::remove_cvref_t<T>::size_type;
   };
 
   template <typename T>
