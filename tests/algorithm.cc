@@ -4,6 +4,7 @@
 #include <ezy/strong_type>
 #include <ezy/features/iterable.h>
 #include <ezy/string.h>
+#include <ezy/experimental/function.h>
 
 #include <vector>
 #include <list>
@@ -411,6 +412,32 @@ SCENARIO("slice on array")
 {
   int a[] = {1,2,3,4,5,6,7,8};
   REQUIRE(join_as_strings(ezy::slice(a, 2, 5)) == "345");
+}
+
+static constexpr auto greater_than = ezy::experimental::curry(ezy::experimental::flip(std::greater<>{}));
+static constexpr auto less_than = ezy::experimental::curry(ezy::experimental::flip(std::less<>{}));
+
+SCENARIO("all_of")
+{
+  int a[] = {0, 1, 2, 3, 4, 5};
+  REQUIRE(ezy::all_of(a, greater_than(-1)));
+  REQUIRE(!ezy::all_of(a, greater_than(0)));
+}
+
+SCENARIO("any_of")
+{
+  int a[] = {0, 1, 2, 3, 4, 5};
+  REQUIRE(ezy::any_of(a, greater_than(-1)));
+  REQUIRE(ezy::any_of(a, less_than(1)));
+  REQUIRE(!ezy::any_of(a, less_than(0)));
+}
+
+SCENARIO("none_of")
+{
+  int a[] = {0, 1, 2, 3, 4, 5};
+  REQUIRE(ezy::none_of(a, greater_than(5)));
+  REQUIRE(!ezy::none_of(a, less_than(1)));
+  REQUIRE(ezy::none_of(a, less_than(0)));
 }
 
 SCENARIO("take")

@@ -185,19 +185,19 @@ namespace features {
     template <typename Predicate>
     bool all(Predicate&& predicate) const
     {
-      return std::all_of(base::underlying().begin(), base::underlying().end(), std::forward<Predicate>(predicate));
+      return ezy::all_of(base::underlying(), std::forward<Predicate>(predicate));
     }
 
     template <typename Predicate>
     bool any(Predicate&& predicate) const
     {
-      return std::any_of(base::underlying().begin(), base::underlying().end(), std::forward<Predicate>(predicate));
+      return ezy::any_of(base::underlying(), std::forward<Predicate>(predicate));
     }
 
     template <typename Predicate>
     bool none(Predicate&& predicate) const
     {
-      return std::none_of(base::underlying().begin(), base::underlying().end(), std::forward<Predicate>(predicate));
+      return ezy::none_of(base::underlying(), std::forward<Predicate>(predicate));
     }
 
     /*

@@ -165,6 +165,24 @@ namespace ezy
     };
   }
 
+  template <typename Range, typename Predicate>
+  constexpr bool all_of(Range&& range, Predicate&& predicate)
+  {
+    return std::all_of(std::begin(range), std::end(range), std::forward<Predicate>(predicate));
+  }
+
+  template <typename Range, typename Predicate>
+  constexpr bool any_of(Range&& range, Predicate&& predicate)
+  {
+    return std::any_of(std::begin(range), std::end(range), std::forward<Predicate>(predicate));
+  }
+
+  template <typename Range, typename Predicate>
+  constexpr bool none_of(Range&& range, Predicate&& predicate)
+  {
+    return std::none_of(std::begin(range), std::end(range), std::forward<Predicate>(predicate));
+  }
+
   namespace detail
   {
     template <typename Range, typename Needle>
