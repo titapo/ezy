@@ -753,15 +753,16 @@ namespace detail
       using pointer = typename _iter_traits::pointer;
       using reference = typename _iter_traits::reference;
       using iterator_category = std::forward_iterator_tag; // ?? TODO use the origin
+      using size_type = size_type_t<RangeType>;
 
       take_iterator() = default;
 
-      explicit take_iterator(RangeType& range, typename RangeType::size_type n)
+      explicit take_iterator(RangeType& range, size_type n)
         : tracker(std::begin(range))
         , n(n)
       {}
 
-      explicit take_iterator(const _orig_iterator& iter, typename RangeType::size_type n)
+      explicit take_iterator(const _orig_iterator& iter, size_type n)
         : tracker(iter)
         , n(n)
       {}
@@ -802,7 +803,7 @@ namespace detail
 
     private:
       iterator_tracker_for<RangeType> tracker;
-      typename RangeType::size_type n;
+      size_type n;
   };
 
   template <typename RangeType, typename Predicate>
@@ -881,7 +882,7 @@ namespace detail
     using reference = typename _iter_traits::reference;
     using iterator_category = std::forward_iterator_tag; // TODO
 
-    constexpr explicit drop_iterator(Range& range, typename Range::size_type n)
+    constexpr explicit drop_iterator(Range& range, size_type_t<Range> n)
       : tracker(range)
     {
       while (tracker.template has_next<0>() && n > 0)
@@ -935,8 +936,9 @@ namespace detail
     using pointer = typename _iter_traits::pointer;
     using reference = typename _iter_traits::reference;
     using iterator_category = std::forward_iterator_tag; // TODO
+    using size_type = size_type_t<Range>;
 
-    constexpr explicit step_by_iterator(Range& range, typename Range::size_type n)
+    constexpr explicit step_by_iterator(Range& range, size_type n)
       : tracker(range)
       , n(n)
     {}
@@ -953,7 +955,7 @@ namespace detail
 
     constexpr step_by_iterator& operator++()
     {
-      typename Range::size_type step = 0;
+      size_type step = 0;
       while (step++ < n && tracker.template has_next<0>())
       {
         tracker.template next<0>();
@@ -977,7 +979,7 @@ namespace detail
     }
 
     range_tracker<Range> tracker;
-    const typename Range::size_type n{1};
+    const size_type n{1};
   };
 
   /**
@@ -1266,7 +1268,7 @@ namespace detail
 
       using iterator = take_iterator<Range>;
       using const_iterator = take_iterator<const Range>;
-      using size_type = typename Range::size_type;
+      using size_type = size_type_t<Range>;
 
       iterator begin()
       {
@@ -1298,7 +1300,7 @@ namespace detail
     using Range = ezy::experimental::keeper_value_type_t<Keeper>;
     using const_iterator = drop_iterator<const Range>;
     using iterator = drop_iterator<Range>;
-    using size_type = typename Range::size_type;
+    using size_type = size_type_t<Range>;
 
     constexpr const_iterator begin() const
     {
@@ -1330,7 +1332,7 @@ namespace detail
     using Range = ezy::experimental::keeper_value_type_t<Keeper>;
     using const_iterator = step_by_iterator<const Range>;
     using iterator = step_by_iterator<Range>;
-    using size_type = typename Range::size_type;
+    using size_type = size_type_t<Range>;
 
     constexpr const_iterator begin() const
     {
@@ -1487,7 +1489,7 @@ namespace detail
     using iterator = cycle_iterator<Range>;
     using const_iterator = cycle_iterator<const Range>;
 
-    using size_type = typename Range::size_type;
+    using size_type = size_type_t<Range>;
 
     /*
     iterator begin()
@@ -1596,9 +1598,9 @@ namespace detail
     using reference = subrange_view<_nested_iterator>; // typename _iter_traits::reference;
     using pointer = arrow_proxy<reference>;
     using iterator_category = std::forward_iterator_tag; // TODO
+    using size_type = size_type_t<Range>;
 
-
-    constexpr explicit chunk_iterator(Range& range, typename Range::size_type size)
+    constexpr explicit chunk_iterator(Range& range, size_type size)
       : tracker(range)
       , size(size)
     {}
@@ -1610,7 +1612,7 @@ namespace detail
     // same as step_by_iterator::op++
     constexpr chunk_iterator& operator++()
     {
-      typename Range::size_type step = 0;
+      size_type step = 0;
       while (step++ < size && tracker.template has_next<0>())
       {
         tracker.template next<0>();
@@ -1643,7 +1645,7 @@ namespace detail
     }
 
     range_tracker<Range> tracker;
-    typename Range::size_type size{1};
+    size_type size{1};
   };
 
   template <typename Keeper>
@@ -1652,7 +1654,7 @@ namespace detail
     using Range = ezy::experimental::keeper_value_type_t<Keeper>;
     using const_iterator = chunk_iterator<const Range>;
     using iterator = chunk_iterator<Range>;
-    using size_type = typename Range::size_type;
+    using size_type = size_type_t<Range>;
 
     constexpr const_iterator begin() const
     {

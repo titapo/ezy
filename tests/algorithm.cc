@@ -461,6 +461,12 @@ SCENARIO("take allows mutating")
   REQUIRE(join_as_strings(v) == "12745678");
 }
 
+SCENARIO("take works on array")
+{
+  int a[] = {1,2,3,4,5,6,7,8};
+  REQUIRE(join_as_strings(ezy::take(a, 4)) == "1234");
+}
+
 SCENARIO("take_while")
 {
   std::vector<int> v{1,2,3,4,5,6,7,8};
@@ -550,6 +556,12 @@ SCENARIO("drop from lazy range and it mutating")
   REQUIRE(join_as_strings(ezy::take(remaining, 3)) == "345");
 }
 
+SCENARIO("drop works on array")
+{
+  int a[] = {1,2,3,4,5,6,7,8};
+  REQUIRE(join_as_strings(ezy::drop(a, 4)) == "5678");
+}
+
 SCENARIO("step_by")
 {
   auto remaining = ezy::step_by(ezy::iterate(0), 3);
@@ -562,6 +574,12 @@ SCENARIO("step_by mutating")
   auto remaining = ezy::step_by(v, 3);
   *(std::next(remaining.begin())) += 10;
   REQUIRE(join_as_strings(remaining, ",") == "1,14,7");
+}
+
+SCENARIO("step_by works on array")
+{
+  int a[] = {1,2,3,4,5,6,7,8};
+  REQUIRE(join_as_strings(ezy::step_by(a, 3), ",") == "1,4,7");
 }
 
 SCENARIO("flatten")
@@ -825,6 +843,14 @@ SCENARIO("cycle")
   REQUIRE(joined == "2,3,4,2,3,4,2");
 }
 
+SCENARIO("cycle works with array")
+{
+  const int array[] = {3, 4, 5};
+  const auto cycled = ezy::cycle(array);
+  const auto joined = join_as_strings(ezy::take(cycled, 7), ",");
+  REQUIRE(joined == "3,4,5,3,4,5,3");
+}
+
 SCENARIO("repeat")
 {
   const auto repeated = ezy::repeat(4);
@@ -837,6 +863,23 @@ SCENARIO("chunk")
   const std::vector<int> v{1,2,3,4,5,6,7,8,9};
   const auto chunks = ezy::chunk(v, 4);
   REQUIRE(ezy::size(chunks) == 3);
+  auto it = std::begin(chunks);
+  REQUIRE(join_as_strings(*it, ",") == "1,2,3,4");
+  REQUIRE(join_as_strings(*std::next(it, 1), ",") == "5,6,7,8");
+  REQUIRE(join_as_strings(*std::next(it, 2), ",") == "9");
+  REQUIRE(std::next(it, 3) == std::end(chunks));
+
+  REQUIRE(join_as_strings(ezy::flatten(chunks)) == "123456789");
+}
+
+SCENARIO("chunk works with array")
+{
+  const int a[] = {1,2,3,4,5,6,7,8,9};
+  const auto chunks = ezy::chunk(a, 4);
+  const auto size = ezy::size(chunks);
+  REQUIRE(size == 3);
+  // TODO static_assert(std::is_same<decltype(size), size_t>::value); // bug size_type_t and ezy::size returns
+  // different type!
   auto it = std::begin(chunks);
   REQUIRE(join_as_strings(*it, ",") == "1,2,3,4");
   REQUIRE(join_as_strings(*std::next(it, 1), ",") == "5,6,7,8");

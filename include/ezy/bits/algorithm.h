@@ -119,7 +119,7 @@ namespace ezy
   }
 
   template <typename Range>
-  /*constexpr*/ auto take(Range&& range, size_t n) // TODO check size_type
+  /*constexpr*/ auto take(Range&& range, detail::size_type_t<Range> n)
   {
     using ResultRangeType = detail::take_n_range_view<detail::deduce_keeper_t<Range>>;
     return ResultRangeType{
@@ -139,7 +139,7 @@ namespace ezy
   }
 
   template <typename Range>
-  constexpr auto drop(Range&& range, size_t n)
+  constexpr auto drop(Range&& range, detail::size_type_t<Range> n)
   {
     using ResultRangeType = detail::drop_range_view<detail::deduce_keeper_t<Range>>;
     return ResultRangeType{
@@ -148,7 +148,7 @@ namespace ezy
   }
 
   template <typename Range>
-  constexpr auto step_by(Range&& range, size_t n)
+  constexpr auto step_by(Range&& range, detail::size_type_t<Range> n)
   {
     using ResultRange = detail::step_by_range_view<detail::deduce_keeper_t<Range>>;
     return ResultRange{
