@@ -489,6 +489,15 @@ SCENARIO("take_while temporary")
           [](int i) { return i != 5; })) == "1234");
 }
 
+SCENARIO("take_while takes the whole range")
+{
+  THEN("it should not overrun")
+  {
+    std::vector<int> v{1,2,3,4,5,6,7,8};
+    REQUIRE(join_as_strings(ezy::take_while(v, [](int i) { return i != 0; })) == "12345678");
+  }
+}
+
 SCENARIO("zipped and taken")
 {
   WHEN("both are finite")

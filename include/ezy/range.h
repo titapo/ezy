@@ -829,11 +829,9 @@ namespace detail
       }
 
       explicit take_while_iterator(RangeType& range, Predicate p, end_marker_t)
-        : tracker(range)
+        : tracker(range, end_marker_t{})
         , predicate(std::move(p))
       {
-        const auto tracked = tracker.template get<0>();
-        tracker.template set_to<0>(tracked.second);
       }
 
       inline take_while_iterator& operator++()
@@ -855,11 +853,9 @@ namespace detail
         return *(tracker.template get<0>().first);
       }
 
-      bool operator!=(const take_while_iterator&) const
+      bool operator!=(const take_while_iterator& rhs) const
       {
-        // TODO fix it
-        const auto tracked = tracker.template get<0>();
-        return tracked.first != tracked.second;
+        return tracker.template get<0>().first != rhs.tracker.template get<0>().first;
       }
 
       bool operator==(const take_while_iterator& rhs) const
