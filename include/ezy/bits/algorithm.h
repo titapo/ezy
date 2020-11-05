@@ -9,7 +9,6 @@
 #include <numeric> // accumulate
 #include <algorithm>
 
-
 namespace ezy
 {
   namespace detail
@@ -289,10 +288,10 @@ namespace ezy
 
   namespace detail
   {
-    struct pre_increment
+    struct increment
     {
       template <typename T>
-      constexpr decltype(auto) operator()(T&& t) const
+      constexpr T operator()(T t) const
       {
         return ++t;
       }
@@ -302,7 +301,7 @@ namespace ezy
   template <typename T>
   constexpr auto iterate(T&& t)
   {
-    using Fn = detail::pre_increment;
+    using Fn = detail::increment;
     return ezy::detail::iterate_view<T, Fn>{std::forward<T>(t), Fn{}};
   }
 

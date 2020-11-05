@@ -1390,9 +1390,10 @@ namespace detail
   template <typename T, typename Operation>
   struct iterate_iterator
   {
-    using difference_type = T;
+    using difference_type = std::ptrdiff_t;
     using value_type = T;
     using reference = std::add_lvalue_reference_t<T>;
+    using const_reference = std::add_lvalue_reference_t<std::add_const_t<T>>;
     using pointer = std::add_pointer_t<T>;
     using iterator_category = std::forward_iterator_tag;
 
@@ -1405,9 +1406,14 @@ namespace detail
       return std::get<0>(storage);
     }
 
-    constexpr bool operator!=(const iterate_iterator&) const noexcept
+    constexpr const_reference operator*() const noexcept
     {
-      return true;
+      return std::get<0>(storage);
+    }
+
+    constexpr bool operator!=(const iterate_iterator& rhs) const noexcept
+    {
+      return std::get<0>(storage) != std::get<0>(rhs.storage);
     }
     constexpr bool operator==(const iterate_iterator& rhs) const noexcept
     {
@@ -1420,14 +1426,14 @@ namespace detail
       return *this;
     }
 
-    std::tuple<T, Operation> storage;
+    std::tuple<std::remove_const_t<T>, Operation> storage;
   };
 
   template <typename T, typename Operation>
   struct iterate_view
   {
-    using iterator = iterate_iterator<T, Operation>;
-    using const_iterator = iterate_iterator<T, Operation>;
+    using iterator = iterate_iterator<std::remove_reference_t<T>, Operation>;
+    using const_iterator = iterate_iterator<std::remove_reference_t<T>, Operation>;
 
     using size_type = size_t;
 
@@ -1438,10 +1444,10 @@ namespace detail
 
     constexpr const_iterator end() const
     {
-      return const_iterator(std::numeric_limits<T>::max(), op);
+      return const_iterator(std::numeric_limits<ezy::remove_cvref_t<T>>::max(), op);
     }
 
-    T init{};
+    ezy::remove_cvref_t<T> init{};
     Operation op;
   };
 
