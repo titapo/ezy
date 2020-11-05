@@ -368,6 +368,20 @@ namespace ezy
     using ResultRange = detail::chunk_range_view<detail::deduce_keeper_t<Range>>;
     return ResultRange{ezy::experimental::make_keeper(std::forward<Range>(range)), chunk_size};
   }
+
+  template <typename T>
+  constexpr auto range(T&& until)
+  {
+    using Type = ezy::remove_cvref_t<T>;
+    return ezy::take_while(ezy::iterate(Type{0}), [until](const T& e) { return e < until; });
+  }
+
+  template <typename T>
+  constexpr auto range(const T& from, const T& until)
+  {
+    return ezy::take_while(ezy::iterate(from), [until](const T& e) { return e < until; });
+  }
+
 }
 
 #endif

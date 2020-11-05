@@ -897,3 +897,65 @@ SCENARIO("chunk works with array")
 
   REQUIRE(join_as_strings(ezy::flatten(chunks)) == "123456789");
 }
+
+SCENARIO("range(until)")
+{
+  GIVEN("a range until 0")
+  {
+    const auto r = ezy::range(0);
+    REQUIRE(ezy::empty(r));
+  }
+
+  GIVEN("a range until 1")
+  {
+    const auto r = ezy::range(1);
+    REQUIRE(join_as_strings(r, ",") == "0");
+  }
+
+  GIVEN("a range until 10")
+  {
+    const auto r = ezy::range(10);
+    REQUIRE(join_as_strings(r, ",") == "0,1,2,3,4,5,6,7,8,9");
+  }
+
+  GIVEN("a range until 4.8")
+  {
+    const auto r = ezy::range(4.8);
+    REQUIRE(join_as_strings(r, ",") == "0.000000,1.000000,2.000000,3.000000,4.000000");
+    static_assert(std::is_same<ezy::detail::value_type_t<decltype(r)>, double>::value);
+  }
+}
+
+SCENARIO("range(from, until)")
+{
+  GIVEN("[0, 0)")
+  {
+    const auto r = ezy::range(0, 0);
+    REQUIRE(ezy::empty(r));
+  }
+
+  GIVEN("[0, 1)")
+  {
+    const auto r = ezy::range(0, 1);
+    REQUIRE(join_as_strings(r, ",") == "0");
+  }
+
+  GIVEN("[4, 8)")
+  {
+    const auto r = ezy::range(4, 8);
+    REQUIRE(join_as_strings(r, ",") == "4,5,6,7");
+  }
+
+  GIVEN("['a', 'f')")
+  {
+    const auto r = ezy::range('a', 'f');
+    REQUIRE(ezy::join<std::string>(r, ",") == "a,b,c,d,e");
+  }
+
+  GIVEN("[1.2, 4.3]")
+  {
+    const auto r = ezy::range(1.2, 4.3);
+    REQUIRE(join_as_strings(r, ",") == "1.200000,2.200000,3.200000,4.200000");
+    static_assert(std::is_same<ezy::detail::value_type_t<decltype(r)>, double>::value);
+  }
+}
