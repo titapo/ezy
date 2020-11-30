@@ -42,13 +42,14 @@ auto who_passed(const Scores& scores, const Names& names)
     .map(display_with_name_and_score);
 }
 
-#include <ezy/experimental/compose.h>
+#include <ezy/compose.h>
+
 auto who_passed_experimental(const Scores& scores, const Names& names)
 {
   return names
     .zip(scores)
     .filter(
-        ezy::experimental::compose(ezy::pick_second, test_passed)
+        ezy::compose(ezy::pick_second, test_passed)
         )
     .map(display_with_name_and_score);
 }

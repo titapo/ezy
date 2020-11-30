@@ -1508,7 +1508,7 @@ SCENARIO("strong type comparisons")
   }
 }
 
-#include <ezy/experimental/compose.h>
+#include <ezy/compose.h>
 #include <ezy/experimental/function>
 
 const auto str_plus_int = [](const std::string& s, const int i)
@@ -1590,12 +1590,11 @@ SCENARIO("flip")
 SCENARIO("compose")
 {
   using namespace ezy::experimental;
-  using ezy::experimental::compose;
   auto addHundred = curry_as<int, int>(std::plus<int>{})(100);
 
   WHEN("composed with same type")
   {
-    auto addTwoHundred = compose(addHundred, addHundred);
+    auto addTwoHundred = ezy::compose(addHundred, addHundred);
     REQUIRE(addTwoHundred(23) == 223);
   }
 
@@ -1603,7 +1602,7 @@ SCENARIO("compose")
   {
     // TODO const lambdas are not accepted!
     auto formatNumber = curry_as<std::string, int>(str_plus_int)("result is: ");
-    auto calculate = compose(addHundred, formatNumber);
+    auto calculate = ezy::compose(addHundred, formatNumber);
     REQUIRE(calculate(23) == "result is: 123");
   }
 
@@ -1611,7 +1610,7 @@ SCENARIO("compose")
   {
     struct S{ int i; };
 
-    auto calculate = compose(&S::i, addHundred);
+    auto calculate = ezy::compose(&S::i, addHundred);
 
     S s{3};
     REQUIRE(calculate(s) == 103);
@@ -1623,17 +1622,17 @@ SCENARIO("compose")
     static constexpr auto plus_4 = [](auto i) {return i + 4;};
     static constexpr auto plus_10 = [](auto i) {return i + 10;};
 
-    constexpr auto plus_14 = compose(plus_4, plus_10);
+    constexpr auto plus_14 = ezy::compose(plus_4, plus_10);
     static_assert(plus_14(6) == 20);
   }
 
   WHEN("composing more")
   {
-    auto double_length = compose(ezy::to_string, &std::string::size, [](auto s) {return s * 2;});
+    auto double_length = ezy::compose(ezy::to_string, &std::string::size, [](auto s) {return s * 2;});
 
     REQUIRE(double_length(4) == 2);
     REQUIRE(double_length(12345) == 10);
-    REQUIRE(compose(double_length, double_length)(12345) == 4);
+    REQUIRE(ezy::compose(double_length, double_length)(12345) == 4);
   }
   // moving etc
 }

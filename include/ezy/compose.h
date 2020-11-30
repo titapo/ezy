@@ -1,9 +1,9 @@
-#ifndef EZY_EXPERIMENTAL_COMPOSE_H_INCLUDED
-#define EZY_EXPERIMENTAL_COMPOSE_H_INCLUDED
+#ifndef EZY_COMPOSE_H_INCLUDED
+#define EZY_COMPOSE_H_INCLUDED
 
-#include "../invoke.h"
+#include "invoke.h"
 
-namespace ezy::experimental
+namespace ezy
 {
   /**
    * compose
@@ -61,8 +61,6 @@ namespace ezy::experimental
       return call_helper(fs, std::forward<T>(t));
     }
   };
-
-  //template <typename F1, typename F2> composed(F1, F2) -> composed<F1, F2>;
 
   template <typename... Fns>
   constexpr composed<Fns...> compose(Fns&&... fns)
