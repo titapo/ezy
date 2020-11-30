@@ -1401,6 +1401,16 @@ namespace detail
       : storage(init, op)
     {}
 
+    constexpr iterate_iterator(const iterate_iterator& rhs)
+      : storage(rhs.storage)
+    {}
+
+    constexpr iterate_iterator& operator=(const iterate_iterator& rhs)
+    {
+      storage = rhs.storage;
+      return *this;
+    }
+
     constexpr reference operator*() noexcept
     {
       return std::get<0>(storage);
@@ -1426,7 +1436,7 @@ namespace detail
       return *this;
     }
 
-    std::tuple<std::remove_const_t<T>, Operation> storage;
+    std::tuple<std::remove_const_t<T>, ezy::remove_cvref_t<Operation>> storage;
   };
 
   template <typename T, typename Operation>
@@ -1448,7 +1458,7 @@ namespace detail
     }
 
     ezy::remove_cvref_t<T> init{};
-    Operation op;
+    ezy::remove_cvref_t<Operation> op;
   };
 
   template <typename Range>

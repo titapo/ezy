@@ -959,3 +959,18 @@ SCENARIO("range(from, until)")
     static_assert(std::is_same<ezy::detail::value_type_t<decltype(r)>, double>::value);
   }
 }
+
+SCENARIO("range(from, until, step)")
+{
+  GIVEN("[2 +3, 15]")
+  {
+    const auto r = ezy::range(2, 15, 3);
+    REQUIRE(join_as_strings(r, ",") == "2,5,8,11,14");
+  }
+
+  GIVEN("[2 -3, -15]")
+  {
+    const auto r = ezy::range(2, -17, -3);
+    REQUIRE(join_as_strings(r, ",") == "2,-1,-4,-7,-10,-13,-16");
+  }
+}
