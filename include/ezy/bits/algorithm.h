@@ -118,7 +118,7 @@ namespace ezy
   }
 
   template <typename Range>
-  /*constexpr*/ auto take(Range&& range, detail::size_type_t<Range> n)
+  constexpr auto take(Range&& range, detail::size_type_t<Range> n)
   {
     using ResultRangeType = detail::take_n_range_view<detail::deduce_keeper_t<Range>>;
     return ResultRangeType{

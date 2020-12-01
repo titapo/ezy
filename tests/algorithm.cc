@@ -467,6 +467,12 @@ SCENARIO("take works on array")
   REQUIRE(join_as_strings(ezy::take(a, 4)) == "1234");
 }
 
+SCENARIO("take works in compile time")
+{
+  constexpr auto taken = ezy::take(std::array{1,2,3,4,5}, 3);
+  static_assert(ezy::accumulate(taken, 0) == 6);
+}
+
 SCENARIO("take_while")
 {
   std::vector<int> v{1,2,3,4,5,6,7,8};

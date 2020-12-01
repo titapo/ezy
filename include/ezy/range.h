@@ -195,7 +195,7 @@ namespace detail
       }
 
       template <unsigned N>
-      decltype(auto) next()
+      constexpr decltype(auto) next()
       {
         return ++std::get<N>(iters);
       }
@@ -757,17 +757,17 @@ namespace detail
 
       take_iterator() = default;
 
-      explicit take_iterator(RangeType& range, size_type n)
+      constexpr explicit take_iterator(RangeType& range, size_type n)
         : tracker(std::begin(range))
         , n(n)
       {}
 
-      explicit take_iterator(const _orig_iterator& iter, size_type n)
+      constexpr explicit take_iterator(const _orig_iterator& iter, size_type n)
         : tracker(iter)
         , n(n)
       {}
 
-      explicit take_iterator(RangeType& range, end_marker_t)
+      constexpr explicit take_iterator(RangeType& range, end_marker_t)
         : tracker(std::end(range))
         , n(0)
       {}
@@ -779,14 +779,14 @@ namespace detail
         return *this;
       }
 
-      inline take_iterator& operator++()
+      constexpr inline take_iterator& operator++()
       {
         tracker.template next<0>();
         --n;
         return *this;
       }
 
-      decltype(auto) operator*()
+      constexpr decltype(auto) operator*()
       {
         return *(tracker.template get<0>());
       }
@@ -1266,22 +1266,22 @@ namespace detail
       using const_iterator = take_iterator<const Range>;
       using size_type = size_type_t<Range>;
 
-      iterator begin()
+      constexpr iterator begin()
       {
         return iterator(range.get(), n);
       }
 
-      iterator end()
+      constexpr iterator end()
       {
         return iterator(range.get(), end_marker_t{});
       }
 
-      const_iterator begin() const
+      constexpr const_iterator begin() const
       {
         return const_iterator(range.get(), n);
       }
 
-      const_iterator end() const
+      constexpr const_iterator end() const
       {
         return const_iterator(range.get(), end_marker_t{});
       }
