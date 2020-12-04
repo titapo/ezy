@@ -772,6 +772,11 @@ namespace detail
         , n(0)
       {}
 
+      constexpr take_iterator(const take_iterator& other)
+        : tracker(other.tracker)
+        , n(other.n)
+      {}
+
       take_iterator& operator=(const take_iterator& rhs)
       {
         tracker = rhs.tracker;
@@ -1002,7 +1007,7 @@ namespace detail
     using Range = ezy::experimental::keeper_value_type_t<Keeper>;
     using _orig_const_iterator = const_iterator_type_t<Range>;
     using const_iterator = iterator_adaptor<_orig_const_iterator, Transformation>;
-    using size_type = typename Range::size_type;
+    using size_type = size_type_t<Range>;
 
     constexpr const_iterator begin() const
     { return const_iterator(std::cbegin(orig_range.get()), transformation); }
@@ -1361,7 +1366,7 @@ namespace detail
       using Range = ezy::experimental::keeper_value_type_t<Keeper>;
       using iterator = take_while_iterator<Range, Predicate>;
       using const_iterator = take_while_iterator<const Range, Predicate>;
-      using size_type = typename Range::size_type;
+      using size_type = size_type_t<Range>;
 
       iterator begin()
       {
