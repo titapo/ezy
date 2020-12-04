@@ -38,6 +38,7 @@ namespace features {
   struct algo_iterable : feature<T, algo_iterable>
   {
     using base = feature<T, algo_iterable>;
+    using _size_type = ezy::detail::size_type_t<ezy::extract_underlying_type_t<T>>;
 
     template < typename UnaryFunction >
     auto for_each(UnaryFunction f)
@@ -147,6 +148,27 @@ namespace features {
       return std::reduce(base::underlying().begin(), base::underlying().end(), init);
     }
     */
+
+    auto chunk(_size_type chunk_size) const &
+    {
+      return detail::make_extended_from<T>(
+          ezy::chunk((*this).underlying(), chunk_size)
+          );
+    }
+
+    auto chunk(_size_type chunk_size) &
+    {
+      return detail::make_extended_from<T>(
+          ezy::chunk((*this).underlying(), chunk_size)
+          );
+    }
+
+    auto chunk(_size_type chunk_size) &&
+    {
+      return detail::make_extended_from<T>(
+          ezy::chunk(std::move(*this).underlying(), chunk_size)
+          );
+    }
 
     template <typename Predicate>
     auto partition(Predicate&& predicate) const &

@@ -719,6 +719,42 @@ SCENARIO("strong type extensions")
         COMPARE_RANGES(result, (std::array<int, 8>{1,2,3,1,2,3,1,2}));
       }
     }
+
+    WHEN("chunked")
+    {
+      const auto result = numbers.chunk(3);
+      THEN("it splitted into 4 chunks")
+      {
+        REQUIRE(ezy::size(result) == 4);
+        COMPARE_RANGES(*(std::next(std::begin(result),0)), (std::array<int, 3>{1,2,3}));
+        COMPARE_RANGES(*(std::next(std::begin(result),1)), (std::array<int, 3>{4,5,6}));
+        COMPARE_RANGES(*(std::next(std::begin(result),2)), (std::array<int, 3>{7,8,9}));
+        COMPARE_RANGES(*(std::next(std::begin(result),3)), (std::array<int, 1>{10}));
+      }
+    }
+
+    WHEN("rvalue chunked")
+    {
+      const auto result = MyNumbers{1,3,5,7,9}.chunk(3);
+      THEN("it splitted into 2 chunks")
+      {
+        REQUIRE(ezy::size(result) == 2);
+        COMPARE_RANGES(*(std::next(std::begin(result),0)), (std::array<int, 3>{1,3,5}));
+        COMPARE_RANGES(*(std::next(std::begin(result),1)), (std::array<int, 2>{7,9}));
+      }
+    }
+
+    WHEN("mutating chunked")
+    {
+      auto my_numbers = MyNumbers{1,2,3,4,5,6,7};
+      auto result = my_numbers.chunk(3);
+      THEN("it splitted into 4 chunks")
+      {
+        REQUIRE(ezy::size(result) == 3);
+        *std::next(std::begin(*(std::begin(result))), 1) += 10;
+        COMPARE_RANGES(my_numbers, (std::array<int, 7>{1,12,3,4,5,6,7}));
+      }
+    }
   }
 
   GIVEN("a special type")
