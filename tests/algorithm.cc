@@ -809,6 +809,24 @@ SCENARIO("collect const by deducing the element type")
   REQUIRE(collected == v);
 }
 
+SCENARIO("collecting to iterator")
+{
+  std::vector<int> v{1,2,4,8,16};
+  std::vector<int> dest(v.size(), {});
+  ezy::collect(v, std::begin(dest));
+  REQUIRE(dest == v);
+}
+
+SCENARIO("collecting to iterator returns iterator")
+{
+  std::vector<int> v1{1,3,5,7,9};
+  std::vector<int> v2{2,4,6,8,10};
+  std::vector<int> dest(v1.size() + v2.size(), {});
+  const auto it = ezy::collect(v1, std::begin(dest));
+  ezy::collect(v2, it);
+  REQUIRE(dest == std::vector{1,3,5,7,9,2,4,6,8,10});
+}
+
 SCENARIO("iterate")
 {
   const auto it = ezy::iterate(1, [](int i) { return i * 2;});

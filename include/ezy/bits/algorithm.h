@@ -246,6 +246,16 @@ namespace ezy
     return collect<ResultWrapper<ElementType>>(std::forward<Range>(range));
   }
 
+  template <typename Range, typename OutputIter>
+  OutputIter collect(Range&& range, OutputIter out)
+  {
+    for (auto&& e : range)
+    {
+      *out++ = e;
+    }
+    return out;
+  }
+
   template <typename ReturnType, typename Range, typename Separator = detail::value_type_t<Range>>
   constexpr ReturnType join(Range&& range, Separator&& separator = Separator{})
   {
