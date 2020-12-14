@@ -49,9 +49,9 @@ namespace experimental
       using unwrapper_type = Unwrapper;
 
       template <typename T>
-      struct apply : ezy::feature<T, apply>
+      struct impl : ezy::feature<T, impl>
       {
-        using base = ezy::feature<T, apply>;
+        using base = ezy::feature<T, impl>;
         using base::self;
 
 
@@ -78,12 +78,12 @@ namespace experimental
     struct null_checker_with_binary_predicate
     {
       template <typename T>
-      struct apply : ezy::feature<T, apply>
+      struct impl : ezy::feature<T, impl>
       {
         using none_provoder_type = NoneProvider;
         using none_checker_type = NoneChecker;
 
-        using base = ezy::feature<T, apply>;
+        using base = ezy::feature<T, impl>;
         using base::self;
 
         static constexpr auto make_null()
@@ -114,11 +114,11 @@ namespace experimental
     struct null_checker_with_unary_predicate
     {
       template <typename T>
-      struct apply : ezy::feature<T, apply>
+      struct impl : ezy::feature<T, impl>
       {
         using none_checker_type = NoneChecker;
 
-        using base = ezy::feature<T, apply>;
+        using base = ezy::feature<T, impl>;
         using base::self;
 
         template <typename U>
@@ -148,9 +148,9 @@ namespace experimental
   struct basic_nullable_as
   {
     template <typename T>
-    struct apply :
-      detail::nullable_unwrapper<Unwrapper>::template apply<T>,
-      detail::null_checker_with_binary_predicate<NoneProvider, NoneChecker>::template apply<T>
+    struct impl :
+      detail::nullable_unwrapper<Unwrapper>::template impl<T>,
+      detail::null_checker_with_binary_predicate<NoneProvider, NoneChecker>::template impl<T>
     {
       template <typename DefaultType>
       auto value_or(DefaultType def) const
@@ -171,9 +171,9 @@ namespace experimental
   struct nullable_if
   {
     template <typename T>
-    struct apply :
-      detail::nullable_unwrapper<Unwrapper>::template apply<T>,
-      detail::null_checker_with_unary_predicate<NoneChecker>::template apply<T>
+    struct impl :
+      detail::nullable_unwrapper<Unwrapper>::template impl<T>,
+      detail::null_checker_with_unary_predicate<NoneChecker>::template impl<T>
     {
       template <typename DefaultType>
       auto value_or(DefaultType def) const
@@ -187,14 +187,14 @@ namespace experimental
   };
 
   template <typename T>
-  using default_nullable = typename basic_nullable_as<detail::default_ctor_of_plain_type<T>>::template apply<T>;
+  using default_nullable = typename basic_nullable_as<detail::default_ctor_of_plain_type<T>>::template impl<T>;
 
   template <typename T>
   using basic_nullable_ptr = typename basic_nullable_as<
     std::integral_constant<std::nullptr_t, nullptr>,
     std::equal_to<>,
     detail::dereference_fn
-  >::template apply<T>;
+  >::template impl<T>;
 
 }}}
 

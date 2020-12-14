@@ -30,7 +30,7 @@ SCENARIO("default_nullable")
 
 SCENARIO("basic_nullable_as")
 {
-  using Number = ezy::strong_type<int, void, ezy::features::experimental::basic_nullable_as<ezy::experimental::value_provider<-1>>::apply>;
+  using Number = ezy::strong_type<int, void, ezy::features::experimental::basic_nullable_as<ezy::experimental::value_provider<-1>>::impl>;
 
   GIVEN("a default constructed instance")
   {
@@ -80,7 +80,7 @@ SCENARIO("basic nullable condition can be specified")
   };
 
   using Number = ezy::strong_type<int, void,
-        ezy::features::experimental::basic_nullable_as<ezy::experimental::value_provider<5>, is_divisible_fn>::apply>;
+        ezy::features::experimental::basic_nullable_as<ezy::experimental::value_provider<5>, is_divisible_fn>::impl>;
 
   static_assert(Number::is_consistent());
   REQUIRE(Number::is_consistent());
@@ -103,7 +103,7 @@ SCENARIO("basic_nullable_if")
     }
   };
 
-  using Number = ezy::strong_type<int, void, ezy::features::experimental::nullable_if<is_negative_fn>::apply>;
+  using Number = ezy::strong_type<int, void, ezy::features::experimental::nullable_if<is_negative_fn>::impl>;
   GIVEN("positive number")
   {
     Number positive{20};
@@ -219,7 +219,7 @@ SCENARIO("pointer")
     WHEN("mapped to a type whose null is not a default")
     {
       using Number = ezy::strong_type<int, void,
-            ezy::features::experimental::basic_nullable_as<ezy::experimental::value_provider<5>>::apply>;
+            ezy::features::experimental::basic_nullable_as<ezy::experimental::value_provider<5>>::impl>;
 
       const auto mapped = ptr.map<Number>(plus_one_and_multiply);
       REQUIRE(!mapped.has_value());

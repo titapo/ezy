@@ -56,7 +56,7 @@ namespace ezy::features::experimental
 
   template <typename T>
   struct nullable :
-    ezy::features::experimental::default_nullable<T>::apply,
+    ezy::features::experimental::default_nullable<T>::impl,
     ezy::features::result_interface
     <
       adapter_for_nullable<ezy::features::experimental::default_nullable>::apply
