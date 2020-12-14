@@ -44,7 +44,7 @@ namespace ezy::features::experimental
       template <typename... Ts>
       constexpr static decltype(auto) make_underlying_error(Ts&&...)
       {
-        return NullableFeature<ValueType>::make_null();
+        return NullableFeature<ValueType>::make_underlying_null();
       }
 
       template <typename U>

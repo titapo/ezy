@@ -111,7 +111,7 @@ SCENARIO("basic_nullable_as")
 
   GIVEN("static make_null member")
   {
-    static_assert(Number::make_null() == -1);
+    static_assert(Number::make_null().value() == -1);
   }
   // TODO value_provider::value_type and underlying type has to match
 }

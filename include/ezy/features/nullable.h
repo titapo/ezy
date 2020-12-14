@@ -88,9 +88,14 @@ namespace experimental
         using base = ezy::feature<T, impl>;
         using base::self;
 
-        static constexpr auto make_null()
+        static constexpr auto make_underlying_null()
         {
           return NoneProvider{}();
+        }
+
+        static constexpr auto make_null()
+        {
+          return T{make_underlying_null()};
         }
 
         template <typename U>
@@ -106,7 +111,7 @@ namespace experimental
 
         static constexpr bool is_consistent()
         {
-          return !T{make_null()}.has_value();
+          return !make_null().has_value();
         }
 
       };
