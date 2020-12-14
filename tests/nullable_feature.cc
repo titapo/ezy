@@ -9,24 +9,71 @@ SCENARIO("default_nullable")
   using Number = ezy::strong_type<int, void, ezy::features::experimental::default_nullable>;
   GIVEN("a default constructed instance")
   {
+    Number num{};
     WHEN("query a default constructed element")
     {
-      Number num{};
       REQUIRE(!num.has_value());
       REQUIRE(num.value() == 0);
+    }
+
+    WHEN("dereferenced")
+    {
+      THEN("returns the underlying value")
+      {
+        REQUIRE(*num == 0);
+      }
+
+      THEN("it can be mutated")
+      {
+        *num += 10;
+        REQUIRE(*num == 10);
+        REQUIRE(num.has_value());
+      }
+    }
+
+    WHEN("converted to bool")
+    {
+      THEN("false")
+      {
+        REQUIRE(!num);
+      }
     }
   }
 
   GIVEN("a non-null instance")
   {
+    Number num{3};
     WHEN("query a non-null element")
     {
-      Number num{3};
       REQUIRE(num.has_value());
       REQUIRE(num.value() == 3);
     }
+
+    WHEN("dereferenced")
+    {
+      THEN("returns the underlying value")
+      {
+        REQUIRE(*num == 3);
+      }
+
+      THEN("it can be mutated")
+      {
+        *num -= 3;
+        REQUIRE(*num == 0);
+        REQUIRE(!num.has_value());
+      }
+    }
+
+    WHEN("converted to bool")
+    {
+      THEN("returns true")
+      {
+        REQUIRE((num ? true : false));
+      }
+    }
   }
 }
+
 
 SCENARIO("basic_nullable_as")
 {

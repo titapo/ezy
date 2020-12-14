@@ -4,6 +4,8 @@
 #include "../feature.h"
 #include "../strong_type_traits.h"
 
+#include <functional>
+
 namespace ezy
 {
 namespace features
@@ -133,6 +135,38 @@ namespace experimental
         }
       };
     };
+
+    template <typename Nullable>
+    struct basic_nullable_impl
+    {
+      constexpr Nullable& self() & { return static_cast<Nullable&>(*this); }
+      constexpr const Nullable& self() const & { return static_cast<const Nullable&>(*this); }
+      constexpr Nullable&& self() && { return static_cast<Nullable &&>(*this); }
+
+      decltype(auto) operator*() const
+      {
+        return self().value();
+      }
+
+      decltype(auto) operator*()
+      {
+        return self().value();
+      }
+
+      operator bool() const
+      {
+        return self().has_value();
+      }
+
+      template <typename DefaultType>
+      auto value_or(DefaultType def) const
+      {
+        if (self().has_value())
+          return self().value();
+        else
+          return static_cast<decltype(self().value())>(def);
+      }
+    };
   }
 
   /**
@@ -150,16 +184,9 @@ namespace experimental
     template <typename T>
     struct impl :
       detail::nullable_unwrapper<Unwrapper>::template impl<T>,
-      detail::null_checker_with_binary_predicate<NoneProvider, NoneChecker>::template impl<T>
+      detail::null_checker_with_binary_predicate<NoneProvider, NoneChecker>::template impl<T>,
+      detail::basic_nullable_impl<impl<T>>
     {
-      template <typename DefaultType>
-      auto value_or(DefaultType def) const
-      {
-        if (this->has_value())
-          return this->value();
-        else
-          return static_cast<decltype(this->value())>(def);
-      }
     };
   };
 
@@ -173,16 +200,9 @@ namespace experimental
     template <typename T>
     struct impl :
       detail::nullable_unwrapper<Unwrapper>::template impl<T>,
-      detail::null_checker_with_unary_predicate<NoneChecker>::template impl<T>
+      detail::null_checker_with_unary_predicate<NoneChecker>::template impl<T>,
+      detail::basic_nullable_impl<impl<T>>
     {
-      template <typename DefaultType>
-      auto value_or(DefaultType def) const
-      {
-        if (this->has_value())
-          return this->value();
-        else
-          return static_cast<decltype(this->value())>(def);
-      }
     };
   };
 
