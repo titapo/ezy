@@ -180,11 +180,11 @@ namespace experimental
    * NoneChecker: type of a stateless binary predicate which returns true if the underlying value represents
    * none compared with the null value.
    *
-   * Please note that `basic_nullable_as` feature does not affect object construction. A default constructed element
+   * Please note that `nullable_as` feature does not affect object construction. A default constructed element
    * not necessarily contains a null value.
    */
   template <typename NoneProvider, typename NoneChecker = std::equal_to<>, typename Unwrapper = detail::identity_fn>
-  struct basic_nullable_as
+  struct nullable_as
   {
     template <typename T>
     struct impl :
@@ -212,10 +212,10 @@ namespace experimental
   };
 
   template <typename T>
-  using default_nullable = typename basic_nullable_as<detail::default_ctor_of_plain_type<T>>::template impl<T>;
+  using default_nullable = typename nullable_as<detail::default_ctor_of_plain_type<T>>::template impl<T>;
 
   template <typename T>
-  using basic_nullable_ptr = typename basic_nullable_as<
+  using basic_nullable_ptr = typename nullable_as<
     std::integral_constant<std::nullptr_t, nullptr>,
     std::equal_to<>,
     detail::dereference_fn
