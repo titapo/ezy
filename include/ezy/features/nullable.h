@@ -3,6 +3,7 @@
 
 #include "../feature.h"
 #include "../strong_type_traits.h"
+#include "../invoke.h"
 
 #include <functional>
 
@@ -79,6 +80,13 @@ namespace experimental
     template <typename NoneProvider, typename NoneChecker = std::equal_to<>>
     struct null_checker_with_binary_predicate
     {
+
+      static_assert(std::is_empty<NoneProvider>::value,
+          "NoneProvider must not have internal state!");
+
+      static_assert(std::is_empty<NoneChecker>::value,
+          "NoneChecker must not have internal state!");
+
       template <typename T>
       struct impl : ezy::feature<T, impl>
       {
@@ -120,6 +128,10 @@ namespace experimental
     template <typename NoneChecker>
     struct null_checker_with_unary_predicate
     {
+      // std::is_function: regular functions are not OK: they cannot be initialized (considered as compound literal)
+      static_assert(std::is_empty<NoneChecker>::value,
+          "NoneChecker must not have internal state!");
+
       template <typename T>
       struct impl : ezy::feature<T, impl>
       {
@@ -131,6 +143,7 @@ namespace experimental
         template <typename U>
         static constexpr bool has_value_impl(const U& ult)
         {
+          //return !std::invoke(NoneChecker{}, ult);
           return !NoneChecker{}(ult);
         }
 

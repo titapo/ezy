@@ -74,10 +74,26 @@ SCENARIO("default_nullable")
   }
 }
 
+constexpr int return_10() noexcept
+{
+  return 10;
+}
+
+constexpr bool is_zero(int i) noexcept
+{
+  return i == 0;
+}
+
+bool is_empty(const std::string& s)
+{
+  return s.empty();
+}
 
 SCENARIO("nullable_as")
 {
-  using Number = ezy::strong_type<int, void, ezy::features::experimental::nullable_as<ezy::experimental::value_provider<-1>>::impl>;
+  using Number = ezy::strong_type<int, void,
+        ezy::features::experimental::nullable_as<ezy::experimental::value_provider<-1>>::impl
+  >;
 
   GIVEN("a default constructed instance")
   {
@@ -114,6 +130,7 @@ SCENARIO("nullable_as")
     static_assert(Number::make_null().value() == -1);
   }
   // TODO value_provider::value_type and underlying type has to match
+
 }
 
 SCENARIO("basic nullable condition can be specified")
@@ -137,6 +154,16 @@ SCENARIO("basic nullable condition can be specified")
   REQUIRE(!Number(10).has_value());
   REQUIRE(Number(11).has_value());
 }
+
+constexpr bool is_even(int i) noexcept
+{
+  return (i % 2) == 0;
+}
+
+constexpr auto is_odd = [](int i)
+{
+  return !is_even(i);
+};
 
 
 SCENARIO("nullable_if")
@@ -168,7 +195,57 @@ SCENARIO("nullable_if")
     Number negative{-1};
     REQUIRE(!negative.has_value());
   }
+
 }
+
+// These cases are not allowed to be compiled, they might result in crash or hard to reason compiler error message.
+// Consider using function wrapper from tutorials
+SCENARIO("do not compile")
+{
+  GIVEN("nullable with an ordinary function")
+  {
+    //using Number = ezy::strong_type<int, void, ezy::features::experimental::nullable_as<decltype(return_10)>::impl>;
+    //Number n{};
+    //n.has_value();
+    //using Number2 = ezy::strong_type<int, void,
+    //    ezy::features::experimental::nullable_as<decltype(return_10), decltype(is_zero)>::impl
+    //>;
+    //(void)Number2{};
+  }
+
+  GIVEN("a string with a member function should not compile")
+  {
+
+    //using N = ezy::strong_type<int, void, ezy::features::experimental::nullable_if<decltype(is_zero)>::impl>;
+    //(void)N{};
+    //using Str = ezy::strong_type<std::string, void,
+    //    ezy::features::experimental::nullable_if<decltype(is_empty)>::impl
+    //>;
+    //(void)Str{};
+    //using Str = ezy::strong_type<std::string, void,
+    //    ezy::features::experimental::nullable_if<decltype(&std::string::empty)>::impl
+    //>;
+    //(void)Str{};
+  }
+
+  GIVEN("a nullable type with an function type should not compile")
+  {
+    //using NumberNotEven = ezy::strong_type<int, void,
+    //    ezy::features::experimental::nullable_if<decltype(is_even)>::impl
+    //>;
+    //(void)NumberNotEven{};
+  }
+
+  GIVEN("a nullable type with a lambda type does not compile")
+  {
+    // It could if stateless lambda was default constructible.
+    //using NumberNotOdd = ezy::strong_type<int, void,
+    //    ezy::features::experimental::nullable_if<decltype(is_odd)>::impl
+    //>;
+    //(void)NumberNotOdd{};
+  }
+}
+
 
 template <typename T, typename Tag = void>
 using Result = ezy::strong_type<T, Tag, ezy::features::experimental::nullable>;
