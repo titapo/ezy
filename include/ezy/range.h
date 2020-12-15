@@ -60,9 +60,6 @@ namespace detail
     using type = decltype(ezy::size(std::declval<T>()));
   };
 
-  template <typename...>
-  using void_t = void;
-
   template <typename T>
   struct size_type<T, void_t<typename ezy::remove_cvref_t<T>::size_type>>
   {
