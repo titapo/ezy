@@ -160,12 +160,6 @@ constexpr bool is_even(int i) noexcept
   return (i % 2) == 0;
 }
 
-constexpr auto is_odd = [](int i)
-{
-  return !is_even(i);
-};
-
-
 SCENARIO("nullable_if")
 {
 
@@ -238,6 +232,10 @@ SCENARIO("do not compile")
 
   GIVEN("a nullable type with a lambda type does not compile")
   {
+    // constexpr auto is_odd = [](int i)
+    // {
+    //   return !is_even(i);
+    // };
     // It could if stateless lambda was default constructible.
     //using NumberNotOdd = ezy::strong_type<int, void,
     //    ezy::features::experimental::nullable_if<decltype(is_odd)>::impl
