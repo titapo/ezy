@@ -9,8 +9,7 @@ namespace ezy
 {
 namespace features
 {
-  template <typename T>
-  using printable = typename left_shiftable_with<std::ostream&>::template impl<T>;
+  using printable = left_shiftable_with<std::ostream&>;
 }
 }
 

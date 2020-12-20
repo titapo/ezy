@@ -72,8 +72,11 @@ namespace ezy::features
     using rebind_error_t = typename rebind_error<NewError>::type;
   };
 
-  template <typename T>
-  using result_like_continuation = typename result_interface<result_adapter>::continuation<T>;
+  struct result_like_continuation
+  {
+    template <typename T>
+    using impl = typename result_interface<result_adapter>::impl<T>;
+  };
 
 }
 

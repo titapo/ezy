@@ -8,32 +8,41 @@ namespace ezy
 {
 namespace features
 {
-  template <typename T>
   struct addable
   {
-    friend T operator+(T const& lhs, T const& rhs) { return T(lhs.get() + rhs.get()); }
-
-    friend T& operator+=(T& lhs, T const& rhs)
+    template <typename T>
+    struct impl
     {
-      lhs.get() += rhs.get();
-      return lhs;
-    }
+      friend T operator+(T const& lhs, T const& rhs) { return T(lhs.get() + rhs.get()); }
+
+      friend T& operator+=(T& lhs, T const& rhs)
+      {
+        lhs.get() += rhs.get();
+        return lhs;
+      }
+    };
   };
 
-  template <typename T>
   struct subtractable
   {
-    friend T operator-(T const& lhs, T const& rhs) { return T(lhs.get() - rhs.get()); }
-
-    friend T& operator-=(T& lhs, T const& rhs)
+    template <typename T>
+    struct impl
     {
-      lhs.get() -= rhs.get();
-      return lhs;
-    }
+      friend T operator-(T const& lhs, T const& rhs) { return T(lhs.get() - rhs.get()); }
+
+      friend T& operator-=(T& lhs, T const& rhs)
+      {
+        lhs.get() -= rhs.get();
+        return lhs;
+      }
+    };
   };
 
-  template <typename T>
-  struct additive : addable<T>, subtractable<T> {};
+  struct additive
+  {
+    template <typename T>
+    struct impl : addable::impl<T>, subtractable::impl<T> {};
+  };
 
   namespace detail
   {
@@ -53,58 +62,73 @@ namespace features
 
   }
 
-  template <typename T>
   struct equal_comparable
   {
-    friend constexpr bool operator==(const T& lhs, const T& rhs)
+    template <typename T>
+    struct impl
     {
-      return lhs.get() == rhs.get();
-    }
+      friend constexpr bool operator==(const T& lhs, const T& rhs)
+      {
+        return lhs.get() == rhs.get();
+      }
 
-    friend constexpr bool operator!=(const T& lhs, const T& rhs)
-    {
-      return detail::not_equal(
-          lhs.get(),
-          rhs.get(),
-          ezy::detail::priority_tag<1>{}
-          );
-    }
+      friend constexpr bool operator!=(const T& lhs, const T& rhs)
+      {
+        return detail::not_equal(
+            lhs.get(),
+            rhs.get(),
+            ezy::detail::priority_tag<1>{}
+            );
+      }
+    };
   };
 
-  template <typename T>
   struct greater
   {
-    friend bool operator>(const T& lhs, const T& rhs)
+    template <typename T>
+    struct impl
     {
-      return lhs.get() > rhs.get();
-    }
+      friend bool operator>(const T& lhs, const T& rhs)
+      {
+        return lhs.get() > rhs.get();
+      }
+    };
   };
 
-  template <typename T>
   struct greater_equal
   {
-    friend bool operator>=(const T& lhs, const T& rhs)
+    template <typename T>
+    struct impl
     {
-      return rhs.get() >= rhs.get();
-    }
+      friend bool operator>=(const T& lhs, const T& rhs)
+      {
+        return rhs.get() >= rhs.get();
+      }
+    };
   };
 
-  template <typename T>
   struct less
   {
-    friend bool operator<(const T& lhs, const T& rhs)
+    template <typename T>
+    struct impl
     {
-      return lhs.get() < rhs.get();
-    }
+      friend bool operator<(const T& lhs, const T& rhs)
+      {
+        return lhs.get() < rhs.get();
+      }
+    };
   };
 
-  template <typename T>
   struct less_equal
   {
-    friend bool operator<=(const T& lhs, const T& rhs)
+    template <typename T>
+    struct impl
     {
-      return lhs.get() <= rhs.get();
-    }
+      friend bool operator<=(const T& lhs, const T& rhs)
+      {
+        return lhs.get() <= rhs.get();
+      }
+    };
   };
 
   namespace detail
@@ -174,14 +198,23 @@ namespace features
     };
   };
 
-  template <typename T>
-  using closed_multipliable = typename closed_multipliable_by<T>::template impl<T>;
+  struct closed_multipliable
+  {
+    template <typename T>
+    using impl = typename closed_multipliable_by<T>::template impl<T>;
+  };
 
-  template <typename T>
-  using multipliable_with_underlying = typename multiplication_by_results<ezy::extract_underlying_type_t<T>, T>::template impl<T>;
+  struct multipliable_with_underlying
+  {
+    template <typename T>
+    using impl = typename multiplication_by_results<ezy::extract_underlying_type_t<T>, T>::template impl<T>;
+  };
 
-  template <typename T>
-  using multipliable = multipliable_with_underlying<T>;
+  struct multipliable
+  {
+    template <typename T>
+    using impl = multipliable_with_underlying::impl<T>;
+  };
 
   // division
   template <typename Divisor, typename Result>
@@ -238,19 +271,31 @@ namespace features
     };
   };
 
-  template <typename T>
-  using closed_divisible = typename closed_divisible_by<T>::template impl<T>;
+  struct closed_divisible
+  {
+    template <typename T>
+    using impl = typename closed_divisible_by<T>::template impl<T>;
+  };
 
   //scalar means underlying here
-  template <typename T>
-  using divisible_by_scalar = typename division_by_results<ezy::extract_underlying_type_t<T>, T>::template impl<T>;
+  struct divisible_by_scalar
+  {
+    template <typename T>
+    using impl = typename division_by_results<ezy::extract_underlying_type_t<T>, T>::template impl<T>;
+  };
 
-  template <typename T>
-  using division_results_scalar = typename division_by_results<T, ezy::extract_underlying_type_t<T>>::template impl<T>;
+  struct division_results_scalar
+  {
+    template <typename T>
+    using impl = typename division_by_results<T, ezy::extract_underlying_type_t<T>>::template impl<T>;
+  };
 
-  template <typename T>
-  struct divisible : divisible_by_scalar<T>, division_results_scalar<T>
-  {};
+  struct divisible
+  {
+    template <typename T>
+    struct impl : divisible_by_scalar::impl<T>, division_results_scalar::impl<T>
+    {};
+  };
 
   template <typename N>
   struct multiplicative_by
@@ -261,16 +306,22 @@ namespace features
     };
   };
 
-  template <typename T>
-  struct multiplicative : multipliable<T>, divisible<T> {};
+  struct multiplicative
+  {
+    template <typename T>
+    struct impl : multipliable::impl<T>, divisible::impl<T> {};
+  };
 
-  template <typename T>
   struct negatable
   {
-    friend T operator-(const T& t)
+    template <typename T>
+    struct impl
     {
-      return T{-t.get()};
-    }
+      friend T operator-(const T& t)
+      {
+        return T{-t.get()};
+      }
+    };
   };
 
 }}

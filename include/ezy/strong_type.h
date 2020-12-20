@@ -90,8 +90,14 @@ namespace ezy
     };
   }
 
-  template <typename T, typename Tag, template<typename> class... Features>
-  class strong_type : public detail::strong_type_base<T, detail::is_tag_extended<Tag>::value>, public Features<strong_type<T, Tag, Features...>>...
+  template <typename Feature, typename ST>
+  using impl_t = typename Feature::template impl<ST>;
+
+  //template <typename T, typename Tag, template<typename> class... Features>
+  //class strong_type : public detail::strong_type_base<T, detail::is_tag_extended<Tag>::value>, public Features<strong_type<T, Tag, Features...>>...
+  template <typename T, typename Tag, typename... Features>
+  class strong_type : public detail::strong_type_base<T, detail::is_tag_extended<Tag>::value>,
+                      public impl_t<Features, strong_type<T, Tag, Features...>>...
   {
     public:
       using type = T;
@@ -102,28 +108,28 @@ namespace ezy
   };
 
   // TODO if not already a reference?
-  template <typename T, typename Tag, template<typename> class... Features>
+  template <typename T, typename Tag, typename... Features>
   using strong_type_reference = strong_type<typename std::add_lvalue_reference<T>::type, Tag, Features...>;
 
-  template <typename Tag, template <typename> class... Features, typename T>
+  template <typename Tag, typename... Features, typename T>
   constexpr auto make_strong(T&& t)
   {
     return strong_type<ezy::remove_cvref_t<T>, Tag, Features...>(std::forward<T>(t));
   }
 
-  template <typename Tag, template <typename> class... Features, typename T>
+  template <typename Tag, typename... Features, typename T>
   constexpr auto make_strong_const(T&& t)
   {
     return strong_type<std::add_const_t<ezy::remove_cvref_t<T>>, Tag, Features...>(std::forward<T>(t));
   }
 
-  template <typename Tag, template <typename> class... Features, typename T>
+  template <typename Tag, typename... Features, typename T>
   constexpr auto make_strong_reference(T&& t)
   {
     return strong_type_reference<std::remove_reference_t<T>, Tag, Features...>(std::forward<T>(t));
   }
 
-  template <typename Tag, template <typename> class... Features, typename T>
+  template <typename Tag, typename... Features, typename T>
   constexpr auto make_strong_reference_const(T&& t)
   {
     static_assert(std::is_lvalue_reference<T>::value, "Cannot form reference to an rvalue!");
@@ -135,31 +141,31 @@ namespace ezy
    * interface or capabilities, the tag is mostly irrelevant: it doesn't really matter if two types are
    * accidentally the same. (Currently extended_tag_t is a void, but users should not depend on it.)
    */
-  template <typename T, template <typename> class... Features>
+  template <typename T, typename... Features>
   using extended_type = strong_type<T, extended_tag_t, Features...>;
 
-  template <typename T, template <typename> class... Features>
+  template <typename T, typename... Features>
   using extended_type_reference = strong_type_reference<T, extended_tag_t, Features...>;
 
-  template <template <typename> class... Features, typename T>
+  template <typename... Features, typename T>
   constexpr auto make_extended(T&& t)
   {
     return make_strong<extended_tag_t, Features...>(std::forward<T>(t));
   }
 
-  template <template <typename> class... Features, typename T>
+  template <typename... Features, typename T>
   constexpr auto make_extended_const(T&& t)
   {
     return make_strong_const<extended_tag_t, Features...>(std::forward<T>(t));
   }
 
-  template <template <typename> class... Features, typename T>
+  template <typename... Features, typename T>
   constexpr auto make_extended_reference(T&& t)
   {
     return make_strong_reference<extended_tag_t, Features...>(std::forward<T>(t));
   }
 
-  template <template <typename> class... Features, typename T>
+  template <typename... Features, typename T>
   constexpr auto make_extended_reference_const(T&& t)
   {
     return make_strong_reference_const<extended_tag_t, Features...>(std::forward<T>(t));

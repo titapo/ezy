@@ -54,23 +54,29 @@ namespace ezy::features::experimental
 
   };
 
-  template <typename T>
-  struct nullable :
-    ezy::features::experimental::default_nullable<T>::impl,
-    ezy::features::result_interface
-    <
-      adapter_for_nullable<ezy::features::experimental::default_nullable>::apply
-    >::continuation<T>
-  {};
+  struct nullable
+  {
+    template <typename T>
+    struct impl :
+      ezy::features::experimental::default_nullable::impl<T>,
+      ezy::features::result_interface
+      <
+        adapter_for_nullable<ezy::features::experimental::default_nullable::impl>::apply
+      >::impl<T>
+    {};
+  };
 
-  template <typename T>
-  struct nullable_ptr :
-    ezy::features::experimental::basic_nullable_ptr<T>,
-    ezy::features::result_interface
-    <
-      adapter_for_nullable<ezy::features::experimental::basic_nullable_ptr>::apply
-    >::continuation<T>
-  {};
+  struct nullable_ptr
+  {
+    template <typename T>
+    struct impl :
+      ezy::features::experimental::basic_nullable_ptr::impl<T>,
+      ezy::features::result_interface
+      <
+        adapter_for_nullable<ezy::features::experimental::basic_nullable_ptr::impl>::apply
+      >::impl<T>
+    {};
+  };
 }
 #endif
 

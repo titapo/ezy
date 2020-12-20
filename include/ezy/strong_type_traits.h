@@ -14,7 +14,7 @@ namespace ezy
   struct is_strong_type : std::false_type
   {};
 
-  template <typename T, typename Tag, template<typename> class... Features>
+  template <typename T, typename Tag, typename... Features>
   struct is_strong_type<strong_type<T, Tag, Features...>> : std::true_type
   {};
 
@@ -24,7 +24,7 @@ namespace ezy
   template <typename S>
   struct extract_underlying_type;
 
-  template <typename T, typename Tag, template <typename> class... Features>
+  template <typename T, typename Tag, typename... Features>
   struct extract_underlying_type<strong_type<T, Tag, Features...>>
   {
     using type = T;
@@ -51,7 +51,7 @@ namespace ezy
   {
   };
 
-  template <typename T, typename Tag, template <typename> class... Features>
+  template <typename T, typename Tag, typename... Features>
   struct extract_tag<strong_type<T, Tag, Features...>>
   {
     using type = Tag;
@@ -68,86 +68,39 @@ namespace ezy
   {
   };
 
-  template <typename T, typename Tag, template <typename> class... Features>
+  template <typename T, typename Tag, typename... Features>
   struct extract_features<strong_type<T, Tag, Features...>>
   {
-    using type = std::tuple<Features<strong_type<T, Tag, Features...>>...>;
+    using type = std::tuple<Features...>;
   };
 
   template <typename... Args>
   using extract_features_t = typename extract_features<Args...>::type;
 
   /**
-   * extract_wrapped_features
-   */
-  namespace detail
-  {
-    template <template <typename> class>
-    struct feature_wrapper {};
-
-    template <typename Feature>
-    struct wrap_feature;
-
-    template <template <typename> class Feature, typename T>
-    struct wrap_feature<Feature<T>>
-    {
-      using type = feature_wrapper<Feature>;
-    };
-
-    template <typename Feature>
-    using wrap_feature_t = typename wrap_feature<Feature>::type;
-  }
-
-  template <typename ST>
-  struct extract_wrapped_features
-  {
-    using type = ezy::tuple_traits::map_t<ezy::extract_features_t<ST>, detail::wrap_feature_t>;
-  };
-
-  template <typename ST>
-  using extract_wrapped_features_t = typename extract_wrapped_features<ST>::type;
-
-  /**
    * rebind_features
    */
-  namespace detail
-  {
-    template <typename Feature, typename T>
-    struct rebind_feature;
-
-    template <template <typename> class Feature, typename ST, typename T>
-    struct rebind_feature<Feature<ST>, T>
-    {
-      using type = Feature<T>;
-    };
-
-    template <typename Feature, typename T>
-    using rebind_feature_t = typename rebind_feature<Feature, T>::type;
-  }
-
-  template <typename ST, template <typename> class... NewFeatures>
+  template <typename ST, typename... NewFeatures>
   struct rebind_features
   {};
 
-  template <typename T, typename Tag, template <typename> class... OldFeatures, template <typename> class... NewFeatures>
+  template <typename T, typename Tag, typename... OldFeatures, typename... NewFeatures>
   struct rebind_features<strong_type<T, Tag, OldFeatures...>, NewFeatures...>
   {
     using type = strong_type<T, Tag, NewFeatures...>;
   };
 
-  template <typename ST, template <typename> class... NewFeatures>
+  template <typename ST, typename... NewFeatures>
   using rebind_features_t = typename rebind_features<ST, NewFeatures...>::type;
 
   /**
    * rebind_features_from_tuple
-   *
-   * tuple must contain detail::feature_wrapper<> types
    */
   template <typename ST, typename FeaturesTuple>
-  struct rebind_features_from_tuple;
+  struct rebind_features_from_tuple {};
 
-  template <typename ST, template <typename> class... Features>
-  struct rebind_features_from_tuple<ST, std::tuple<detail::feature_wrapper<Features>...>>
+  template <typename ST, typename... Features>
+  struct rebind_features_from_tuple<ST, std::tuple<Features...>>
   {
     using type = ezy::rebind_features_t<ST, Features...>;
   };
@@ -167,7 +120,7 @@ namespace ezy
   template <typename ST, typename OtherST>
   struct rebind_features_from_other
   {
-    using type = rebind_features_from_tuple_t<ST, extract_wrapped_features_t<OtherST> >;
+    using type = rebind_features_from_tuple_t<ST, extract_features_t<OtherST>>;
   };
 
   template <typename ST, typename OtherST>
@@ -196,7 +149,7 @@ namespace ezy
   struct rebind_strong_type
   {};
 
-  template <typename T, typename U, typename Tag, template <typename> class... Features>
+  template <typename T, typename U, typename Tag, typename... Features>
   struct rebind_strong_type<strong_type<T, Tag, Features...>, U>
   {
     using type = strong_type<U, Tag, Features...>;
@@ -210,7 +163,7 @@ namespace ezy
    */
   namespace detail
   {
-    template <typename T, typename Tag, template <typename> class... Features>
+    template <typename T, typename Tag, typename... Features>
     auto strong_type_base_fn(const ezy::strong_type<T, Tag, Features...>*) -> ezy::strong_type<T, Tag, Features...>;
   }
 
@@ -228,17 +181,18 @@ namespace ezy
    */
   namespace detail
   {
+    // impersonalization is no longer required
     template <typename T>
     struct is_derived_from
     {
       template <typename U>
-      struct impl : std::is_base_of<T, U> {};
+      struct apply : std::is_base_of<T, U> {};
     };
 
     struct impersonal {};
 
     template <typename Feature>
-    using impersonalize_t = detail::rebind_feature_t<Feature, impersonal>;
+    using impersonalize_t = impl_t<Feature, impersonal>;
 
     template <typename ST>
     struct extract_impersonalized_features
@@ -251,14 +205,14 @@ namespace ezy
 
   }
 
-  template <typename ST, template <typename> class Feature>
+  template <typename ST, typename Feature>
   using has_feature =
   ezy::tuple_traits::any_of<
     detail::extract_impersonalized_features_t<ST>,
-    detail::is_derived_from<Feature<detail::impersonal>>::template impl
+    detail::is_derived_from<detail::impersonalize_t<Feature>>::template apply
   >;
 
-  template <typename ST, template <typename> class Feature>
+  template <typename ST, typename Feature>
   constexpr bool has_feature_v = has_feature<ST, Feature>::value;
 }
 

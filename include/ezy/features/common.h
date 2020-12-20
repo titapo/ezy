@@ -35,16 +35,19 @@ namespace features
     { return static_cast<const T&&>(*this).get().operator*(); }
   };
 
-  template <typename T>
   struct operator_subscript
   {
-    using size_type_local = size_t;// typename base::self_type::type::size_type;
+    template <typename T>
+    struct impl
+    {
+      using size_type_local = size_t;// typename base::self_type::type::size_type;
 
-    constexpr decltype(auto) operator[](size_type_local pos)
-    { return static_cast<T&>(*this).get()[pos]; }
+      constexpr decltype(auto) operator[](size_type_local pos)
+      { return static_cast<T&>(*this).get()[pos]; }
 
-    constexpr decltype(auto) operator[](size_type_local pos) const
-    { return static_cast<const T&>(*this).get()[pos]; }
+      constexpr decltype(auto) operator[](size_type_local pos) const
+      { return static_cast<const T&>(*this).get()[pos]; }
+    };
   };
 
   /**

@@ -41,8 +41,8 @@ SCENARIO("compilation tests")
 
   static_assert(std::is_same_v<ezy::extract_features_t<Simple>, std::tuple<>>);
   static_assert(std::is_same_v<ezy::extract_features_t<SimpleRef>, std::tuple<>>);
-  static_assert(std::is_same_v<ezy::extract_features_t<OneFeature>, std::tuple<ezy::features::addable<OneFeature>>>);
-  static_assert(std::is_same_v<ezy::extract_features_t<MoreFeatures>, std::tuple<ezy::features::addable<MoreFeatures>, ezy::features::subtractable<MoreFeatures>, ezy::features::equal_comparable<MoreFeatures>>>);
+  static_assert(std::is_same_v<ezy::extract_features_t<OneFeature>, std::tuple<ezy::features::addable>>);
+  static_assert(std::is_same_v<ezy::extract_features_t<MoreFeatures>, std::tuple<ezy::features::addable, ezy::features::subtractable, ezy::features::equal_comparable>>);
 
   static_assert(std::is_same_v<ezy::strip_strong_type_t<Simple>, Simple>);
   static_assert(std::is_same_v<ezy::strip_strong_type_t<SimpleRef>, SimpleRef>);
@@ -75,7 +75,7 @@ SCENARIO("compilation tests")
   static_assert(std::is_same_v<ezy::rebind_features_t<MoreFeatures, ezy::features::addable>, OneFeature>);
 
   static_assert(std::is_same_v<
-      ezy::rebind_features_from_tuple_t<Simple, std::tuple<ezy::detail::feature_wrapper<ezy::features::addable>>>,
+      ezy::rebind_features_from_tuple_t<Simple, std::tuple<ezy::features::addable>>,
       OneFeature
       >);
 

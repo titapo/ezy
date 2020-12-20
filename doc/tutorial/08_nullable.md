@@ -51,7 +51,7 @@ value to represent absense. For now it will be `-1`.
 
 ```cpp
   using NullableAs = ezy::strong_type<int, struct NullableAsTag,
-        ezy::features::experimental::basic_nullable_as<ezy::experimental::value_provider<-1>>::impl>;
+        ezy::features::experimental::basic_nullable_as<ezy::experimental::value_provider<-1>>>;
 ```
 
 `nullable_as<>` takes a function object which returns a value treated as null, here we are using
@@ -90,7 +90,7 @@ second parameter, for example: 'value is considered to be null if it's less than
         ezy::features::experimental::nullable_as<
           ezy::experimental::value_provider<-1>,
           std::less_equal<>
-        >::impl
+        >
       >;
 
   static_assert(Nullable{10}.has_value());
@@ -122,7 +122,8 @@ string empty?'. Here `nullable_if` will be used:
   using NullableStr = ezy::strong_type<std::string, struct Tag,
         ezy::features::experimental::nullable_if<
           decltype(&std::string::empty)
-          >::impl
+          >
+    >;
 ```
 
 The problem is: this does not compile. If it did, it would crash: its type is a pointer so technically
@@ -144,7 +145,7 @@ managed in compile time as a template parameter. This simple helper exactly does
   using NullableStr = ezy::strong_type<std::string, struct Tag,
         ezy::features::experimental::nullable_if<
           fn_wrap<&std::string::empty>
-          >::impl
+          >
     >;
 ```
 

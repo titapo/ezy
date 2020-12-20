@@ -92,7 +92,7 @@ bool is_empty(const std::string& s)
 SCENARIO("nullable_as")
 {
   using Number = ezy::strong_type<int, void,
-        ezy::features::experimental::nullable_as<ezy::experimental::value_provider<-1>>::impl
+        ezy::features::experimental::nullable_as<ezy::experimental::value_provider<-1>>
   >;
 
   GIVEN("a default constructed instance")
@@ -144,7 +144,7 @@ SCENARIO("basic nullable condition can be specified")
   };
 
   using Number = ezy::strong_type<int, void,
-        ezy::features::experimental::nullable_as<ezy::experimental::value_provider<5>, is_divisible_fn>::impl>;
+        ezy::features::experimental::nullable_as<ezy::experimental::value_provider<5>, is_divisible_fn>>;
 
   static_assert(Number::is_consistent());
   REQUIRE(Number::is_consistent());
@@ -171,7 +171,7 @@ SCENARIO("nullable_if")
     }
   };
 
-  using Number = ezy::strong_type<int, void, ezy::features::experimental::nullable_if<is_negative_fn>::impl>;
+  using Number = ezy::strong_type<int, void, ezy::features::experimental::nullable_if<is_negative_fn>>;
   GIVEN("positive number")
   {
     Number positive{20};
@@ -198,11 +198,11 @@ SCENARIO("do not compile")
 {
   GIVEN("nullable with an ordinary function")
   {
-    //using Number = ezy::strong_type<int, void, ezy::features::experimental::nullable_as<decltype(return_10)>::impl>;
+    //using Number = ezy::strong_type<int, void, ezy::features::experimental::nullable_as<decltype(return_10)>>;
     //Number n{};
     //n.has_value();
     //using Number2 = ezy::strong_type<int, void,
-    //    ezy::features::experimental::nullable_as<decltype(return_10), decltype(is_zero)>::impl
+    //    ezy::features::experimental::nullable_as<decltype(return_10), decltype(is_zero)>
     //>;
     //(void)Number2{};
   }
@@ -210,14 +210,14 @@ SCENARIO("do not compile")
   GIVEN("a string with a member function should not compile")
   {
 
-    //using N = ezy::strong_type<int, void, ezy::features::experimental::nullable_if<decltype(is_zero)>::impl>;
+    //using N = ezy::strong_type<int, void, ezy::features::experimental::nullable_if<decltype(is_zero)>>;
     //(void)N{};
     //using Str = ezy::strong_type<std::string, void,
-    //    ezy::features::experimental::nullable_if<decltype(is_empty)>::impl
+    //    ezy::features::experimental::nullable_if<decltype(is_empty)>
     //>;
     //(void)Str{};
     //using Str = ezy::strong_type<std::string, void,
-    //    ezy::features::experimental::nullable_if<decltype(&std::string::empty)>::impl
+    //    ezy::features::experimental::nullable_if<decltype(&std::string::empty)>
     //>;
     //(void)Str{};
   }
@@ -225,7 +225,7 @@ SCENARIO("do not compile")
   GIVEN("a nullable type with an function type should not compile")
   {
     //using NumberNotEven = ezy::strong_type<int, void,
-    //    ezy::features::experimental::nullable_if<decltype(is_even)>::impl
+    //    ezy::features::experimental::nullable_if<decltype(is_even)>
     //>;
     //(void)NumberNotEven{};
   }
@@ -238,7 +238,7 @@ SCENARIO("do not compile")
     // };
     // It could if stateless lambda was default constructible.
     //using NumberNotOdd = ezy::strong_type<int, void,
-    //    ezy::features::experimental::nullable_if<decltype(is_odd)>::impl
+    //    ezy::features::experimental::nullable_if<decltype(is_odd)>
     //>;
     //(void)NumberNotOdd{};
   }
@@ -341,7 +341,7 @@ SCENARIO("pointer")
     WHEN("mapped to a type whose null is not a default")
     {
       using Number = ezy::strong_type<int, void,
-            ezy::features::experimental::nullable_as<ezy::experimental::value_provider<5>>::impl>;
+            ezy::features::experimental::nullable_as<ezy::experimental::value_provider<5>>>;
 
       const auto mapped = ptr.map<Number>(plus_one_and_multiply);
       REQUIRE(!mapped.has_value());

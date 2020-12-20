@@ -7,7 +7,7 @@ namespace ezy
 {
   template <typename T>
   using optional = strong_type<std::optional<T>, notag_t,
-        features::result_interface<features::optional_adapter>::continuation,
+        features::result_interface<features::optional_adapter>,
         features::inherit_std_optional
       >;
 }

@@ -51,12 +51,15 @@ namespace ezy::features
     };
   }
 
-  template <typename T>
-  struct inherit_std_optional :
-    detail::inherit_std_optional_helper<T>,
-    operator_arrow<T>,
-    operator_star<T>
-  {};
+  struct inherit_std_optional
+  {
+    template <typename T>
+    struct impl :
+      detail::inherit_std_optional_helper<T>,
+      operator_arrow<T>,
+      operator_star<T>
+    {};
+  };
 
   /**
    * adapter for features::result_inferface

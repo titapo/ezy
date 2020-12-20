@@ -219,15 +219,21 @@ namespace experimental
     };
   };
 
-  template <typename T>
-  using default_nullable = typename nullable_as<detail::default_ctor_of_plain_type<T>>::template impl<T>;
+  struct default_nullable
+  {
+    template <typename T>
+    using impl = typename nullable_as<detail::default_ctor_of_plain_type<T>>::template impl<T>;
+  };
 
-  template <typename T>
-  using basic_nullable_ptr = typename nullable_as<
-    std::integral_constant<std::nullptr_t, nullptr>,
-    std::equal_to<>,
-    detail::dereference_fn
-  >::template impl<T>;
+  struct basic_nullable_ptr
+  {
+    template <typename T>
+    using impl = typename nullable_as<
+      std::integral_constant<std::nullptr_t, nullptr>,
+      std::equal_to<>,
+      detail::dereference_fn
+    >::template impl<T>;
+  };
 
 }}}
 
