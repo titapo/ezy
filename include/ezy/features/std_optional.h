@@ -11,39 +11,37 @@ namespace ezy::features
   namespace detail
   {
     template <typename T>
-    struct inherit_std_optional_helper : feature<T, inherit_std_optional_helper>
+    struct inherit_std_optional_helper
     {
-      using base = feature<T, inherit_std_optional_helper>;
-
       /* operator bool */
       constexpr explicit operator bool() const noexcept
-      { return static_cast<bool>((*this).underlying()); }
+      { return static_cast<bool>(static_cast<const T&>(*this).get()); }
 
       /* has_value() */
       constexpr bool has_value() const noexcept
-      { return (*this).underlying().has_value(); }
+      { return static_cast<const T&>(*this).get().has_value(); }
 
       /* value() */
       constexpr decltype(auto) value() &
-      { return (*this).underlying().value(); }
+      { return static_cast<T&>(*this).get().value(); }
 
       constexpr decltype(auto) value() const &
-      { return (*this).underlying().value(); }
+      { return static_cast<const T&>(*this).get().value(); }
 
       constexpr decltype(auto) value() &&
-      { return std::move(*this).underlying().value(); }
+      { return static_cast<T&&>(*this).get().value(); }
 
       constexpr decltype(auto) value() const &&
-      { return std::move(*this).underlying().value(); }
+      { return static_cast<const T&&>(*this).get().value(); }
 
       /* value_or() */
       template <typename U>
       constexpr decltype(auto) value_or(U&& default_value) const &
-      { return (*this).underlying().value_or(std::forward<U>(default_value)); }
+      { return static_cast<const T&>(*this).get().value_or(std::forward<U>(default_value)); }
 
       template <typename U>
       constexpr decltype(auto) value_or(U&& default_value) &&
-      { return std::move(*this).underlying().value_or(std::forward<U>(default_value)); }
+      { return static_cast<T&&>(*this).get().value_or(std::forward<U>(default_value)); }
 
       // TODO consider to add
       // operator=
@@ -53,12 +51,15 @@ namespace ezy::features
     };
   }
 
-  template <typename T>
-  struct inherit_std_optional :
-    detail::inherit_std_optional_helper<T>,
-    operator_arrow<T>,
-    operator_star<T>
-  {};
+  struct inherit_std_optional
+  {
+    template <typename T>
+    struct impl :
+      detail::inherit_std_optional_helper<T>,
+      operator_arrow<T>,
+      operator_star<T>
+    {};
+  };
 
   /**
    * adapter for features::result_inferface

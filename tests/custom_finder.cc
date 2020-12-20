@@ -84,8 +84,7 @@ SCENARIO("custom find if")
 
 #include <ezy/features/algo_custom_find.h>
 
-template <typename T>
-using my_find_feature = ezy::features::algo_custom_find<fake_result_maker>::impl<T>;
+using my_find_feature = ezy::features::algo_custom_find<fake_result_maker>;
 
 #include <ezy/strong_type.h>
 

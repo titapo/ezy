@@ -299,7 +299,7 @@ SCENARIO("result-like continuation")
   GIVEN("map<Result>")
   {
     using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
-    using Opt = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    using Opt = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>>;
     const R r{11};
     REQUIRE(r.map<Opt>(twice).get().value() == 22);
   }
@@ -307,7 +307,7 @@ SCENARIO("result-like continuation")
   GIVEN("map<Result> on mutable")
   {
     using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
-    using Opt = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    using Opt = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>>;
     R r{12};
     REQUIRE(r.map<Opt>(twice_mutable).get().value() == 24);
   }
@@ -315,7 +315,7 @@ SCENARIO("result-like continuation")
   GIVEN("map<Result> on rvalue-ref")
   {
     using R = ezy::strong_type<std::variant<move_only, std::string>, void, ezy::features::result_like_continuation>;
-    using Opt = ezy::strong_type<std::optional<move_only>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    using Opt = ezy::strong_type<std::optional<move_only>, void, ezy::features::result_interface<ezy::features::optional_adapter>>;
     REQUIRE(R{move_only{9}}.map<Opt>(twice_move).get().value().i == 18);
   }
 
@@ -352,7 +352,7 @@ SCENARIO("result-like continuation")
   GIVEN("map_error<Result> from optional")
   {
     constexpr auto null_to_str = [](std::nullopt_t) { return "none"; };
-    using Opt = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    using Opt = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>>;
     using R = ezy::strong_type<std::variant<int, std::string>, void, ezy::features::result_like_continuation>;
     WHEN("called on {21}")
     {
@@ -570,7 +570,7 @@ SCENARIO("result like interface for std::optional")
 {
   auto twice = [](int i) {return i*2;};
 
-  using O = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+  using O = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>>;
   auto half = [](int i) -> O {if (i % 2 == 0) return O{i / 2}; else return O{std::nullopt};};
   GIVEN("map")
   {
@@ -587,7 +587,7 @@ SCENARIO("result like interface for std::optional")
 
   GIVEN("map -- properly moves")
   {
-    using Om = ezy::strong_type<std::optional<move_only>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    using Om = ezy::strong_type<std::optional<move_only>, void, ezy::features::result_interface<ezy::features::optional_adapter>>;
     move_only result{4};
     REQUIRE(Om{move_only{10}}.map([&](move_only&& m) { result = std::move(m); return 2.0;}).get().value() == 2.0);
     REQUIRE(result.i == 10);
@@ -596,7 +596,7 @@ SCENARIO("result like interface for std::optional")
   WHEN("map_or called on it")
   THEN("string not need to be passed on parameter side") // not created internally
   {
-    using O = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    using O = ezy::strong_type<std::optional<int>, void, ezy::features::result_interface<ezy::features::optional_adapter>>;
     auto result = O{std::nullopt}.map_or(ezy::to_string, "foo");
     static_assert(std::is_same_v<decltype(result), std::string>);
     REQUIRE(result == "foo");
@@ -627,7 +627,7 @@ SCENARIO("result like interface for std::optional")
 
   GIVEN("and_then -- properly moves")
   {
-    using Om = ezy::strong_type<std::optional<move_only>, void, ezy::features::result_interface<ezy::features::optional_adapter>::continuation>;
+    using Om = ezy::strong_type<std::optional<move_only>, void, ezy::features::result_interface<ezy::features::optional_adapter>>;
     move_only result{4};
     REQUIRE(Om{move_only{10}}.and_then([&](move_only&& m) { result = std::move(m); return Om{2};}).get().value().i == 2);
     REQUIRE(result.i == 10);
@@ -1374,7 +1374,7 @@ SCENARIO("strong type integer arithmetic")
 
   WHEN("division_by_results")
   {
-    using Div = ezy::strong_type<int, struct Tag, ezy::features::division_by_results<float, double>::impl>;
+    using Div = ezy::strong_type<int, struct Tag, ezy::features::division_by_results<float, double>>;
     Div a{10};
     static_assert(std::is_same_v<decltype(a/5.1), double>);
     static_assert(std::is_same_v<decltype(a/5), double>);

@@ -1,27 +1,27 @@
 #ifndef EZY_FEATURES_ALGO_FIND_H_INCLUDED
 #define EZY_FEATURES_ALGO_FIND_H_INCLUDED
 
-#include <ezy/feature.h>
 #include <ezy/bits/find.h>
 
 namespace ezy::features
 {
-  template <typename T>
-  struct algo_find : feature<T, algo_find>
+  struct algo_find
   {
-    using base = feature<T, algo_find>;
-
-    template <typename Element>
-    auto find(Element&& element) const
+    template <typename T>
+    struct impl
     {
-      return ezy::find((*this).underlying(), std::forward<Element>(element));
-    }
+      template <typename Element>
+      auto find(Element&& element) const
+      {
+        return ezy::find(static_cast<const T&>(*this).get(), std::forward<Element>(element));
+      }
 
-    template <typename Predicate>
-    auto find_if(Predicate&& predicate) const
-    {
-      return ezy::find_if((*this).underlying(), std::forward<Predicate>(predicate));
-    }
+      template <typename Predicate>
+      auto find_if(Predicate&& predicate) const
+      {
+        return ezy::find_if(static_cast<const T&>(*this).get(), std::forward<Predicate>(predicate));
+      }
+    };
   };
 }
 

@@ -1,7 +1,6 @@
 #ifndef EZY_FEATURES_NULLABLE_H_INCLUDED
 #define EZY_FEATURES_NULLABLE_H_INCLUDED
 
-#include "../feature.h"
 #include "../strong_type_traits.h"
 #include "../invoke.h"
 
@@ -52,12 +51,8 @@ namespace experimental
       using unwrapper_type = Unwrapper;
 
       template <typename T>
-      struct impl : ezy::feature<T, impl>
+      struct impl
       {
-        using base = ezy::feature<T, impl>;
-        using base::self;
-
-
         template <typename U>
         static constexpr decltype(auto) value_impl(U&& ult)
         {
@@ -67,20 +62,21 @@ namespace experimental
         // if the underlying type has op* this should be used by default
         constexpr decltype(auto) value()
         {
-          return value_impl(base::underlying());
+          return value_impl(static_cast<T&>(*this).get());
         }
 
         constexpr decltype(auto) value() const
         {
-          return value_impl(base::underlying());
+          return value_impl(static_cast<const T&>(*this).get());
         }
+
+        // TODO && overload
       };
     };
 
     template <typename NoneProvider, typename NoneChecker = std::equal_to<>>
     struct null_checker_with_binary_predicate
     {
-
       static_assert(std::is_empty<NoneProvider>::value,
           "NoneProvider must not have internal state!");
 
@@ -88,13 +84,10 @@ namespace experimental
           "NoneChecker must not have internal state!");
 
       template <typename T>
-      struct impl : ezy::feature<T, impl>
+      struct impl
       {
         using none_provoder_type = NoneProvider;
         using none_checker_type = NoneChecker;
-
-        using base = ezy::feature<T, impl>;
-        using base::self;
 
         static constexpr auto make_underlying_null()
         {
@@ -114,7 +107,7 @@ namespace experimental
 
         constexpr bool has_value() const
         {
-          return has_value_impl(base::underlying());
+          return has_value_impl(static_cast<const T&>(*this).get());
         }
 
         static constexpr bool is_consistent()
@@ -133,12 +126,9 @@ namespace experimental
           "NoneChecker must not have internal state!");
 
       template <typename T>
-      struct impl : ezy::feature<T, impl>
+      struct impl
       {
         using none_checker_type = NoneChecker;
-
-        using base = ezy::feature<T, impl>;
-        using base::self;
 
         template <typename U>
         static constexpr bool has_value_impl(const U& ult)
@@ -147,9 +137,14 @@ namespace experimental
           return !NoneChecker{}(ult);
         }
 
-        constexpr bool has_value() const
+        constexpr bool has_value() const &
         {
-          return has_value_impl(base::underlying());
+          return has_value_impl(static_cast<const T&>(*this).get());
+        }
+
+        constexpr bool has_value() const &&
+        {
+          return has_value_impl(static_cast<const T&&>(*this).get());
         }
       };
     };
@@ -224,15 +219,21 @@ namespace experimental
     };
   };
 
-  template <typename T>
-  using default_nullable = typename nullable_as<detail::default_ctor_of_plain_type<T>>::template impl<T>;
+  struct default_nullable
+  {
+    template <typename T>
+    using impl = typename nullable_as<detail::default_ctor_of_plain_type<T>>::template impl<T>;
+  };
 
-  template <typename T>
-  using basic_nullable_ptr = typename nullable_as<
-    std::integral_constant<std::nullptr_t, nullptr>,
-    std::equal_to<>,
-    detail::dereference_fn
-  >::template impl<T>;
+  struct basic_nullable_ptr
+  {
+    template <typename T>
+    using impl = typename nullable_as<
+      std::integral_constant<std::nullptr_t, nullptr>,
+      std::equal_to<>,
+      detail::dereference_fn
+    >::template impl<T>;
+  };
 
 }}}
 

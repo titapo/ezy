@@ -1,7 +1,6 @@
 #ifndef EZY_FEATURES_RESULT_INTERFACE_INCLUDED
 #define EZY_FEATURES_RESULT_INTERFACE_INCLUDED
 
-#include "../feature.h"
 #include "../strong_type_traits.h"
 #include "../invoke.h"
 
@@ -66,38 +65,35 @@ namespace features
   struct result_interface
   {
     template <typename T>
-    struct continuation : feature<T, continuation>
+    struct impl
     {
-      using base = feature<T, continuation>;
-      using self_type = continuation;
-
       template <typename... Ts>
       using result_interface_adapter_t = Adapter<Ts...>;
       //using trait_type = Adapter<typename T::type>;
 
       bool is_success() const
-      { return Adapter<typename T::type>::is_success(base::underlying()); }
+      { return Adapter<typename T::type>::is_success(static_cast<const T&>(*this).get()); }
 
       bool is_error() const
       { return !is_success(); }
 
       decltype(auto) success() const &
-      { return Adapter<typename T::type>::get_success((*this).underlying()); }
+      { return Adapter<typename T::type>::get_success(static_cast<const T&>(*this).get()); }
 
       decltype(auto) success() &
-      { return Adapter<typename T::type>::get_success((*this).underlying()); }
+      { return Adapter<typename T::type>::get_success(static_cast<T&>(*this).get()); }
 
       decltype(auto) success() &&
-      { return Adapter<typename T::type>::get_success(std::move(*this).underlying()); }
+      { return Adapter<typename T::type>::get_success(static_cast<T&&>(*this).get()); }
 
       decltype(auto) error() const &
-      { return Adapter<typename T::type>::get_error((*this).underlying()); }
+      { return Adapter<typename T::type>::get_error(static_cast<const T&>(*this).get()); }
 
       decltype(auto) error() &
-      { return Adapter<typename T::type>::get_error((*this).underlying()); }
+      { return Adapter<typename T::type>::get_error(static_cast<T&>(*this).get()); }
 
       decltype(auto) error() &&
-      { return Adapter<typename T::type>::get_error(std::move(*this).underlying()); }
+      { return Adapter<typename T::type>::get_error(static_cast<T&&>(*this).get()); }
 
       // TODO it seems those factory functions do not work with non_transferable types, since T (strong type) does not work.
       template <typename... Ts>
@@ -112,7 +108,7 @@ namespace features
         return T{Adapter<typename T::type>::make_underlying_error(std::forward<Ts>(ts)...)};
       }
 
-      struct impl
+      struct _impl
       {
         template <typename ST, typename Alternative>
         static constexpr decltype(auto) success_or(ST&& t, Alternative&& alternative)
@@ -253,19 +249,19 @@ namespace features
       template <typename Alternative>
       decltype(auto) success_or(Alternative&& alternative) &
       {
-        return impl::success_or(base::self(), std::forward<Alternative>(alternative));
+        return _impl::success_or(static_cast<T&>(*this), std::forward<Alternative>(alternative));
       }
 
       template <typename Alternative>
       decltype(auto) success_or(Alternative&& alternative) const &
       {
-        return impl::success_or(base::self(), std::forward<Alternative>(alternative));
+        return _impl::success_or(static_cast<const T&>(*this), std::forward<Alternative>(alternative));
       }
 
       template <typename Alternative>
       decltype(auto) success_or(Alternative&& alternative) &&
       {
-        return impl::success_or(std::move(*this).self(), std::forward<Alternative>(alternative));
+        return _impl::success_or(static_cast<T&&>(*this), std::forward<Alternative>(alternative));
       }
 
       /**
@@ -274,19 +270,19 @@ namespace features
       template <typename Fn, typename Alternative>
       decltype(auto) map_or(Fn&& fn, Alternative&& alternative) &
       {
-        return impl::map_or((*this).self(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
+        return _impl::map_or(static_cast<T&>(*this), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
       }
 
       template <typename Fn, typename Alternative>
       decltype(auto) map_or(Fn&& fn, Alternative&& alternative) const &
       {
-        return impl::map_or((*this).self(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
+        return _impl::map_or(static_cast<const T&>(*this), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
       }
 
       template <typename Fn, typename Alternative>
       decltype(auto) map_or(Fn&& fn, Alternative&& alternative) &&
       {
-        return impl::map_or(std::move(*this).self(), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
+        return _impl::map_or(static_cast<T&&>(*this), std::forward<Fn>(fn), std::forward<Alternative>(alternative));
       }
 
       /**
@@ -295,19 +291,19 @@ namespace features
       template <typename Fn>
       constexpr decltype(auto) map(Fn&& fn) &
       {
-        return impl::map((*this).self(), std::forward<Fn>(fn));
+        return _impl::map(static_cast<T&>(*this), std::forward<Fn>(fn));
       }
 
       template <typename Fn>
       constexpr decltype(auto) map(Fn&& fn) const &
       {
-        return impl::map((*this).self(), std::forward<Fn>(fn));
+        return _impl::map(static_cast<const T&>(*this), std::forward<Fn>(fn));
       }
 
       template <typename Fn>
       constexpr decltype(auto) map(Fn&& fn) &&
       {
-        return impl::map(std::move(*this).self(), std::forward<Fn>(fn));
+        return _impl::map(static_cast<T&&>(*this), std::forward<Fn>(fn));
       }
 
       /**
@@ -316,19 +312,19 @@ namespace features
       template <typename Result, typename Fn>
       constexpr decltype(auto) map(Fn&& fn) &
       {
-        return impl::template map<Result>((*this).self(), std::forward<Fn>(fn));
+        return _impl::template map<Result>(static_cast<T&>(*this), std::forward<Fn>(fn));
       }
 
       template <typename Result, typename Fn>
       constexpr decltype(auto) map(Fn&& fn) const &
       {
-        return impl::template map<Result>((*this).self(), std::forward<Fn>(fn));
+        return _impl::template map<Result>(static_cast<const T&>(*this), std::forward<Fn>(fn));
       }
 
       template <typename Result, typename Fn>
       constexpr decltype(auto) map(Fn&& fn) &&
       {
-        return impl::template map<Result>(std::move(*this).self(), std::forward<Fn>(fn));
+        return _impl::template map<Result>(static_cast<T&&>(*this), std::forward<Fn>(fn));
       }
 
       /**
@@ -337,19 +333,19 @@ namespace features
       template <typename FnSucc, typename FnErr>
       constexpr decltype(auto) map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &
       {
-        return impl::map_or_else((*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+        return _impl::map_or_else(static_cast<T&>(*this), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
       template <typename FnSucc, typename FnErr>
       constexpr decltype(auto) map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) const &
       {
-        return impl::map_or_else((*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+        return _impl::map_or_else(static_cast<const T&>(*this), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
       template <typename FnSucc, typename FnErr>
       constexpr decltype(auto) map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &&
       {
-        return impl::map_or_else(std::move(*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+        return _impl::map_or_else(static_cast<T&&>(*this), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
       /**
@@ -358,19 +354,19 @@ namespace features
       template <typename Ret, typename FnSucc, typename FnErr>
       constexpr Ret map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &
       {
-        return impl::template map_or_else<Ret>((*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+        return _impl::template map_or_else<Ret>(static_cast<T&>(*this), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
       template <typename Ret, typename FnSucc, typename FnErr>
       constexpr Ret map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) const &
       {
-        return impl::template map_or_else<Ret>((*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+        return _impl::template map_or_else<Ret>(static_cast<const T&>(*this), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
       template <typename Ret, typename FnSucc, typename FnErr>
       constexpr Ret map_or_else(FnSucc&& fn_succ, FnErr&& fn_err) &&
       {
-        return impl::template map_or_else<Ret>(std::move(*this).self(), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
+        return _impl::template map_or_else<Ret>(static_cast<T&&>(*this), std::forward<FnSucc>(fn_succ), std::forward<FnErr>(fn_err));
       }
 
       /**
@@ -379,19 +375,19 @@ namespace features
       template <typename FnErr>
       constexpr decltype(auto) map_error(FnErr&& fn_err) &
       {
-        return impl::map_error((*this).self(), std::forward<FnErr>(fn_err));
+        return _impl::map_error(static_cast<T&>(*this), std::forward<FnErr>(fn_err));
       }
 
       template <typename FnErr>
       constexpr decltype(auto) map_error(FnErr&& fn_err) const &
       {
-        return impl::map_error((*this).self(), std::forward<FnErr>(fn_err));
+        return _impl::map_error(static_cast<const T&>(*this), std::forward<FnErr>(fn_err));
       }
 
       template <typename FnErr>
       constexpr decltype(auto) map_error(FnErr&& fn_err) &&
       {
-        return impl::map_error(std::move(*this).self(), std::forward<FnErr>(fn_err));
+        return _impl::map_error(static_cast<T&&>(*this), std::forward<FnErr>(fn_err));
       }
 
       /**
@@ -400,20 +396,20 @@ namespace features
       template <typename Ret, typename FnErr>
       constexpr decltype(auto) map_error(FnErr&& fn_err) &
       {
-        return impl::template map_error<Ret>((*this).self(), std::forward<FnErr>(fn_err));
+        return _impl::template map_error<Ret>(static_cast<T&>(*this), std::forward<FnErr>(fn_err));
       }
 
       template <typename Ret, typename FnErr>
       constexpr decltype(auto) map_error(FnErr&& fn_err) const &
       {
-        return impl::template map_error<Ret>((*this).self(), std::forward<FnErr>(fn_err));
+        return _impl::template map_error<Ret>(static_cast<const T&>(*this), std::forward<FnErr>(fn_err));
       }
 
       // test needed
       template <typename Ret, typename FnErr>
       constexpr decltype(auto) map_error(FnErr&& fn_err) &&
       {
-        return impl::template map_error<Ret>(std::move(*this).self(), std::forward<FnErr>(fn_err));
+        return _impl::template map_error<Ret>(static_cast<T&&>(*this), std::forward<FnErr>(fn_err));
       }
 
       /**
@@ -422,25 +418,25 @@ namespace features
       template <typename Fn>
       constexpr decltype(auto) and_then(Fn&& fn) &
       {
-        return impl::and_then((*this).self(), std::forward<Fn>(fn));
+        return _impl::and_then(static_cast<T&>(*this), std::forward<Fn>(fn));
       }
 
       template <typename Fn>
       constexpr decltype(auto) and_then(Fn&& fn) const&
       {
-        return impl::and_then((*this).self(), std::forward<Fn>(fn));
+        return _impl::and_then(static_cast<const T&>(*this), std::forward<Fn>(fn));
       }
 
       template <typename Fn>
       constexpr decltype(auto) and_then(Fn&& fn) &&
       {
-        return impl::and_then(std::move(*this).self(), std::forward<Fn>(fn));
+        return _impl::and_then(static_cast<T&&>(*this), std::forward<Fn>(fn));
       }
 
       template <typename Fn>
       constexpr decltype(auto) tee(Fn&& fn) const&
       {
-        impl::call_tee((*this).self(), std::forward<Fn>(fn));
+        _impl::call_tee(static_cast<const T&>(*this), std::forward<Fn>(fn));
         return *this;
       }
     };

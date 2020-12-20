@@ -17,7 +17,7 @@ void default_nullable()
 void minus_1()
 {
   using NullableAs = ezy::strong_type<int, struct NullableAsTag,
-        ezy::features::experimental::nullable_as<ezy::experimental::value_provider<-1>>::impl>;
+        ezy::features::experimental::nullable_as<ezy::experimental::value_provider<-1>>>;
 
   static_assert(NullableAs{15}.has_value());
   static_assert(NullableAs{}.has_value());
@@ -36,7 +36,7 @@ void custom_comparison()
         ezy::features::experimental::nullable_as<
           ezy::experimental::value_provider<-1>,
           std::less_equal<>
-        >::impl
+        >
       >;
 
   static_assert(Nullable{10}.has_value());
@@ -79,7 +79,7 @@ void custom_condition()
           //fn_wrap<&std::string::empty> // -> fn_wrap is not in ezy yet
           fn_wrap<str_is_empty> // -> fn_wrap is not in ezy yet
           //ezy::empty_fn // works for this special case
-          >::impl
+          >
     >;
 
   assert(!NullableStr{}.has_value());
