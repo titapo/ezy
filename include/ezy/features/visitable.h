@@ -1,34 +1,31 @@
 #ifndef EZY_FEATURES_VISITABLE_H_INCLUDED
 #define EZY_FEATURES_VISITABLE_H_INCLUDED
 
-#include "../feature.h"
 #include "../overloaded.h"
 #include <variant>
 
 namespace ezy::features
 {
   template <typename T>
-  struct visitable : feature<T, visitable>
+  struct visitable
   {
-    using base = feature<T, visitable>;
-
     template <typename... Visitors>
     decltype(auto) visit(Visitors&&... visitors) &
     {
-      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, base::underlying());
+      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, static_cast<T&>(*this).get());
     }
 
     template <typename... Visitors>
     decltype(auto) visit(Visitors&&... visitors) const &
     {
-      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, base::underlying());
+      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, static_cast<const T&>(*this).get());
     }
 
     // TODO check it
     template <typename... Visitors>
     decltype(auto) visit(Visitors&&... visitors) &&
     {
-      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, std::move(*this).underlying());
+      return std::visit(ezy::overloaded{std::forward<Visitors>(visitors)...}, static_cast<T&&>(*this).get());
     }
   };
 }

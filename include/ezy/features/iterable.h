@@ -10,28 +10,24 @@
 #include "algo_find.h"
 #include "algo_iterable.h"
 
-#include <experimental/type_traits>
-
 namespace ezy::features
 {
   template <typename T>
-  struct has_iterator : feature<T, has_iterator>
+  struct has_iterator
   {
-    using base = feature<T, has_iterator>;
+    constexpr auto begin() { return std::begin(static_cast<T&>(*this).get()); }
+    constexpr auto begin() const { return std::begin(static_cast<const T&>(*this).get()); }
+    constexpr auto cbegin() { return std::cbegin(static_cast<T&>(*this).get()); }
+    constexpr auto cbegin() const { return std::cbegin(static_cast<const T&>(*this).get()); }
 
-    constexpr auto begin() { return std::begin(base::underlying()); }
-    constexpr auto begin() const { return std::begin(base::underlying()); }
-    constexpr auto cbegin() { return std::cbegin(base::underlying()); }
-    constexpr auto cbegin() const { return std::cbegin(base::underlying()); }
-
-    constexpr auto end() { return std::end(base::underlying()); }
-    constexpr auto end() const { return std::end(base::underlying()); }
-    constexpr auto cend() { return std::cend(base::underlying()); }
-    constexpr auto cend() const { return std::cend(base::underlying()); }
+    constexpr auto end() { return std::end(static_cast<T&>(*this).get()); }
+    constexpr auto end() const { return std::end(static_cast<const T&>(*this).get()); }
+    constexpr auto cend() { return std::cend(static_cast<T&>(*this).get()); }
+    constexpr auto cend() const { return std::cend(static_cast<const T&>(*this).get()); }
   };
 
   template <typename T>
-  struct inherit_range_view_features : crtp<T, inherit_range_view_features>
+  struct inherit_range_view_features
   {
     using const_iterator = typename T::const_iterator;
   };

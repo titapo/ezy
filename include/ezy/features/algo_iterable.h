@@ -1,7 +1,6 @@
 #ifndef EZY_FEATURES_ALGO_ITERABLE_H_INCLUDED
 #define EZY_FEATURES_ALGO_ITERABLE_H_INCLUDED
 
-#include <ezy/feature.h>
 #include <ezy/strong_type_traits.h>
 #include <ezy/bits/algorithm.h>
 
@@ -35,28 +34,27 @@ namespace features {
   }
 
   template <typename T>
-  struct algo_iterable : feature<T, algo_iterable>
+  struct algo_iterable
   {
-    using base = feature<T, algo_iterable>;
     using _size_type = ezy::detail::size_type_t<ezy::extract_underlying_type_t<T>>;
 
     template < typename UnaryFunction >
     auto for_each(UnaryFunction f)
     {
-      return ezy::for_each((*this).self(), std::forward<UnaryFunction>(f));
+      return ezy::for_each(static_cast<T&>(*this), std::forward<UnaryFunction>(f));
     }
 
     template <typename UnaryFunction>
     auto for_each(UnaryFunction f) const
     {
-      return ezy::for_each((*this).self(), std::forward<UnaryFunction>(f));
+      return ezy::for_each(static_cast<const T&>(*this), std::forward<UnaryFunction>(f));
     }
 
     template <typename UnaryFunction>
     constexpr auto map(UnaryFunction&& f) const &
     {
       return detail::make_extended_from<T>(
-          ezy::transform((*this).underlying(), std::forward<UnaryFunction>(f))
+          ezy::transform(static_cast<const T&>(*this).get(), std::forward<UnaryFunction>(f))
         );
     }
 
@@ -64,27 +62,27 @@ namespace features {
     constexpr auto map(UnaryFunction&& f) &&
     {
       return detail::make_extended_from<T>(
-          ezy::transform(std::move(*this).underlying(), std::forward<UnaryFunction>(f))
+          ezy::transform(static_cast<T&&>(*this).get(), std::forward<UnaryFunction>(f))
         );
     }
 
     template <typename UnaryFunction>
     auto flat_map(UnaryFunction&& f) const &
     {
-      return (*this).flatten().map(std::forward<UnaryFunction>(f));
+      return static_cast<const T&>(*this).flatten().map(std::forward<UnaryFunction>(f));
     }
 
     template <typename UnaryFunction>
     auto flat_map(UnaryFunction&& f) &&
     {
-      return std::move(*this).flatten().map(std::forward<UnaryFunction>(f));
+      return static_cast<T&&>(*this).flatten().map(std::forward<UnaryFunction>(f));
     }
 
     template <typename RhsRange>
     auto concatenate(RhsRange&& rhs) const &
     {
       return detail::make_extended_from<T>(
-          ezy::concatenate((*this).underlying(), std::forward<RhsRange>(rhs))
+          ezy::concatenate(static_cast<const T&>(*this).get(), std::forward<RhsRange>(rhs))
           );
     }
 
@@ -92,7 +90,7 @@ namespace features {
     auto concatenate(RhsRange&& rhs) &&
     {
       return detail::make_extended_from<T>(
-          ezy::concatenate(std::move(*this).underlying(), std::forward<RhsRange>(rhs))
+          ezy::concatenate(static_cast<T&&>(*this).get(), std::forward<RhsRange>(rhs))
           );
     }
 
@@ -100,7 +98,7 @@ namespace features {
     auto filter(Predicate&& predicate) const &
     {
       return detail::make_extended_from<T>(
-          ezy::filter((*this).underlying(), std::forward<Predicate>(predicate))
+          ezy::filter(static_cast<const T&>(*this).get(), std::forward<Predicate>(predicate))
         );
     }
 
@@ -108,36 +106,36 @@ namespace features {
     auto filter(Predicate&& predicate) &&
     {
       return detail::make_extended_from<T>(
-          ezy::filter(std::move(*this).underlying(), std::forward<Predicate>(predicate))
+          ezy::filter(static_cast<T&&>(*this).get(), std::forward<Predicate>(predicate))
         );
     }
 
     [[nodiscard]] constexpr auto empty() const
     {
-      return ezy::empty(base::underlying());
+      return ezy::empty(static_cast<const T&>(*this).get());
     }
 
     [[nodiscard]] constexpr auto size() const
     {
-      return ezy::size(base::underlying());
+      return ezy::size(static_cast<const T&>(*this).get());
     }
 
     template <typename Element>
     bool contains(Element&& needle) const
     {
-      return ezy::contains((*this).underlying(), std::forward<Element>(needle));
+      return ezy::contains(static_cast<const T&>(*this).get(), std::forward<Element>(needle));
     }
 
     template <typename Type>
     Type accumulate(Type&& init) const
     {
-      return ezy::accumulate((*this).underlying(), std::forward<Type>(init));
+      return ezy::accumulate(static_cast<const T&>(*this).get(), std::forward<Type>(init));
     }
 
     template <typename Type, typename BinaryOp>
     Type accumulate(Type&& init, BinaryOp&& op) const
     {
-      return ezy::accumulate((*this).underlying(), std::forward<Type>(init), std::forward<BinaryOp>(op));
+      return ezy::accumulate(static_cast<const T&>(*this).get(), std::forward<Type>(init), std::forward<BinaryOp>(op));
     }
 
     /*
@@ -152,21 +150,21 @@ namespace features {
     auto chunk(_size_type chunk_size) const &
     {
       return detail::make_extended_from<T>(
-          ezy::chunk((*this).underlying(), chunk_size)
+          ezy::chunk(static_cast<const T&>(*this).get(), chunk_size)
           );
     }
 
     auto chunk(_size_type chunk_size) &
     {
       return detail::make_extended_from<T>(
-          ezy::chunk((*this).underlying(), chunk_size)
+          ezy::chunk(static_cast<T&>(*this).get(), chunk_size)
           );
     }
 
     auto chunk(_size_type chunk_size) &&
     {
       return detail::make_extended_from<T>(
-          ezy::chunk(std::move(*this).underlying(), chunk_size)
+          ezy::chunk(static_cast<T&&>(*this).get(), chunk_size)
           );
     }
 
@@ -182,8 +180,8 @@ namespace features {
       };
 
       return std::make_tuple(
-          ezy::filter((*this).underlying(), predicate),
-          ezy::filter((*this).underlying(), negate_result(predicate))
+          ezy::filter(static_cast<const T&>(*this).get(), predicate),
+          ezy::filter(static_cast<const T&>(*this).get(), negate_result(predicate))
           );
     }
 
@@ -193,33 +191,33 @@ namespace features {
     auto slice(const unsigned from, const unsigned until) const &
     {
       return detail::make_extended_from<T>(
-          ezy::slice((*this).underlying(), from, until)
+          ezy::slice(static_cast<const T&>(*this).get(), from, until)
           );
     }
 
     auto slice(const unsigned from, const unsigned until) &&
     {
       return detail::make_extended_from<T>(
-          ezy::slice(std::move(*this).underlying(), from, until)
+          ezy::slice(static_cast<T&&>(*this).get(), from, until)
           );
     }
 
     template <typename Predicate>
     bool all(Predicate&& predicate) const
     {
-      return ezy::all_of(base::underlying(), std::forward<Predicate>(predicate));
+      return ezy::all_of(static_cast<const T&>(*this), std::forward<Predicate>(predicate));
     }
 
     template <typename Predicate>
     bool any(Predicate&& predicate) const
     {
-      return ezy::any_of(base::underlying(), std::forward<Predicate>(predicate));
+      return ezy::any_of(static_cast<const T&>(*this), std::forward<Predicate>(predicate));
     }
 
     template <typename Predicate>
     bool none(Predicate&& predicate) const
     {
-      return ezy::none_of(base::underlying(), std::forward<Predicate>(predicate));
+      return ezy::none_of(static_cast<const T&>(*this), std::forward<Predicate>(predicate));
     }
 
     /*
@@ -239,7 +237,7 @@ namespace features {
     auto zip(OtherRanges&&... other_ranges) const &
     {
       return detail::make_extended_from<T>(
-        ezy::zip((*this).underlying(), std::forward<OtherRanges>(other_ranges)...)
+        ezy::zip(static_cast<const T&>(*this).get(), std::forward<OtherRanges>(other_ranges)...)
       );
     }
 
@@ -247,7 +245,7 @@ namespace features {
     auto zip(OtherRanges&&... other_ranges) &&
     {
       return detail::make_extended_from<T>(
-        ezy::zip(std::move(*this).underlying(), std::forward<OtherRanges>(other_ranges)...)
+        ezy::zip(static_cast<T&&>(*this).get(), std::forward<OtherRanges>(other_ranges)...)
       );
     }
 
@@ -257,7 +255,7 @@ namespace features {
       return detail::make_extended_from<T>(
         ezy::zip_with(
           std::forward<Zipper>(zipper),
-          (*this).underlying(),
+          static_cast<const T&>(*this).get(),
           std::forward<OtherRanges>(other_ranges)...)
       );
     }
@@ -268,7 +266,7 @@ namespace features {
       return detail::make_extended_from<T>(
         ezy::zip_with(
           std::forward<Zipper>(zipper),
-          std::move(*this).underlying(),
+          static_cast<T&&>(*this).get(),
           std::forward<OtherRanges>(other_ranges)...)
       );
     }
@@ -277,28 +275,28 @@ namespace features {
     auto flatten() const &
     {
       return detail::make_extended_from<T>(
-        ezy::flatten((*this).underlying())
+        ezy::flatten(static_cast<const T&>(*this).get())
       );
     }
 
     auto flatten() &&
     {
       return detail::make_extended_from<T>(
-        ezy::flatten(std::move(*this).underlying())
+        ezy::flatten(static_cast<T&&>(*this).get())
       );
     }
 
     auto take(size_t n) const &
     {
       return detail::make_extended_from<T>(
-          ezy::take((*this).underlying(), n)
+          ezy::take(static_cast<const T&>(*this).get(), n)
           );
     }
 
     auto take(size_t n) &&
     {
       return detail::make_extended_from<T>(
-        ezy::take(std::move(*this).underlying(), n)
+        ezy::take(static_cast<T&&>(*this).get(), n)
       );
     }
 
@@ -306,7 +304,7 @@ namespace features {
     auto take_while(Predicate&& pred) const &
     {
       return detail::make_extended_from<T>(
-          ezy::take_while((*this).underlying(), std::forward<Predicate>(pred))
+          ezy::take_while(static_cast<const T&>(*this).get(), std::forward<Predicate>(pred))
           );
     }
 
@@ -314,94 +312,94 @@ namespace features {
     auto take_while(Predicate&& pred) &&
     {
       return detail::make_extended_from<T>(
-          ezy::take_while(std::move(*this).underlying(), std::forward<Predicate>(pred))
+          ezy::take_while(static_cast<T&&>(*this).get(), std::forward<Predicate>(pred))
           );
     }
 
     auto drop(size_t n) const &
     {
       return detail::make_extended_from<T>(
-          ezy::drop((*this).underlying(), n)
+          ezy::drop(static_cast<const T&>(*this).get(), n)
           );
     }
 
     auto drop(size_t n) & /*mutable accessor*/
     {
       return detail::make_extended_from<T>(
-          ezy::drop((*this).underlying(), n)
+          ezy::drop(static_cast<T&>(*this).get(), n)
           );
     }
 
     auto drop(size_t n) &&
     {
       return detail::make_extended_from<T>(
-          ezy::drop(std::move(*this).underlying(), n)
+          ezy::drop(static_cast<T&&>(*this).get(), n)
           );
     }
 
     template <typename ResultContainer>
     constexpr ResultContainer to() const &
     {
-      return ezy::collect<ResultContainer>((*this).underlying());
+      return ezy::collect<ResultContainer>(static_cast<const T&>(*this).get());
     }
 
     template <typename ResultContainer>
     constexpr ResultContainer to() &&
     {
-      return ezy::collect<ResultContainer>(std::move(*this).underlying());
+      return ezy::collect<ResultContainer>(static_cast<T&&>(*this).get());
     }
 
     template <template <typename, typename...> class ResultWrapper>
     constexpr auto to() &&
     {
-      return ezy::collect<ResultWrapper>(std::move(*this).underlying());
+      return ezy::collect<ResultWrapper>(static_cast<T&&>(*this).get());
     }
 
     template <template <typename, typename...> class ResultWrapper>
     constexpr auto to() const &
     {
-      return ezy::collect<ResultWrapper>((*this).underlying());
+      return ezy::collect<ResultWrapper>(static_cast<const T&>(*this).get());
     }
 
     template <typename ResultContainer>
     constexpr auto to_iterable() const
     {
       return detail::make_extended_from<T>(
-          ezy::collect<ResultContainer>((*this).underlying())
+          ezy::collect<ResultContainer>(static_cast<const T&>(*this).get())
           );
     }
 
     template <typename Separator>
     constexpr auto join(Separator&& separator) const
     {
-      return ezy::join((*this).underlying(), std::forward<Separator>(separator));
+      return ezy::join(static_cast<const T&>(*this).get(), std::forward<Separator>(separator));
     }
 
     constexpr auto enumerate() const &
     {
       return detail::make_extended_from<T>(
-        ezy::enumerate((*this).underlying())
+        ezy::enumerate(static_cast<const T&>(*this).get())
         );
     }
 
     constexpr auto enumerate() &&
     {
       return detail::make_extended_from<T>(
-        ezy::enumerate(std::move(*this).underlying())
+        ezy::enumerate(static_cast<T&&>(*this).get())
         );
     }
 
     constexpr auto cycle() const &
     {
       return detail::make_extended_from<T>(
-          ezy::cycle((*this).underlying())
+          ezy::cycle(static_cast<const T&>(*this).get())
           );
     }
 
     constexpr auto cycle() &&
     {
       return detail::make_extended_from<T>(
-          ezy::cycle(std::move(*this).underlying())
+          ezy::cycle(static_cast<T&&>(*this).get())
           );
     }
   };

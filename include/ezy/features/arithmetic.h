@@ -1,9 +1,7 @@
 #ifndef EZY_FEATURES_ARITHMETIC_H_INCLUDED
 #define EZY_FEATURES_ARITHMETIC_H_INCLUDED
 
-#include "../feature.h"
 #include "../strong_type_traits.h"
-//#include <experimental/type_traits>
 #include "../bits/priority_tag.h"
 
 namespace ezy
@@ -11,30 +9,26 @@ namespace ezy
 namespace features
 {
   template <typename T>
-  struct addable : feature<T, addable>
+  struct addable
   {
-    using base = feature<T, addable>;
-    using base::self;
+    friend T operator+(T const& lhs, T const& rhs) { return T(lhs.get() + rhs.get()); }
 
-    T operator+(T const& other) const { return T(self().get() + other.get()); }
-    T& operator+=(T const& other)
+    friend T& operator+=(T& lhs, T const& rhs)
     {
-      self().get() += other.get();
-      return self();
+      lhs.get() += rhs.get();
+      return lhs;
     }
   };
 
   template <typename T>
-  struct subtractable : feature<T, subtractable>
+  struct subtractable
   {
-    using base = feature<T, subtractable>;
-    using base::self;
+    friend T operator-(T const& lhs, T const& rhs) { return T(lhs.get() - rhs.get()); }
 
-    T operator-(T const& other) const { return T(self().get() - other.get()); }
-    T& operator-=(T const& other)
+    friend T& operator-=(T& lhs, T const& rhs)
     {
-      self().get() -= other.get();
-      return self();
+      lhs.get() -= rhs.get();
+      return lhs;
     }
   };
 
@@ -60,11 +54,8 @@ namespace features
   }
 
   template <typename T>
-  struct equal_comparable : feature<T, equal_comparable>
+  struct equal_comparable
   {
-    using base = feature<T, equal_comparable>;
-    using base::self;
-
     friend constexpr bool operator==(const T& lhs, const T& rhs)
     {
       return lhs.get() == rhs.get();
@@ -81,11 +72,8 @@ namespace features
   };
 
   template <typename T>
-  struct greater : feature<T, greater>
+  struct greater
   {
-    using base = feature<T, greater>;
-    using base::self;
-
     friend bool operator>(const T& lhs, const T& rhs)
     {
       return lhs.get() > rhs.get();
@@ -93,11 +81,8 @@ namespace features
   };
 
   template <typename T>
-  struct greater_equal : feature<T, greater_equal>
+  struct greater_equal
   {
-    using base = feature<T, greater_equal>;
-    using base::self;
-
     friend bool operator>=(const T& lhs, const T& rhs)
     {
       return rhs.get() >= rhs.get();
@@ -105,11 +90,8 @@ namespace features
   };
 
   template <typename T>
-  struct less : feature<T, less>
+  struct less
   {
-    using base = feature<T, less>;
-    using base::self;
-
     friend bool operator<(const T& lhs, const T& rhs)
     {
       return lhs.get() < rhs.get();
@@ -117,11 +99,8 @@ namespace features
   };
 
   template <typename T>
-  struct less_equal : feature<T, less_equal>
+  struct less_equal
   {
-    using base = feature<T, less_equal>;
-    using base::self;
-
     friend bool operator<=(const T& lhs, const T& rhs)
     {
       return lhs.get() <= rhs.get();
@@ -160,21 +139,18 @@ namespace features
   struct multiplication_by_results
   {
     template <typename T>
-    struct impl : feature<T, impl>
+    struct impl
     {
-      using base = feature<T, impl>;
-      using base::self;
-
       friend Result operator*(const T& lhs, const Multiplier& rhs) { return Result(lhs.get() * detail::forward_plain_type(rhs)); }
 
       template <typename B = bool, typename = std::enable_if_t<!std::is_same<T, Multiplier>::value, B>>
       friend Result operator*(const Multiplier& lhs, const T& rhs) { return Result(detail::forward_plain_type(lhs) * rhs.get()); }
 
       // TODO conditionally constrain
-      T& operator*=(const Multiplier& other)
+      friend T& operator*=(T& lhs, const Multiplier& rhs)
       {
-        self().get() *= detail::forward_plain_type(other);
-        return self();
+        lhs.get() *= detail::forward_plain_type(rhs);
+        return lhs;
       }
     };
   };
@@ -183,20 +159,17 @@ namespace features
   struct closed_multipliable_by
   {
     template <typename T>
-    struct impl : feature<T, impl>
+    struct impl
     {
-      using base = feature<T, impl>;
-      using base::self;
-
       friend T operator*(const T& lhs, const N& rhs) { return T(lhs.get() * detail::forward_plain_type(rhs)); }
 
       template <typename B = bool, typename = std::enable_if_t<!std::is_same<T, N>::value, B>>
       friend T operator*(const N& lhs, const T& rhs) { return T(detail::forward_plain_type(lhs) * rhs.get()); }
 
-      T& operator*=(const N& other)
+      friend T& operator*=(T& lhs, const N& rhs)
       {
-        self().get() *= detail::forward_plain_type(other);
-        return self();
+        lhs.get() *= detail::forward_plain_type(rhs);
+        return lhs;
       }
     };
   };
@@ -218,15 +191,12 @@ namespace features
     struct no_self_divisible {};
 
     template <typename T>
-    struct self_divisible : ezy::feature<T, self_divisible>
+    struct self_divisible
     {
-      using base = ezy::feature<T, self_divisible>;
-      using base::self;
-
-      T& operator/=(const Divisor& other)
+      friend T& operator/=(T& lhs, const Divisor& rhs)
       {
-        self().get() /= other;
-        return self();
+        lhs.get() /= rhs;
+        return lhs;
       }
     };
 
@@ -240,11 +210,8 @@ namespace features
     {};
 
     template <typename T>
-    struct impl : ezy::feature<T, impl>, helper_selector<T>
+    struct impl : helper_selector<T>
     {
-      using base = ezy::feature<T, impl>;
-      using base::self;
-
       friend Result operator/(const T& lhs, const Divisor& other)
       { return Result(lhs.get() / ezy::features::detail::forward_plain_type(other)); }
     };
@@ -254,11 +221,8 @@ namespace features
   struct closed_divisible_by
   {
     template <typename T>
-    struct impl : feature<T, impl>
+    struct impl
     {
-      using base = feature<T, impl>;
-      using base::self;
-
       using Result = T;
 
       friend Result operator/(const T& lhs, const Divisor& other)
@@ -266,10 +230,10 @@ namespace features
         return Result(lhs.get() / ezy::features::detail::forward_plain_type(other));
       }
 
-      T& operator/=(const Divisor& other)
+      friend T& operator/=(T& lhs, const Divisor& rhs)
       {
-        self().get() /= detail::forward_plain_type(other);
-        return self();
+        lhs.get() /= detail::forward_plain_type(rhs);
+        return lhs;
       }
     };
   };
@@ -301,7 +265,7 @@ namespace features
   struct multiplicative : multipliable<T>, divisible<T> {};
 
   template <typename T>
-  struct negatable : feature<T, negatable>
+  struct negatable
   {
     friend T operator-(const T& t)
     {
