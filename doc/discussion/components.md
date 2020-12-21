@@ -12,7 +12,8 @@
 
 ## (More) Experimental
 
-- `tuple_traits`: a type list library using `std::tuple` by default (working with types)
+- `typelist_traits`: a typelist library using (working with types)
+  - `tuple_traits` for some specialization for `std::tuple`
 - (experimental) tuple algorithms: defines typical algorithms "iterating over" tuple values
 - (experimental) keeper: generalization of reference wrapper to help express intentions about ownership and
   reference ([Universal reference wrapper](https://www.fluentcpp.com/2020/06/26/implementing-a-universal-reference-wrapper/))

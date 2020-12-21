@@ -14,7 +14,7 @@ namespace features {
     struct strong_type_from;
 
     template <typename T, typename Tag, typename... Features>
-    struct strong_type_from<T, Tag, std::tuple<Features...>>
+    struct strong_type_from<T, Tag, ezy::typelist<Features...>>
     {
       using type = ezy::strong_type<T, Tag, Features...>;
     };
