@@ -37,7 +37,7 @@ namespace ezy
   template <typename T>
   struct plain_type
   {
-    using type = typename std::conditional_t<is_strong_type_v<T>,
+    using type = typename ezy::conditional_t<is_strong_type_v<T>,
             extract_underlying_type<T>,
             type_identity<T>
           >::type;

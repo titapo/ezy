@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <utility> // forward
 #include "../invoke.h"
+#include "../type_traits.h"
 
 namespace ezy
 {
@@ -224,8 +225,10 @@ namespace experimental
      * (better name?)
      */
     template <typename T>
-    struct ownership_category : std::conditional<std::is_lvalue_reference<T>::value, reference_category_tag, owner_category_tag>
-    {};
+    struct ownership_category
+    {
+      using type = ezy::conditional_t<std::is_lvalue_reference<T>::value, reference_category_tag, owner_category_tag>;
+    };
 
     template <typename T>
     using ownership_category_t = typename ownership_category<T>::type;
