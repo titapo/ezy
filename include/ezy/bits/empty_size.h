@@ -1,7 +1,7 @@
 #ifndef EZY_BITS_EMPTY_SIZE_H_INCLUDED
 #define EZY_BITS_EMPTY_SIZE_H_INCLUDED
 
-#include <type_traits>
+#include <iterator>
 #include "priority_tag.h"
 
 namespace ezy

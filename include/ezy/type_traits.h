@@ -5,6 +5,29 @@
 
 namespace ezy
 {
+  template <typename...>
+  using void_t = void;
+
+  template <bool Cond>
+  struct conditional;
+
+  template <>
+  struct conditional<true>
+  {
+    template <typename True, typename False>
+    using apply = True;
+  };
+
+  template <>
+  struct conditional<false>
+  {
+    template <typename True, typename False>
+    using apply = False;
+  };
+
+  template <bool B, typename True, typename False>
+  using conditional_t = typename conditional<B>::template apply<True, False>;
+
   template <typename T>
   struct remove_cvref
   {

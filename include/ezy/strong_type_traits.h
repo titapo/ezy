@@ -2,7 +2,7 @@
 #define EZY_STRONG_TYPE_TRAITS_H_INCLUDED
 
 #include "strong_type.h"
-#include "tuple_traits.hh" // for contains
+#include "typelist_traits.h"
 #include "type_traits.h"
 
 namespace ezy
@@ -37,7 +37,7 @@ namespace ezy
   template <typename T>
   struct plain_type
   {
-    using type = typename std::conditional_t<is_strong_type_v<T>,
+    using type = typename ezy::conditional_t<is_strong_type_v<T>,
             extract_underlying_type<T>,
             type_identity<T>
           >::type;
@@ -71,7 +71,7 @@ namespace ezy
   template <typename T, typename Tag, typename... Features>
   struct extract_features<strong_type<T, Tag, Features...>>
   {
-    using type = std::tuple<Features...>;
+    using type = ezy::typelist<Features...>;
   };
 
   template <typename... Args>
@@ -97,16 +97,16 @@ namespace ezy
    * rebind_features_from_tuple
    */
   template <typename ST, typename FeaturesTuple>
-  struct rebind_features_from_tuple {};
+  struct rebind_features_from_typelist {};
 
   template <typename ST, typename... Features>
-  struct rebind_features_from_tuple<ST, std::tuple<Features...>>
+  struct rebind_features_from_typelist<ST, ezy::typelist<Features...>>
   {
     using type = ezy::rebind_features_t<ST, Features...>;
   };
 
   template <typename ST, typename FeaturesTuple>
-  using rebind_features_from_tuple_t = typename rebind_features_from_tuple<ST, FeaturesTuple>::type;
+  using rebind_features_from_typelist_t = typename rebind_features_from_typelist<ST, FeaturesTuple>::type;
 
   /**
    * rebind_features_from_tuple<ST1, ST2>
@@ -120,7 +120,7 @@ namespace ezy
   template <typename ST, typename OtherST>
   struct rebind_features_from_other
   {
-    using type = rebind_features_from_tuple_t<ST, extract_features_t<OtherST>>;
+    using type = rebind_features_from_typelist_t<ST, extract_features_t<OtherST>>;
   };
 
   template <typename ST, typename OtherST>

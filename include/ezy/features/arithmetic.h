@@ -3,6 +3,7 @@
 
 #include "../strong_type_traits.h"
 #include "../bits/priority_tag.h"
+#include "../type_traits.h"
 
 namespace ezy
 {
@@ -235,11 +236,11 @@ namespace features
 
     template <typename T>
     struct helper_selector :
-      std::conditional<
+      ezy::conditional_t<
         std::is_same<T, Result>::value,
         self_divisible<T>,
         no_self_divisible<T>
-      >::type
+      >
     {};
 
     template <typename T>

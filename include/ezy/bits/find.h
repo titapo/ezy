@@ -34,7 +34,7 @@ namespace ezy
     auto make_find_result(Iterator it, Iterator last)
     {
       using ValueType = std::remove_reference_t<decltype(*begin(std::declval<Range>()))>;
-      using ReturnType = std::conditional_t<
+      using ReturnType = ezy::conditional_t<
         std::is_lvalue_reference_v<Range>,
         const ezy::pointer<ValueType>,
         ezy::optional<ValueType>
