@@ -5,8 +5,8 @@ add_executable(unit_test
   keeper.cc
   strong_type_traits.cc
   tuple_traits.cc
-  iterable_feature.cc
   algorithm.cc
+  iterable_feature.cc
   nullable_feature.cc
   to_string.cc
   custom_finder.cc

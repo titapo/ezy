@@ -37,7 +37,7 @@ namespace ezy
       using ReturnType = ezy::conditional_t<
         std::is_lvalue_reference_v<Range>,
         const ezy::pointer<ValueType>,
-        ezy::optional<ValueType>
+        ezy::optional<std::remove_const_t<ValueType>>
       >;
 
     if (it != last)
@@ -52,7 +52,7 @@ namespace ezy
     template <typename Range, typename Needle>
     /*constexpr*/ auto operator()(Range&& range, Needle&& needle) const
     {
-      auto found = find_element(range, std::forward<Needle>(needle));
+      const auto found = find_element(range, std::forward<Needle>(needle));
       return detail::make_find_result<Range>(found, end(range));
     }
   };

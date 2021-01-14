@@ -641,11 +641,30 @@ SCENARIO("find returns reference-like")
   REQUIRE(found.value() == 15);
 }
 
+SCENARIO("find returns mutable reference-like")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  const auto found = ezy::find(v, 5);
+  REQUIRE(found.has_value());
+  REQUIRE(found.value() == 5);
+  found.value() += 20;
+  REQUIRE(v[4] == 25);
+}
+
 SCENARIO("find in temporary")
 {
   const auto found = ezy::find(std::vector{1,2,3,4,5,6,7,8}, 6);
   REQUIRE(found.has_value());
   REQUIRE(found.value() == 6); // this must be moved
+}
+
+SCENARIO("find in temporary is mutable")
+{
+  auto found = ezy::find(std::vector{1,2,3,4,5,6,7,8}, 6);
+  REQUIRE(found.has_value());
+  REQUIRE(found.value() == 6);
+  found.value() += 4;
+  REQUIRE(found.value() == 10);
 }
 
 constexpr auto greater_than_3 = [](int i) { return i > 3; };
@@ -670,6 +689,15 @@ SCENARIO("find_if in temporary")
 
   const auto not_found = ezy::find_if(std::vector{1,2,3,4,5,6,7,8}, greater_than_10);
   REQUIRE(!not_found.has_value());
+}
+
+SCENARIO("find_if in temporary returns mutable")
+{
+  auto found = ezy::find_if(std::vector{1,2,3,4,5,6,7,8}, greater_than_3);
+  REQUIRE(found.has_value());
+  REQUIRE(found.value() == 4);
+  found.value() += 3;
+  REQUIRE(found.value() == 7);
 }
 
 SCENARIO("find_element_if")
