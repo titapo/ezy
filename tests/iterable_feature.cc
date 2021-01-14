@@ -440,6 +440,37 @@ SCENARIO("strong type extensions")
       REQUIRE(!sm.find("Gamma").has_value());
     }
 
+    WHEN("find returns reference-like from lvalue")
+    {
+      MyNumbers v{6, 4, 3};
+      auto result = v.find(4);
+      REQUIRE(result.has_value());
+      REQUIRE(result.value_or(9) == 4);
+
+      THEN("it is a reference")
+      {
+        *std::next(v.begin(), 1) += 2;
+        REQUIRE(result.value_or(9) == 6);
+      }
+
+      // mutable reference-like:
+      THEN("it is mutable reference")
+      {
+        result.value() += 4;
+        REQUIRE(*std::next(v.begin(), 1) == 8);
+      }
+    }
+
+    WHEN("find returns mutable from rvalue")
+    {
+      auto result = MyNumbers{3,5,7}.find(5);
+      REQUIRE(result.has_value());
+      REQUIRE(result.value() == 5);
+
+      result.value() += 10;
+      REQUIRE(result.value() == 15);
+    }
+
     WHEN("find_if existing")
     {
       const auto result = numbers.find_if(less_than(5));
@@ -447,16 +478,35 @@ SCENARIO("strong type extensions")
       REQUIRE(result.value_or(99) == 1);
     }
 
-    WHEN("find_if returns reference-like")
+    WHEN("find_if returns reference-like from lvalue")
     {
       MyNumbers v{6, 4, 3};
-      const auto result = v.find_if(less_than(5));
+      auto result = v.find_if(less_than(5));
       REQUIRE(result.has_value());
       REQUIRE(result.value_or(9) == 4);
 
-      // reference like:
-      *std::next(v.begin(), 1) += 2;
-      REQUIRE(result.value_or(9) == 6);
+      THEN("it is a reference")
+      {
+        *std::next(v.begin(), 1) += 2;
+        REQUIRE(result.value_or(9) == 6);
+      }
+
+      // mutable reference-like:
+      THEN("it is mutable reference")
+      {
+        result.value() += 4;
+        REQUIRE(*std::next(v.begin(), 1) == 8);
+      }
+    }
+
+    WHEN("find_if returns mutable from rvalue")
+    {
+      auto result = MyNumbers{8,5,7}.find_if(less_than(6));
+      REQUIRE(result.has_value());
+      REQUIRE(result.value() == 5);
+
+      result.value() += 10;
+      REQUIRE(result.value() == 15);
     }
 
     WHEN("find_if non existing")

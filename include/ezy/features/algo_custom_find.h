@@ -14,18 +14,50 @@ namespace ezy
       struct impl
       {
         template <typename Element>
-        auto find(Element&& element) const
+        auto find(Element&& element) const &
         {
           return ezy::custom_find<ResultMaker>{}(
               static_cast<const T&>(*this).get(),
               std::forward<Element>(element));
         }
 
+        template <typename Element>
+        auto find(Element&& element) &
+        {
+          return ezy::custom_find<ResultMaker>{}(
+              static_cast<T&>(*this).get(),
+              std::forward<Element>(element));
+        }
+
+        template <typename Element>
+        auto find(Element&& element) &&
+        {
+          return ezy::custom_find<ResultMaker>{}(
+              static_cast<T&&>(*this).get(),
+              std::forward<Element>(element));
+        }
+
         template <typename Predicate>
-        auto find_if(Predicate&& predicate) const
+        auto find_if(Predicate&& predicate) const &
         {
           return ezy::custom_find_if<ResultMaker>{}(
               static_cast<const T&>(*this).get(),
+              std::forward<Predicate>(predicate));
+        }
+
+        template <typename Predicate>
+        auto find_if(Predicate&& predicate) &
+        {
+          return ezy::custom_find_if<ResultMaker>{}(
+              static_cast<T&>(*this).get(),
+              std::forward<Predicate>(predicate));
+        }
+
+        template <typename Predicate>
+        auto find_if(Predicate&& predicate) &&
+        {
+          return ezy::custom_find_if<ResultMaker>{}(
+              static_cast<T&&>(*this).get(),
               std::forward<Predicate>(predicate));
         }
       };

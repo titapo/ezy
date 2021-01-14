@@ -42,7 +42,7 @@ SCENARIO("custom find")
     WHEN("find for a non-presenting element")
     {
       auto found = myfind(v, 8);
-      THEN("it returns an not engaded")
+      THEN("it returns an not engaged")
       {
         REQUIRE(!found.engaged);
       }
@@ -74,7 +74,7 @@ SCENARIO("custom find if")
     WHEN("find for a non-presenting element")
     {
       auto found = myfind_if(v, greater_than(5));
-      THEN("it returns an not engaded")
+      THEN("it returns an not engaged")
       {
         REQUIRE(!found.engaged);
       }
