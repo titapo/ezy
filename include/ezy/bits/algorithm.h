@@ -420,6 +420,16 @@ namespace ezy
     return ezy::take(ezy::iterate(from, increment_by_step), number_of_steps);
   }
 
+  template <typename Range, typename Delimiter>
+  auto split(Range&& range, Delimiter&& delimiter)
+  {
+    using ResultRange = detail::split_range_view<detail::deduce_keeper_t<Range>, detail::deduce_keeper_t<Delimiter>>;
+    return ResultRange{
+      ezy::experimental::make_keeper(std::forward<Range>(range)),
+      ezy::experimental::make_keeper(std::forward<Delimiter>(delimiter))
+    };
+  }
+
 }
 
 #endif

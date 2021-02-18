@@ -1694,6 +1694,125 @@ namespace detail
     Keeper keeper;
     const size_type size;
   };
+
+  template <typename It, typename Elem>
+  constexpr It find(It first, It last, Elem&& e)
+  {
+    for (;first != last; ++first)
+    {
+      if (*first == e)
+        return first;
+    }
+    return last;
+  }
+
+  template <typename It, typename Elem>
+  constexpr It find_not(It first, It last, Elem&& e)
+  {
+    for (;first != last; ++first)
+    {
+      if (*first != e)
+        return first;
+    }
+    return last;
+  }
+
+  template <typename Range, typename Delimiter>
+  struct split_iterator
+  {
+    using orig_type = iterator_type_t<Range>;
+    using _iter_traits = std::iterator_traits<iterator_type_t<Range>>;
+
+    using subrange_type = Range;
+
+    using difference_type = typename _iter_traits::difference_type;
+    using value_type = Range;
+    using reference = Range;
+    using pointer = arrow_proxy<value_type>;
+    using iterator_category = std::forward_iterator_tag;
+    using size_type = size_type_t<Range>;
+
+    explicit split_iterator(orig_type it, Delimiter delimiter, orig_type range_end)
+      : first(it)
+      , last(it)
+      , range_end(range_end)
+      , delimiter(delimiter)
+    {
+      operator++();
+    }
+
+    reference operator*()
+    {
+      return reference{first, last};
+    }
+
+    split_iterator& operator++()
+    {
+      if (last == range_end)
+      {
+        first = range_end;
+        return *this;
+      }
+
+      first = find_not(last, range_end, delimiter);
+      if (first == range_end)
+      {
+        return *this;
+      }
+
+      last = find(first, range_end, delimiter);
+      return *this;
+    }
+
+    private:
+    friend bool operator!=(const split_iterator& lhs, const split_iterator& rhs)
+    {
+      return lhs.first != rhs.first;
+    }
+
+    friend bool operator==(const split_iterator& lhs, const split_iterator& rhs)
+    {
+      return lhs.first == rhs.first;
+    }
+
+    orig_type first;
+    orig_type last;
+    orig_type range_end;
+    Delimiter delimiter;
+  };
+
+  template <typename RangeKeeper, typename DelimiterKeeper>
+  struct split_range_view
+  {
+    using Range = ezy::experimental::keeper_value_type_t<RangeKeeper>;
+    using Delimiter = ezy::experimental::keeper_value_type_t<DelimiterKeeper>;
+    using const_iterator = split_iterator<const Range, Delimiter>;
+    using iterator = split_iterator<Range, Delimiter>;
+    using size_type = size_type_t<Range>;
+
+    iterator begin()
+    {
+      return iterator(std::begin(range.get()), delimiter.get(), std::end(range.get()));
+    }
+
+    const_iterator begin() const
+    {
+      return const_iterator(std::begin(range.get()), delimiter.get(), std::end(range.get()));
+    }
+
+    iterator end()
+    {
+      return iterator(std::end(range.get()), delimiter.get(), std::end(range.get()));
+    }
+
+    const_iterator end() const
+    {
+      return const_iterator(std::end(range.get()), delimiter.get(), std::end(range.get()));
+    }
+
+    RangeKeeper range;
+    DelimiterKeeper delimiter;
+  };
 }
 }
 

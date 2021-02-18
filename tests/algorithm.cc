@@ -1026,3 +1026,34 @@ SCENARIO("range(from, until, step)")
     REQUIRE(join_as_strings(r, ",") == "2,-1,-4,-7,-10,-13,-16");
   }
 }
+
+SCENARIO("split")
+{
+  GIVEN("a sentence")
+  {
+    std::string in("This is a sentence.");
+    const auto r = ezy::split(in, ' ');
+    REQUIRE(ezy::join(r, "+") == "This+is+a+sentence.");
+  }
+
+  GIVEN("a string where the last character is a delimiter")
+  {
+    std::string in("This is a sentence. ");
+    const auto r = ezy::split(in, ' ');
+    REQUIRE(ezy::join(r, "+") == "This+is+a+sentence.");
+  }
+
+  GIVEN("a string where the first character is a delimiter")
+  {
+    std::string in(" This is a sentence. ");
+    const auto r = ezy::split(in, ' ');
+    REQUIRE(ezy::join(r, "+") == "This+is+a+sentence.");
+  }
+
+  GIVEN("a string where there are repeating delimiters")
+  {
+    std::string in("   This  is    a   sentence.  ");
+    const auto r = ezy::split(in, ' ');
+    REQUIRE(ezy::join(r, "+") == "This+is+a+sentence.");
+  }
+}
