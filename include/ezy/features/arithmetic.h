@@ -103,7 +103,7 @@ namespace features
     {
       friend bool operator>=(const T& lhs, const T& rhs)
       {
-        return rhs.get() >= rhs.get();
+        return lhs.get() >= rhs.get();
       }
     };
   };
