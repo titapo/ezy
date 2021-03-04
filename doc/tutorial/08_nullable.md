@@ -39,7 +39,7 @@ Default construction gives `0` which is considered as a null value in our case.
 ```
 
 `.value()` is an unchecked accessor. In general accessing a value without checking its validity can be
-undefined behaviour. For now, since DefaultNullable is just an `int` it simply gives back the stored value.
+undefined behavior. For now, since DefaultNullable is just an `int` it simply gives back the stored value.
 
 This simple feature can make one's code more expressive, but to be honest it might do not worth too much.
 Happily, there are more options available
@@ -47,7 +47,7 @@ Happily, there are more options available
 ## Special value
 
 There are some cases when a default constructed element is a valid value and we need a deliberately selected
-value to represent absense. For now it will be `-1`.
+value to represent absence. For now it will be `-1`.
 
 ```cpp
   using NullableAs = ezy::strong_type<int, struct NullableAsTag,
@@ -156,23 +156,23 @@ managed in compile time as a template parameter. This simple helper exactly does
 ## Handling error codes
 
 There is a common pattern - mostly in C - to return an `int`, where interpretation is the following:
- - if succeded: `>= 0` (how many bytes written)
+ - if succeeded: `>= 0` (how many bytes written)
  - if failed: `< 0` (error code)
 
 Some other functions:
- -  if succeded: returns `0`
+ -  if succeeded: returns `0`
  - `!= 0` otherwise
 
 `nullable_*` can help to mitigate the cognitive burden of working with functions like these. And they can give
 something more...
 
-> The name *nullable* suggests an optional-like behaviour, but wrapping these values that can hold *eiter* a
+> The name *nullable* suggests an optional-like behavior, but wrapping these values that can hold *either* a
 > return value or an error code reminds me more of a `result` than an `optional`. And that point the name
 > *nullable* becomes inaccurate.
 
 ## Unwrapper
 
-There is one more parameter for both `nullable_as` and `nullable_if`: it is called *unwrappear*. To understand
+There is one more parameter for both `nullable_as` and `nullable_if`: it is called *unwrapper*. To understand
 it consider a pointer (`T*`) wrapped by a `nullable_as`: the value provider returns `nullptr`, the comparator
 is left to equality, and unwrapper is a dereference (`operator*`) call. So `.value()` returns a `T&` now
 instead of a pointer.

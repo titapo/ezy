@@ -7,7 +7,7 @@ read about it [here](../discussion/result_rationale.md).
 
 One illustrative use case of `result` type is factory functions. In the following example `Foo` cannot contain
 number greater than `20`. In some cases throwing an exception from the constructor may work, but in a lot of
-cases it is not acceptible nor desired.
+cases it is not acceptable nor desired.
 
 ```cpp
 
@@ -45,7 +45,7 @@ The `create` factory function validates the input and returns either a `Foo` or 
 
 ```cpp
 auto foo_result = Foo::create(3);
-auto err_result = Foo::create(3);
+auto err_result = Foo::create(25);
 ```
 
 Both lines returns the same type (`ezy::result<Foo, ErrorMsg>`), but with different content.
@@ -258,7 +258,7 @@ divide("120", "four").visit(print_line); // stoi
 divide("10", "0").visit(print_line); // ?
 ```
 
-The last line causes division by zero which is undefined behaviour, so we should prevent it somehow.
+The last line causes division by zero which is undefined behavior, so we should prevent it somehow.
 
 ### Divide or not divide
 
@@ -292,3 +292,4 @@ And as a result:
   divide("10", "0").visit(print_line); // division by zero
 ```
 
+Next: [ezy::experimental::nullable](08_nullable.md)
