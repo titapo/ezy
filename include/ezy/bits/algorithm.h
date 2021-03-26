@@ -380,10 +380,9 @@ namespace ezy
   }
 
   template <typename T>
-  constexpr auto range(T&& until)
+  constexpr auto range(const T& until)
   {
-    using Type = ezy::remove_cvref_t<T>;
-    return ezy::take_while(ezy::iterate(Type{0}), [until](const T& e) { return e < until; });
+    return ezy::take_while(ezy::iterate(T{0}), [until](const T& e) { return e < until; });
   }
 
   template <typename T>

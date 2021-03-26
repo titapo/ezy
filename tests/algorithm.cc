@@ -976,6 +976,14 @@ SCENARIO("range(until)")
     REQUIRE(join_as_strings(r, ",") == "0.000000,1.000000,2.000000,3.000000,4.000000");
     static_assert(std::is_same<ezy::detail::value_type_t<decltype(r)>, double>::value);
   }
+
+  GIVEN("a range specified by lvalue")
+  {
+    int i = 6;
+    const auto r = ezy::range(i);
+    REQUIRE(join_as_strings(r, ",") == "0,1,2,3,4,5");
+    static_assert(std::is_same<ezy::detail::value_type_t<decltype(r)>, int>::value);
+  }
 }
 
 SCENARIO("range(from, until)")
