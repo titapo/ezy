@@ -16,6 +16,20 @@ SCENARIO("to_string proxies to std::to_string")
   REQUIRE(ezy::to_string(-1234.25l) == "-1234.250000");
 }
 
+SCENARIO("to_string can construct a string from char*")
+{
+  static_assert(std::is_same<decltype(ezy::to_string("Hello")), std::string>::value);
+  REQUIRE(ezy::to_string("Hello") == "Hello");
+
+  const char* chars = "world!";
+  const auto str = ezy::to_string(chars);
+  static_assert(std::is_same<decltype(str), const std::string>::value);
+  REQUIRE(str == "world!");
+
+  static_assert(std::is_same<decltype(ezy::to_string(str.data())), std::string>::value);
+  REQUIRE(ezy::to_string(str.data()) == "world!");
+}
+
 struct my_struct
 {};
 
