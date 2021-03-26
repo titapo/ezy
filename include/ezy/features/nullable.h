@@ -3,6 +3,8 @@
 
 #include "../strong_type_traits.h"
 #include "../invoke.h"
+#include "../identity.h"
+#include "../dereference.h"
 
 #include <functional>
 
@@ -14,24 +16,6 @@ namespace experimental
 {
   namespace detail
   {
-    struct identity_fn
-    {
-      template <typename T>
-      constexpr T&& operator()(T&& t) const noexcept
-      {
-        return std::forward<T>(t);
-      }
-    };
-
-    struct dereference_fn
-    {
-      template <typename T>
-        constexpr decltype(auto) operator()(T&& t) const noexcept
-        {
-          return *(std::forward<T>(t));
-        }
-    };
-
     template <typename T>
     struct default_ctor_of
     {
@@ -191,7 +175,7 @@ namespace experimental
    * Please note that `nullable_as` feature does not affect object construction. A default constructed element
    * not necessarily contains a null value.
    */
-  template <typename NoneProvider, typename NoneChecker = std::equal_to<>, typename Unwrapper = detail::identity_fn>
+  template <typename NoneProvider, typename NoneChecker = std::equal_to<>, typename Unwrapper = ezy::identity_fn>
   struct nullable_as
   {
     template <typename T>
@@ -207,7 +191,7 @@ namespace experimental
    * NoneChecker: holds a callable object as a unary predicate. There is no value provider here, so
    * make_null() is not added here.
    */
-  template <typename NoneChecker, typename Unwrapper = detail::identity_fn>
+  template <typename NoneChecker, typename Unwrapper = ezy::identity_fn>
   struct nullable_if
   {
     template <typename T>
@@ -231,7 +215,7 @@ namespace experimental
     using impl = typename nullable_as<
       std::integral_constant<std::nullptr_t, nullptr>,
       std::equal_to<>,
-      detail::dereference_fn
+      ezy::dereference_fn
     >::template impl<T>;
   };
 
