@@ -3,6 +3,7 @@
 
 #include "../strong_type.h"
 #include "result_interface.h"
+#include <cstddef>
 #include <variant>
 
 namespace ezy::features
