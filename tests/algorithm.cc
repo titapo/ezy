@@ -248,6 +248,18 @@ SCENARIO("filter array")
   REQUIRE(join_as_strings(filtered) == "246");
 }
 
+SCENARIO("filter mutable")
+{
+  std::vector<int> v{1,2,3,4,5,6};
+  auto filtered = ezy::filter(v, [](int i) { return i % 2 == 0; });
+  for (auto& i : filtered)
+  {
+    i *= 2;
+  };
+  REQUIRE(join_as_strings(filtered, ",") == "4,8,12");
+  REQUIRE(join_as_strings(v, ",") == "1,4,3,8,5,12");
+}
+
 SCENARIO("concatenate")
 {
   std::vector<int> v1{1,2,3};

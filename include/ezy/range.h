@@ -372,52 +372,54 @@ namespace detail
   template <typename orig_type,
             typename predicate_type
            >
-  struct iterator_filter : basic_iterator_adaptor<orig_type>
+  struct iterator_filter
   {
     public:
-      using base = basic_iterator_adaptor<orig_type>;
-      using value_type = decltype(*std::declval<orig_type>());
-      using difference_type = typename base::difference_type;
+      using value_type = typename std::iterator_traits<orig_type>::value_type;
+      using pointer = typename std::iterator_traits<orig_type>::pointer;
+      using reference = typename std::iterator_traits<orig_type>::reference;
+      using difference_type = typename std::iterator_traits<orig_type>::difference_type;
       using iterator_category = std::input_iterator_tag; // forward_iterator_tag?
 
-      // constructor
-      using base::basic_iterator_adaptor;
-
-
-      /*
-      iterator_filter(orig_type original, predicate_type&& p, const orig_type& end)
-        : base(original)
-        , converter(std::move(c))
-      {}
-      */
-
       iterator_filter(orig_type original, const predicate_type& p, const orig_type& end)
-        : base(original)
-        , predicate(p)
+        : orig(original)
         , end_iterator(end)
+        , predicate(p)
       {
-        if (base::orig != end_iterator && !predicate(*base::orig))
+        if (orig != end_iterator && !predicate(*orig))
           operator++();
       }
 
       inline iterator_filter& operator++()
       {
-        ++base::orig;
-        for (; base::orig != end_iterator; ++base::orig)
-          if (predicate(*base::orig))
+        ++orig;
+        for (; orig != end_iterator; ++orig)
+          if (predicate(*orig))
             return *this;
 
         return *this;
       }
 
-      value_type operator*()
+      inline constexpr bool operator==(const iterator_filter& rhs) const
       {
-        return *(base::orig);
+        return orig == rhs.orig;
+      }
+
+      inline constexpr bool operator!=(const iterator_filter& rhs) const
+      {
+        return orig != rhs.orig;
+      }
+
+      // returns either reference or value, based on what *orig returns
+      decltype(auto) operator*()
+      {
+        return *(orig);
       }
 
     private:
-      predicate_type predicate;
+      orig_type orig;
       const orig_type end_iterator;
+      predicate_type predicate;
   };
 
   template <typename first_range_type, typename second_range_type>
@@ -1024,6 +1026,7 @@ namespace detail
   {
     using Range = ezy::experimental::keeper_value_type_t<Keeper>;
     using const_iterator = iterator_filter<const_iterator_type_t<Range>, FilterPredicate>;
+    using iterator = iterator_filter<iterator_type_t<Range>, FilterPredicate>;
     using size_type = size_type_t<Range>;
 
     range_view_filter(Keeper&& keeper, FilterPredicate pred)
@@ -1036,6 +1039,12 @@ namespace detail
 
     const_iterator end() const
     { return const_iterator(std::end(orig_range.get()), predicate, std::end(orig_range.get())); }
+
+    iterator begin()
+    { return iterator(std::begin(orig_range.get()), predicate, std::end(orig_range.get())); }
+
+    iterator end()
+    { return iterator(std::end(orig_range.get()), predicate, std::end(orig_range.get())); }
 
     private:
       Keeper orig_range;
