@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 project(ezy LANGUAGES CXX)
 
-add_subdirectory(thirdparty/catch)
-add_subdirectory(tests)
-add_subdirectory(examples)
-
 
 if (USE_SANITIZER STREQUAL "address")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
@@ -30,6 +26,9 @@ target_include_directories(ezy_lib
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
 )
+
+add_subdirectory(tests)
+add_subdirectory(examples)
 
 ## 
 ## # testing

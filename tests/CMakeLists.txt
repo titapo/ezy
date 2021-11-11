@@ -1,3 +1,13 @@
+include(FetchContent)
+
+FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG v2.13.7
+)
+
+FetchContent_MakeAvailable(Catch2)
+
 add_executable(unit_test
   main.cc
   ezy.cc
@@ -15,7 +25,7 @@ add_executable(unit_test
 target_link_libraries(unit_test
   PRIVATE
     ezy_lib
-    catch
+    Catch2::Catch2
 )
 
 set_target_properties(unit_test

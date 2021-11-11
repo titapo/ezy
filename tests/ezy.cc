@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 static_assert(!std::is_copy_constructible_v<move_only>);
 static_assert(!std::is_trivially_copy_constructible_v<move_only>);

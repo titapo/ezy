@@ -4,7 +4,7 @@
 #include <sstream>
 #include <map>
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 template <typename RangeType>
 auto range_size(const RangeType& range)

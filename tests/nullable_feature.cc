@@ -1,4 +1,4 @@
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 #include <ezy/features/nullable.h>
 #include <ezy/features/nullable_result.h>
