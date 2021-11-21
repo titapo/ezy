@@ -541,14 +541,14 @@ namespace detail
       using reference = typename inner_iterator::reference;
       using iterator_category = std::forward_iterator_tag;
 
-      iterator_flattener(const range_type& range)
+      iterator_flattener(range_type& range)
         : tracker(range)
       {
         if (tracker.template has_next<0>())
           inner = outer()->begin();
       }
 
-      iterator_flattener(const range_type& range, end_marker_t&&)
+      iterator_flattener(range_type& range, end_marker_t&&)
         : tracker(range, end_marker_t{})
       {
         if (tracker.template has_next<0>())
