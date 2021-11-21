@@ -559,12 +559,12 @@ namespace detail
       {
         ++inner;
         auto outer_tracked = tracker.template get<0>();
-        while (outer_tracked.first != outer_tracked.second && inner == outer_tracked.first->end()) // end of current subrange
+        while (outer_tracked.first != outer_tracked.second && inner == end(*outer_tracked.first)) // end of current subrange
         {
           ++outer_tracked.first;
           if (outer_tracked.first != outer_tracked.second) // not finished
           {
-            inner = outer()->begin();
+            inner = begin(*outer());
           }
         }
 
