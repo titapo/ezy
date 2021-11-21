@@ -331,7 +331,7 @@ namespace detail
     public:
       using base = basic_iterator_adaptor<orig_type>;
       using value_type = decltype(*std::declval<orig_type>());
-      using result_type = decltype(std::declval<converter_type>()(std::declval<value_type>()));
+      using result_type = decltype(ezy::invoke(std::declval<converter_type>(), std::declval<value_type>()));
 
       // constructor
       using base::basic_iterator_adaptor;
@@ -359,7 +359,7 @@ namespace detail
 
       constexpr result_type operator*()
       {
-        return converter(*(base::orig));
+        return ezy::invoke(converter, *(base::orig));
       }
 
     private:
