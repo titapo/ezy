@@ -6,7 +6,13 @@ FetchContent_Declare(
   GIT_TAG v2.13.7
 )
 
-FetchContent_MakeAvailable(Catch2)
+# FetchContent_MakeAvailable(Catch2)
+# Workaround for old CMake version
+FetchContent_GetProperties(Catch2)
+if(NOT catch2_POPULATED)
+  FetchContent_Populate(Catch2)
+  add_subdirectory(${catch2_SOURCE_DIR} ${catch2_BINARY_DIR})
+endif()
 
 add_executable(unit_test
   main.cc
