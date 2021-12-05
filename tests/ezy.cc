@@ -6,7 +6,7 @@
 
 // TODO think of: making ezy::optional and ezy::result iterable?
 
-#include <ezy/result>
+#include <ezy/result.h>
 
 #include "common.h"
 

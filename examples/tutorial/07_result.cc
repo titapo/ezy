@@ -1,4 +1,4 @@
-#include <ezy/result>
+#include <ezy/result.h>
 #include <ezy/string.h>
 
 #include <iostream>

@@ -297,7 +297,7 @@ SCENARIO("nullable result")
 template <typename T, typename Tag = void>
 using Pointer = ezy::strong_type<T*, Tag, ezy::features::experimental::nullable_ptr>;
 
-#include <ezy/result>
+#include <ezy/result.h>
 
 SCENARIO("pointer")
 {
