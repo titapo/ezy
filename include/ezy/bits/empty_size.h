@@ -47,7 +47,10 @@ namespace ezy
     }
   };
 
-  static constexpr empty_fn empty = {};
+  inline namespace cpo
+  {
+    static constexpr empty_fn empty = {};
+  }
 
   namespace detail
   {
@@ -88,7 +91,10 @@ namespace ezy
     }
   };
 
-  static constexpr size_fn size = {};
+  inline namespace cpo
+  {
+    static constexpr size_fn size = {};
+  }
 }
 
 #endif

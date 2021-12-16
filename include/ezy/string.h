@@ -33,7 +33,10 @@ namespace ezy
     }
   };
 
-  static constexpr to_string_fn to_string{};
+  inline namespace cpo
+  {
+    static constexpr to_string_fn to_string{};
+  }
 }
 
 #endif
