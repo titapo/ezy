@@ -33,4 +33,52 @@ endif ()
 ## enable_testing()
 ## add_subdirectory( tests )
 ## 
-install(DIRECTORY include/ezy DESTINATION include)
+
+if (EZY_IS_TOP_LEVEL)
+  install(
+    TARGETS
+      ezy
+    EXPORT
+      EzyTargets
+    DESTINATION
+      ${CMAKE_INSTALL_LIBDIR}
+  )
+
+  install(
+    EXPORT
+      EzyTargets
+    NAMESPACE
+      ezy::
+    DESTINATION
+      lib/cmake/ezy
+  )
+
+  install(
+    DIRECTORY include/ezy
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
+
+  include(CMakePackageConfigHelpers)
+
+  configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/ezy-config.cmake
+    INSTALL_DESTINATION lib/cmake/ezy
+  )
+
+  write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/ezy-config-version.cmake
+    VERSION "0.0.1"
+    COMPATIBILITY AnyNewerVersion
+  )
+
+  install(
+    FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/ezy-config.cmake
+      ${CMAKE_CURRENT_BINARY_DIR}/ezy-config-version.cmake
+    DESTINATION
+      lib/cmake/ezy
+  )
+
+
+endif ()
