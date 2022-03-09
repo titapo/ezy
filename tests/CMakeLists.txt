@@ -30,7 +30,7 @@ add_executable(unit_test
 
 target_link_libraries(unit_test
   PRIVATE
-    ezy_lib
+    ezy
     Catch2::Catch2
 )
 

@@ -7,14 +7,14 @@ add_executable(06_optional         06_optional.cc)
 add_executable(07_result           07_result.cc)
 add_executable(08_nullable         08_nullable.cc)
 
-target_link_libraries(01_strong_type      PRIVATE ezy_lib)
-target_link_libraries(02_features         PRIVATE ezy_lib)
-target_link_libraries(03_iterable_feature PRIVATE ezy_lib)
-target_link_libraries(04_extended_type    PRIVATE ezy_lib)
-target_link_libraries(05_algorithm        PRIVATE ezy_lib)
-target_link_libraries(06_optional         PRIVATE ezy_lib)
-target_link_libraries(07_result           PRIVATE ezy_lib)
-target_link_libraries(08_nullable         PRIVATE ezy_lib)
+target_link_libraries(01_strong_type      PRIVATE ezy)
+target_link_libraries(02_features         PRIVATE ezy)
+target_link_libraries(03_iterable_feature PRIVATE ezy)
+target_link_libraries(04_extended_type    PRIVATE ezy)
+target_link_libraries(05_algorithm        PRIVATE ezy)
+target_link_libraries(06_optional         PRIVATE ezy)
+target_link_libraries(07_result           PRIVATE ezy)
+target_link_libraries(08_nullable         PRIVATE ezy)
 
 set_property(
   TARGET

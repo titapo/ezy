@@ -11,8 +11,10 @@ project(ezy LANGUAGES CXX)
 option(EZY_BUILD_TESTS "Build ezy tests" ON)
 option(EZY_BUILD_EXAMPLES "Build ezy examples" ON)
 
-add_library(ezy_lib INTERFACE)
-target_include_directories(ezy_lib
+add_library(ezy INTERFACE)
+add_library(ezy::ezy ALIAS ezy)
+
+target_include_directories(ezy
   INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
