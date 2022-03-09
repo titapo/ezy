@@ -39,5 +39,15 @@ set_target_properties(unit_test
     CXX_STANDARD 17
 )
 
+function(ezy_target_add_sanitizer tgt sanitizer)
+    target_compile_options(${tgt} PRIVATE -fsanitize=${sanitizer})
+    target_link_options(${tgt} PRIVATE -fsanitize=${sanitizer})
+endfunction()
+
+if (EZY_SANITIZER)
+  ezy_target_add_sanitizer(unit_test ${EZY_SANITIZER})
+endif()
+
+
 target_compile_options(unit_test PRIVATE -pedantic -Wall -Werror)
 # target_compile_options(unit_test PRIVATE -D_GLIBCXX_DEBUG)
