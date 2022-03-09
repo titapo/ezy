@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
+if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+  set(EZY_IS_TOP_LEVEL ON)
+else()
+  set(EZY_IS_TOP_LEVEL OFF)
+endif ()
+
 project(ezy LANGUAGES CXX)
 
 option(EZY_BUILD_TESTS "Build ezy tests" ON)
@@ -12,11 +18,11 @@ target_include_directories(ezy_lib
     $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
 )
 
-if (EZY_BUILD_TESTS)
+if (EZY_BUILD_TESTS AND EZY_IS_TOP_LEVEL)
   add_subdirectory(tests)
 endif ()
 
-if (EZY_BUILD_EXAMPLES)
+if (EZY_BUILD_EXAMPLES AND EZY_IS_TOP_LEVEL)
   add_subdirectory(examples)
 endif ()
 
