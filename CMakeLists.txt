@@ -6,10 +6,19 @@ else()
   set(EZY_IS_TOP_LEVEL OFF)
 endif ()
 
-project(ezy LANGUAGES CXX)
+project(ezy
+  LANGUAGES CXX
+  VERSION 0.0.1
+)
 
 option(EZY_BUILD_TESTS "Build ezy tests" ON)
 option(EZY_BUILD_EXAMPLES "Build ezy examples" ON)
+
+message(STATUS "Configuring: ezy (${PROJECT_VERSION})")
+if (EZY_IS_TOP_LEVEL)
+  message(STATUS "  EZY_BUILD_TESTS=${EZY_BUILD_TESTS}")
+  message(STATUS "  EZY_BUILD_EXAMPLES=${EZY_BUILD_EXAMPLES}")
+endif ()
 
 add_library(ezy INTERFACE)
 add_library(ezy::ezy ALIAS ezy)
@@ -68,7 +77,7 @@ if (EZY_IS_TOP_LEVEL)
 
   write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/ezy-config-version.cmake
-    VERSION "0.0.1"
+    VERSION "${PROJECT_VERSION}"
     COMPATIBILITY AnyNewerVersion
   )
 
