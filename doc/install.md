@@ -28,7 +28,7 @@ directory.
 ```cmake
 FetchContent_Declare(ezy
   GIT_REPOSITORY https://github.com/titapo/ezy
-  GIT_TAG 427e5b3f63ad0d6f3553bdaafcb93bf4d52d8010
+  GIT_TAG 0.0.1
 )
 
 FetchContent_MakeAvailable(ezy)
