@@ -22,6 +22,8 @@ More [components](doc/discussion/components.md).
 
 > Writing documentation is in progress and currently insufficient.
 
+[Install guide](doc/install.md).
+
 There are [tutorials](doc/tutorial/) to learn the basics of `ezy`.
 
 [Background](doc/discussion/) about the design ideas and guidlines of the library.
