@@ -40,4 +40,4 @@ target_link_libraries(mytarget PRIVATE ezy::ezy)
 
 ## Next steps
 
-Now you are ready to [use ezy](install/tutorial).
+Now you are ready to [use ezy](tutorial/).
