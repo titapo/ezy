@@ -1,5 +1,7 @@
 # Defining custom features
 
+Compilable version of the following examples can be found [here](../../examples/howto/01_feature.cc.).
+
 ## The most dumb feature
 
 The basic skeleton of a feature is the following:
@@ -156,20 +158,16 @@ structure. If you are familiar with the idea of UFCS (Unified Function Call Synt
 There is a `toggle` free function:
 
 ```cpp
-struct toggleable
+void toggle(Door& door)
 {
-  template <typename T>
-  struct impl
-  {
-    void toggle()
-    {
-      ::toggle(static_cast<T&>(*this).get());
-    }
-  };
-};
+  if (door.getStatus() == Door::Status::Open)
+    door.close();
+  else
+    door.open();
+}
 ```
 
-One can say, this method should have been defined in `Door` as a member function, but this is not necessarily the case.
+One can argue, this method should have been defined in `Door` as a member function, but this is not necessarily the case.
 Anyway we can declare a feature to workaround this issue without touching the original `Door` interface:
 
 ```cpp
