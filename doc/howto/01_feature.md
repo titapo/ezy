@@ -1,6 +1,6 @@
 # Defining custom features
 
-Compilable version of the following examples can be found [here](../../examples/howto/01_feature.cc.).
+Compilable version of the following examples can be found [here](../../examples/howto/01_feature.cc).
 
 ## The most dumb feature
 
@@ -198,7 +198,8 @@ assert(Door::Status::Closed == door.get().getStatus());
 Now we can extend the previously declared `accessible` feature by adding `toggleable` as well. There is one more
 opportunity we can do: `toggleable::impl<T>::toggle()` does not return anything, so we can do one of the following:
 
-===  Method chaining
+### Method chaining
+
 ```cpp
     auto& toggleable::impl<T>::toggle()
     {
@@ -209,7 +210,7 @@ opportunity we can do: `toggleable::impl<T>::toggle()` does not return anything,
 
 This practice allows method chaining, writing something like: `door.toggle().toggle();`
 
-===  Enchanted method
+### Enchanted method
 
 ```cpp
     auto toggleable::impl<T>::toggle()
@@ -222,7 +223,7 @@ This practice allows method chaining, writing something like: `door.toggle().tog
 This can be useful, but please note that now the `toggleable` feature requires `getStatus()` method to be defined for
 any other class. It is preferred to be conservative what features require from the interface they use.
 
-== Extending features
+## Extending features
 
 By extending features we mean adding a new functionality to a class. Now we want a door which can be opened only by a
 secret word.
