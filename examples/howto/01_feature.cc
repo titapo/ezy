@@ -22,7 +22,7 @@ struct Door
     Closed
   };
 
-  Status status;
+  Status status{Status::Closed};
 
   void open()
   {
@@ -71,6 +71,120 @@ struct accessible
   {};
 };
 
+void toggle(Door& door)
+{
+  if (door.getStatus() == Door::Status::Open)
+    door.close();
+  else
+    door.open();
+}
+
+struct toggleable
+{
+  template <typename T>
+  struct impl
+  {
+    T& toggle()
+    {
+      ::toggle(static_cast<T&>(*this).get());
+      return static_cast<T&>(*this);
+    }
+  };
+};
+
+
+void internalization()
+{
+  using ToggleableDoor = ezy::strong_type<Door, struct my_tag, toggleable>;
+  ToggleableDoor door;
+  door.toggle();
+  assert(Door::Status::Open == door.get().getStatus());
+  door.toggle();
+  assert(Door::Status::Closed == door.get().getStatus());
+}
+
+void open_with_key(Door& door, int key)
+{
+  if (key == 42)
+    door.open();
+}
+
+struct key_openable
+{
+  template <typename T>
+  struct impl
+  {
+    void open(int key)
+    {
+      return ::open_with_key(static_cast<T&>(*this).get(), key);
+    }
+  };
+};
+
+void extend_with_secret()
+{
+  using SecretDoor = ezy::strong_type<Door, struct my_tag, key_openable>;
+  SecretDoor door;
+  door.open(10);
+  assert(Door::Status::Closed == door.get().getStatus());
+  door.open(42);
+  assert(Door::Status::Open == door.get().getStatus());
+}
+
+struct SecretDoor2 : ezy::strong_type<Door, struct my_tag, closable>
+{
+  SecretDoor2(int secret_key)
+    : secret(secret_key)
+  {}
+
+  void open(int key)
+  {
+    if (key == secret)
+      this->get().open();
+  }
+
+  const int secret;
+};
+
+void extend_with_secret2()
+{
+  SecretDoor2 door{100};
+  door.open(10);
+  assert(Door::Status::Closed == door.get().getStatus());
+  door.open(42);
+  assert(Door::Status::Closed == door.get().getStatus());
+  door.open(100);
+  assert(Door::Status::Open == door.get().getStatus());
+}
+
+
+template <int Secret = 42>
+struct static_key_openable
+{
+  template <typename T>
+  struct impl
+  {
+    void open(int key)
+    {
+      if (key == Secret)
+        static_cast<T&>(*this).get().open();
+    }
+  };
+};
+
+
+void extend_with_secret3()
+{
+  using SecretDoor3 = ezy::strong_type<Door, struct my_tag, static_key_openable<200>>;
+  SecretDoor3 door;
+  door.open(10);
+  assert(Door::Status::Closed == door.get().getStatus());
+  door.open(42);
+  assert(Door::Status::Closed == door.get().getStatus());
+  door.open(200);
+  assert(Door::Status::Open == door.get().getStatus());
+}
+
 int main()
 {
   using AnswerableInt = ezy::strong_type<int, struct my_tag, answerable>;
@@ -94,4 +208,8 @@ int main()
   assert(Door::Status::Open == d3.get().getStatus());
   d3.close();
   assert(Door::Status::Closed == d3.get().getStatus());
+
+  internalization();
+  extend_with_secret();
+  extend_with_secret2();
 }
