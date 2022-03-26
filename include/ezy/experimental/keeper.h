@@ -315,6 +315,18 @@ namespace experimental
 
     template <typename T>
     using infer_keeper_t = typename infer_keeper<T>::type;
+
+    /**
+     * deduce_keeper relies on ownership category instead of keeper_category. algorithm.h exclusively uses this,
+     * together with `make_keeper`
+     *
+     * TODO: Investinate if is there any significant difference.
+     */
+    template <typename Range>
+    using deduce_keeper_t = ezy::experimental::keeper<
+      ezy::experimental::detail::ownership_category_t<Range>,
+      std::remove_reference_t<Range>
+    >;
   }
 
 
