@@ -43,22 +43,35 @@ namespace ezy
     template <typename T, typename Tuple, std::size_t...Is>
     constexpr static decltype(auto) call_helper_tuple(T&& t, Tuple&& tup, std::index_sequence<Is...>)
     {
-      return call_helper_pack(std::forward<T>(t), std::get<Is>(tup)...);
+      return call_helper_pack(std::forward<T>(t), std::get<Is>(std::forward<Tuple>(tup))...);
     }
 
-    template <typename...Fns, typename T>
-    constexpr static decltype(auto) call_helper(std::tuple<Fns...> tup, T&& t)
+    // FsTupleArg is FsTuple, but as a universal reference
+    template <typename FsTupleArg, typename T>
+    constexpr static decltype(auto) call_helper(FsTupleArg&& tup, T&& t)
     {
       return call_helper_tuple(
           std::forward<T>(t),
-          std::forward<decltype(tup)>(tup),
-          std::make_index_sequence<sizeof...(Fns)>());
+          std::forward<FsTupleArg>(tup),
+          std::make_index_sequence<sizeof...(Fs)>());
     }
 
     template <typename T>
-    constexpr decltype(auto) operator()(T&& t) const
+    constexpr decltype(auto) operator()(T&& t) const &
     {
       return call_helper(fs, std::forward<T>(t));
+    }
+
+    template <typename T>
+    constexpr decltype(auto) operator()(T&& t) &
+    {
+      return call_helper(fs, std::forward<T>(t));
+    }
+
+    template <typename T>
+    constexpr decltype(auto) operator()(T&& t) &&
+    {
+      return call_helper(std::move(fs), std::forward<T>(t));
     }
   };
 

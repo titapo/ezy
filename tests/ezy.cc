@@ -1587,6 +1587,23 @@ SCENARIO("flip")
   REQUIRE(append("foo"s, "bar"s) == "barfoo");
 }
 
+int add_5(int in)
+{
+  return in + 5;
+}
+
+SCENARIO("compose regular function")
+{
+
+  auto composed = ezy::compose(add_5, add_5);
+  REQUIRE(composed(4) == 14);
+}
+
+SCENARIO("compose regular function and invoke in one expression")
+{
+  REQUIRE(ezy::compose(add_5, add_5)(2) == 12);
+}
+
 SCENARIO("compose")
 {
   using namespace ezy::experimental;
