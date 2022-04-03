@@ -1688,6 +1688,7 @@ SCENARIO("pickers")
     {
       auto picked = ezy::pick_second(std::tuple{2, 4, 6});
       REQUIRE(picked == 4);
+      static_assert(std::is_same_v<decltype(picked), int>);
     }
 
     WHEN("pick a reference")
@@ -1696,6 +1697,24 @@ SCENARIO("pickers")
       REQUIRE(picked == 12.5);
       std::get<1>(t) -= 10.0;
       REQUIRE(picked == 2.5);
+    }
+
+    WHEN("pick a mutable reference by index")
+    {
+      auto& picked = ezy::pick_second(t);
+      REQUIRE(picked == 12.5);
+      picked += 10;
+      REQUIRE(std::get<1>(t) == 22.5);
+      REQUIRE(picked == 22.5);
+    }
+
+    WHEN("pick a mutable reference by type")
+    {
+      auto& picked = ezy::pick_type<double>(t);
+      REQUIRE(picked == 12.5);
+      picked += 10;
+      REQUIRE(std::get<double>(t) == 22.5);
+      REQUIRE(picked == 22.5);
     }
   }
 

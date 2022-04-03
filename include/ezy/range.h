@@ -1832,8 +1832,8 @@ namespace ezy
   struct pick_nth_t
   {
     template <typename ValueType>
-    decltype(auto) operator()(const ValueType& value) const
-    { return std::get<N>(value); }
+    decltype(auto) operator()(ValueType&& value) const
+    { return std::get<N>(std::forward<ValueType>(value)); }
   };
 
   template <size_t N>
@@ -1846,8 +1846,8 @@ namespace ezy
   struct pick_type_t
   {
     template <typename ValueType>
-    decltype(auto) operator()(const ValueType& value) const
-    { return std::get<T>(value); }
+    decltype(auto) operator()(ValueType&& value) const
+    { return std::get<T>(std::forward<ValueType>(value)); }
   };
 
   template <typename T>
