@@ -19,6 +19,7 @@ add_executable(unit_test
   ezy.cc
   invoke.cc
   keeper.cc
+  math.cc
   strong_type_traits.cc
   tuple_traits.cc
   algorithm.cc
