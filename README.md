@@ -1,3 +1,5 @@
+![ezy logo](artwork/ezy.png)
+
 ezy
 ===
 
