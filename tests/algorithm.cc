@@ -909,6 +909,22 @@ SCENARIO("enumerate on classic array")
   static_assert(std::is_same_v<std::remove_reference_t<decltype(std::get<0>(*enumerated.begin()))>, size_t>);
 }
 
+SCENARIO("enumerate works on multiple ranges")
+{
+  std::vector<std::string> fruits{"alma", "banan", "cseresznye"};
+  std::vector<int> numbers{10, 12, 20};
+
+  const auto enumerated = ezy::enumerate(fruits, numbers);
+
+  const auto joined = ezy::join(
+      ezy::transform(
+        enumerated,
+        [](const auto& tuple) -> std::string { const auto& [index, fruit, number] = tuple; return std::to_string(index) + ":" + fruit + "+" + std::to_string(number); }
+        ),
+      " ");
+  REQUIRE(joined == "0:alma+10 1:banan+12 2:cseresznye+20");
+}
+
 SCENARIO("cycle")
 {
   const auto cycled = ezy::cycle(std::vector{2, 3, 4});

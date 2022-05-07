@@ -306,11 +306,15 @@ namespace ezy
     return ezy::detail::iterate_view<T, Fn>{std::forward<T>(t), Fn{}};
   }
 
-  template <typename Range>
-  constexpr auto enumerate(Range&& range)
+  /**
+   * When multiple ranges passed, they has to have the same size_type.
+   */
+  template <typename Range0, typename... Ranges>
+  constexpr auto enumerate(Range0&& range0, Ranges&&... ranges)
   {
-    using SizeType = detail::size_type_t<Range>;
-    return ezy::zip(ezy::iterate<SizeType>({}), std::forward<Range>(range));
+    using SizeType = detail::size_type_t<Range0>;
+    static_assert(std::conjunction_v<std::is_same<SizeType, detail::size_type_t<Ranges>>...>);
+    return ezy::zip(ezy::iterate<SizeType>({}), std::forward<Range0>(range0), std::forward<Ranges>(ranges)...);
   }
 
   template <typename Range>
