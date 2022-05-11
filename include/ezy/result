@@ -1,6 +1,0 @@
-#ifndef EZY_RESULT_INCLUDED
-#define EZY_RESULT_INCLUDED
-
-#include "result.h"
-
-#endif

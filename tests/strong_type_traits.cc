@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
-#include <ezy/strong_type>
+#include <ezy/strong_type.h>
+#include <ezy/features/arithmetic.h>
 
 /**
  * strong type traits

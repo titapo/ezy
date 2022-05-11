@@ -1,6 +1,0 @@
-#ifndef EZY_ALGORITHM_INCLUDED
-#define EZY_ALGORITHM_INCLUDED
-
-#include "algorithm.h"
-
-#endif

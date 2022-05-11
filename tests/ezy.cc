@@ -1,5 +1,9 @@
 
-#include <ezy/strong_type>
+#include <ezy/strong_type.h>
+#include <ezy/optional.h>
+#include <ezy/features/arithmetic.h>
+#include <ezy/features/invocable.h>
+#include <ezy/features/iterable.h>
 #include <ezy/features/common.h>
 #include <ezy/features/printable.h>
 #include <ezy/string.h>

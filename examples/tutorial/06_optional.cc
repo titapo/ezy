@@ -1,4 +1,4 @@
-#include <ezy/optional>
+#include <ezy/optional.h>
 #include <ezy/string.h>
 
 ezy::optional<int> even(int i)

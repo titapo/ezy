@@ -3,7 +3,7 @@
 
 #include "algorithm.h" // find_element*
 
-#include <ezy/optional>
+#include <ezy/optional.h>
 #include <ezy/pointer.h>
 
 namespace ezy

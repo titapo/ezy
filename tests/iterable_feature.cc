@@ -1,5 +1,6 @@
-#include <ezy/strong_type>
+#include <ezy/strong_type.h>
 #include <ezy/string.h>
+#include <ezy/features/iterable.h>
 
 #include <sstream>
 #include <map>

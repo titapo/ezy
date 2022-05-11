@@ -1,6 +1,0 @@
-#ifndef EZY_VARIANT_INCLUDED
-#define EZY_VARIANT_INCLUDED
-
-#include "variant.h"
-
-#endif

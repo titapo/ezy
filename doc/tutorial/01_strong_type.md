@@ -76,4 +76,7 @@ At the end of the day, only the parameter types had to be changed in the impleme
 about the code which uses this function? Well, the compiler will point to every single call which has to be
 updated.
 
+There is a convenience header `<ezy/strong_type_common.h>` pulling in the most common features alongside with
+`string_type`.
+
 Next: [Features](02_features.md)

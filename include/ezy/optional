@@ -1,6 +1,0 @@
-#ifndef EZY_OPTIONAL_INCLUDED
-#define EZY_OPTIONAL_INCLUDED
-
-#include "optional.h"
-
-#endif
