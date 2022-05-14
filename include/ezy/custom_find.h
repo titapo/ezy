@@ -1,7 +1,7 @@
 #ifndef EZY_CUSTOM_FIND_H_INCLUDED
 #define EZY_CUSTOM_FIND_H_INCLUDED
 
-#include "bits/algorithm.h"
+#include <ezy/algorithm/find_element.h>
 
 namespace ezy
 {

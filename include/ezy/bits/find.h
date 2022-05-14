@@ -1,7 +1,7 @@
 #ifndef EZY_BITS_FIND_H_INCLUDED
 #define EZY_BITS_FIND_H_INCLUDED
 
-#include "algorithm.h" // find_element*
+#include <ezy/algorithm/find_element.h>
 
 #include <ezy/optional.h>
 #include <ezy/pointer.h>
