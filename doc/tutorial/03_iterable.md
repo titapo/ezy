@@ -242,21 +242,20 @@ separate parameters. `std::apply` is the utility from the standard lib which can
 helper lambda for it:
 
 ```cpp
-
 const auto display_with_name_and_score = [](const auto& name_with_score) {
   return std::apply(display, name_with_score);
-};
+}; // not recommended
 ```
 While it would do its job correctly, it is quite cumbersome to add a helper lambda for every possible function to be
 applied. It brings a lot of noise while it only binds the function to `std::apply`.
 
  Fortunately `ezy::apply` provides not only a polyfill for `std::apply`, but a [curried]() version as well.  In practice
-this means that `ezy::apply(display)` prepares the `display` function to be invoked by a tuple.
+this means that `ezy::apply(display)` prepares the `display` function to be invoked by a tuple. So from a logical
+perspective, the same is equivalent:
 
-//*
-It is still not not desirable. As soon as ezy will have a convenient solution for expressing it, this tutorial
-will be updated too.
-*/
+```cpp
+ezy::apply(display)
+```
 
 #### Put all together
 
