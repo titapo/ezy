@@ -238,7 +238,8 @@ component which could possibly help here: `ezy::compose` it can chain functions:
 #### Mapping
 
 Unfurtunately not only filter is affected, but we cannot call `display` with a tuple, because it expects two
-separate parameters, so we also need a helper lambda for it:
+separate parameters. `std::apply` is the utility from the standard lib which can be used here. So one might implement a
+helper lambda for it:
 
 ```cpp
 
@@ -246,6 +247,11 @@ const auto display_with_name_and_score = [](const auto& name_with_score) {
   return std::apply(display, name_with_score);
 };
 ```
+While it would do its job correctly, it is quite cumbersome to add a helper lambda for every possible function to be
+applied. It brings a lot of noise while it only binds the function to `std::apply`.
+
+ Fortunately `ezy::apply` provides not only a polyfill for `std::apply`, but a [curried]() version as well.  In practice
+this means that `ezy::apply(display)` prepares the `display` function to be invoked by a tuple.
 
 //*
 It is still not not desirable. As soon as ezy will have a convenient solution for expressing it, this tutorial
@@ -260,7 +266,7 @@ return names
   .filter([](const auto& name_with_score) {
       return test_passed(std::get<1>(name_with_score));
       })
-  .map(display_with_name_and_score);
+  .map(ezy::apply(display));
   .map(prepend)
   .for_each(print_line);
 ```

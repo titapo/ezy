@@ -16,10 +16,6 @@ const auto display = [](const std::string name, int score) {
   return name + " (" + ezy::to_string(score) + ")";
 };
 
-const auto display_with_name_and_score = [](const auto& name_with_score) {
-  return std::apply(display, name_with_score);
-};
-
 const auto print_line = [](const auto& line)
 {
   std::cout << line << "\n";
@@ -39,7 +35,7 @@ auto who_passed(const Scores& scores, const Names& names)
     .filter([](const auto& name_with_score) {
         return test_passed(std::get<1>(name_with_score));
         })
-    .map(display_with_name_and_score);
+    .map(ezy::apply(display));
 }
 
 #include <ezy/compose.h>
@@ -51,7 +47,7 @@ auto who_passed_experimental(const Scores& scores, const Names& names)
     .filter(
         ezy::compose(ezy::pick_second, test_passed)
         )
-    .map(display_with_name_and_score);
+    .map(ezy::apply(display));
 }
 
 int main()
