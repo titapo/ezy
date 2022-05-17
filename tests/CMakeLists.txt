@@ -16,6 +16,7 @@ endif()
 
 add_executable(unit_test
   main.cc
+  apply.cc
   ezy.cc
   invoke.cc
   keeper.cc

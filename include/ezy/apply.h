@@ -28,5 +28,21 @@ namespace ezy
         std::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple>>::value>()
         );
   }
+
+  /**
+   * curried version for apply
+   */
+  template <typename Fn>
+  constexpr decltype(auto) apply(Fn&& fn)
+  {
+    /**
+     * TODO consider fn to be stored in keeper
+     * TODO fn should be "forwarded" based on call &/&& qualification
+     */
+    return [fn = std::forward<Fn>(fn)](auto&& tuple)
+    {
+      return ezy::apply(fn, std::forward<decltype(tuple)>(tuple));
+    };
+  }
 }
 #endif
