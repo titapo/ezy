@@ -72,8 +72,8 @@ int main()
   print_line("all names with scores:");
   names.zip_with(display, scores).map(prepend).for_each(print_line);
 
-  std::cout << "Who passed:\n" << who_passed(scores, names).map(prepend).join("\n");
-  std::cout << "Who passed:\n" << who_passed_experimental(scores, names).map(prepend).join("\n");
+  std::cout << "Who passed:\n" << who_passed(scores, names).map(prepend).join("\n") << "\n";
+  std::cout << "Who passed:\n" << who_passed_experimental(scores, names).map(prepend).join("\n") << "\n";
   
   return 0;
 }
