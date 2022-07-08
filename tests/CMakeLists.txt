@@ -24,6 +24,7 @@ add_executable(unit_test
   strong_type_traits.cc
   tuple_traits.cc
   algorithm.cc
+  algorithm_reverse.cc
   iterable_feature.cc
   nullable_feature.cc
   to_string.cc
