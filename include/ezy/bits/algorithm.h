@@ -20,6 +20,7 @@
 #include <ezy/algorithm/none_of.h>
 #include <ezy/algorithm/range.h>
 #include <ezy/algorithm/repeat.h>
+#include <ezy/algorithm/reverse.h>
 #include <ezy/algorithm/slice.h>
 #include <ezy/algorithm/split.h>
 #include <ezy/algorithm/step.h>
