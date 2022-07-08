@@ -1,14 +1,11 @@
 #ifndef EZY_BITS_EMPTY_SIZE_H_INCLUDED
 #define EZY_BITS_EMPTY_SIZE_H_INCLUDED
 
-#include <iterator>
 #include "priority_tag.h"
+#include <iterator>
 
 namespace ezy
 {
-  template <typename...>
-  constexpr auto always_false = false;
-
   namespace detail
   {
     template <typename T>

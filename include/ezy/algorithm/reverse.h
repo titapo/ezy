@@ -2,7 +2,7 @@
 #define EZY_ALGORITHM_REVERSE_H_INCLUDED
 
 #include <ezy/bits/reverse_range_view.h>
-#include <ezy/bits/empty_size.h> // FIXME always_false
+#include <ezy/always_false.h>
 
 namespace ezy
 {
@@ -12,7 +12,7 @@ namespace ezy
     if constexpr (detail::does_range_iterator_implement_v<Range, std::bidirectional_iterator_tag>)
     {
       return detail::reverse_range_view<experimental::detail::deduce_keeper_t<Range>>{
-        ezy::experimental::make_keeper(std::forward<Range>(range)) 
+        ezy::experimental::make_keeper(std::forward<Range>(range))
       };
     }
     else
