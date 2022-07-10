@@ -420,6 +420,14 @@ SCENARIO("slice on array")
   REQUIRE(join_as_strings(ezy::slice(a, 2, 5)) == "345");
 }
 
+SCENARIO("sliced elements can be mutated")
+{
+  std::vector<int> v{1,2,3,4,5,6,7,8};
+  auto sliced = ezy::slice(v, 3, 7);
+  *std::begin(sliced) -= 4;
+  REQUIRE(join_as_strings(v) == "12305678");
+}
+
 static constexpr auto greater_than = ezy::experimental::curry(ezy::experimental::flip(std::greater<>{}));
 static constexpr auto less_than = ezy::experimental::curry(ezy::experimental::flip(std::less<>{}));
 

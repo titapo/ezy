@@ -1002,8 +1002,9 @@ namespace detail
   {
     public:
       using Range = ezy::experimental::keeper_value_type_t<Keeper>;
+      using iterator = iterator_type_t<Range>;
       using const_iterator = const_iterator_type_t<Range>;
-      using difference_type = typename std::iterator_traits<const_iterator>::difference_type;
+      using difference_type = typename std::iterator_traits<iterator>::difference_type;
       using size_type = size_type_t<Range>; //difference_type; // TODO
 
       range_view_slice(Keeper&& orig, size_type f, size_type u)
@@ -1014,6 +1015,13 @@ namespace detail
         if (from > until)
           throw std::logic_error("logic error"); // programming error
       }
+
+      iterator begin()
+      { return iterator(std::next(std::begin(orig_range.get()), bounded(from))); }
+
+      iterator end()
+      { return iterator(std::next(std::begin(orig_range.get()), bounded(until))); }
+
 
       const_iterator begin() const
       { return const_iterator(std::next(std::begin(orig_range.get()), bounded(from))); }
