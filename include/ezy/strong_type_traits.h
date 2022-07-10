@@ -10,6 +10,10 @@ namespace ezy
   /**
    * strong type traits
    */
+
+  /**
+   * is_strong_type<ST>
+   */
   template <typename ST>
   struct is_strong_type : std::false_type
   {};
@@ -21,6 +25,9 @@ namespace ezy
   template <typename ST>
   constexpr bool is_strong_type_v = is_strong_type<ST>::value;
 
+  /**
+   * extract_underlying_type
+   */
   template <typename S>
   struct extract_underlying_type;
 
@@ -34,6 +41,11 @@ namespace ezy
   using extract_underlying_type_t = typename extract_underlying_type<T>::type;
 
 
+  /**
+   * plain_type
+   *
+   * Same as extract_underlying_type, but it works as type_identity for non-strong types
+   */
   template <typename T>
   struct plain_type
   {
@@ -46,6 +58,9 @@ namespace ezy
   template <typename T>
   using plain_type_t = typename plain_type<T>::type;
 
+  /**
+   * extract_tag
+   */
   template <typename...>
   struct extract_tag
   {
@@ -159,7 +174,9 @@ namespace ezy
   using rebind_strong_type_t = typename rebind_strong_type<ST, U>::type;
 
   /**
-   * strong_type_base
+   * strong_type_base<ST>
+   *
+   * For a strong type `ST` which is derived from ezy::strong_type<> returns its base.
    */
   namespace detail
   {
@@ -177,7 +194,14 @@ namespace ezy
   using strong_type_base_t = typename strong_type_base<ST>::type;
 
   /**
-   * has_feature
+   * has_feature<ST, Feature>
+   *
+   * Yields `true_type` if `ST` has feature `Feature`.
+   *
+   * Works for cases where `Feature` is composed with different features.
+   *
+   * Please note that `has_feature` based on feature name, so if there are two equivalent but differently named features
+   * they are not considered the same. (For checking those requirements of a type use type traits or concepts (c++20))
    */
   namespace detail
   {
