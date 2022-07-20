@@ -3,6 +3,7 @@
 
 #include "../strong_type_traits.h"
 #include "../invoke.h"
+#include <ezy/always_false.h>
 
 namespace ezy
 {
@@ -168,7 +169,11 @@ namespace features
           using dST = ezy::remove_cvref_t<ST>;
           using trait = Adapter<typename dST::type>;
 
-          using fn_result_type = decltype(fn(std::declval<typename trait::success_type>()));
+          if constexpr (!ezy::is_invocable<Fn, typename trait::success_type>::value)
+          {
+            static_assert(ezy::always_false<Fn, typename trait::success_type>, "Fn must be invocable with success_type!");
+          }
+          using fn_result_type = decltype(ezy::invoke(std::forward<Fn>(fn), std::declval<typename trait::success_type>()));
 
           using R = fn_result_type;
           using new_underlying_type = plain_type_t<R>; // still not totally OK -> underlying type is also a strong type?

@@ -66,3 +66,9 @@ SCENARIO("invoke")
     }
   }
 }
+
+SCENARIO("is_invocable works")
+{
+  static_assert(ezy::is_invocable<decltype(foo)>::value);
+  static_assert(!ezy::is_invocable<decltype(foo), int>::value);
+}
