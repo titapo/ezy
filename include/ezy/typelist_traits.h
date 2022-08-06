@@ -2,6 +2,7 @@
 #define EZY_TYPELIST_TRAITS_HH_INCLUDED
 
 #include <type_traits>
+#include <utility>
 
 #include "type_traits.h"
 
