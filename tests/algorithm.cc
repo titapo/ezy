@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include <ezy/algorithm.h>
+#include <ezy/constructor.h>
 #include <ezy/strong_type.h>
 #include <ezy/features/iterable.h>
 #include <ezy/string.h>
@@ -783,20 +784,8 @@ bool operator==(const move_only& lhs, const move_only& rhs)
   return lhs.i == rhs.i;
 }
 
-// TODO extract
-template <typename T>
-struct ctor_of
-{
-  using value_type = T;
-  template <typename... Args>
-  constexpr value_type operator()(Args&&... args) const noexcept(noexcept(value_type(std::forward<Args>(args)...)))
-  {
-    return value_type(std::forward<Args>(args)...);
-  }
-};
-
 constexpr auto make_vector_of_move_only = [] {
-  return ezy::collect<std::vector>(ezy::transform(std::vector{1,2,3,4,5}, ctor_of<move_only>{}));
+  return ezy::collect<std::vector>(ezy::transform(std::vector{1,2,3,4,5}, ezy::construct<move_only>));
 };
 
 SCENARIO("find a move_only type")
