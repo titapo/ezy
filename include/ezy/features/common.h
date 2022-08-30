@@ -9,30 +9,36 @@ namespace ezy
 {
 namespace features
 {
-  template <typename T>
   struct operator_arrow
   {
-    constexpr decltype(auto) operator->() const
-    { return static_cast<const T&>(*this).get().operator->(); }
+    template <typename T>
+    struct impl
+    {
+      constexpr decltype(auto) operator->() const
+      { return static_cast<const T&>(*this).get().operator->(); }
 
-    constexpr decltype(auto) operator->()
-    { return static_cast<T&>(*this).get().operator->(); }
+      constexpr decltype(auto) operator->()
+      { return static_cast<T&>(*this).get().operator->(); }
+    };
   };
 
-  template <typename T>
   struct operator_star
   {
-    constexpr decltype(auto) operator*() const &
-    { return static_cast<const T&>(*this).get().operator*(); }
+    template <typename T>
+    struct impl
+    {
+      constexpr decltype(auto) operator*() const &
+      { return static_cast<const T&>(*this).get().operator*(); }
 
-    constexpr decltype(auto) operator*() &
-    { return static_cast<T&>(*this).get().operator*(); }
+      constexpr decltype(auto) operator*() &
+      { return static_cast<T&>(*this).get().operator*(); }
 
-    constexpr decltype(auto) operator*() &&
-    { return static_cast<T&&>(*this).get().operator*(); }
+      constexpr decltype(auto) operator*() &&
+      { return static_cast<T&&>(*this).get().operator*(); }
 
-    constexpr decltype(auto) operator*() const &&
-    { return static_cast<const T&&>(*this).get().operator*(); }
+      constexpr decltype(auto) operator*() const &&
+      { return static_cast<const T&&>(*this).get().operator*(); }
+    };
   };
 
   struct operator_subscript

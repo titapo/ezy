@@ -56,8 +56,8 @@ namespace ezy::features
     template <typename T>
     struct impl :
       detail::inherit_std_optional_helper<T>,
-      operator_arrow<T>,
-      operator_star<T>
+      operator_arrow::impl<T>,
+      operator_star::impl<T>
     {};
   };
 
