@@ -48,7 +48,7 @@ void custom_comparison()
 }
 
 #include <string>
-#include <ezy/bits/empty_size.h> // TODO move out from bits
+#include <ezy/empty.h>
 #include <cassert>
 #include <iostream>
 

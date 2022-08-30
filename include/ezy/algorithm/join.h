@@ -1,7 +1,7 @@
 #ifndef EZY_ALGORITHM_JOIN_H_INCLUDED
 #define EZY_ALGORITHM_JOIN_H_INCLUDED
 
-#include <ezy/bits/empty_size.h>
+#include <ezy/empty.h>
 #include <ezy/range.h>
 #include <algorithm>
 

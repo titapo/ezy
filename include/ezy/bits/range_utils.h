@@ -1,7 +1,7 @@
 #ifndef EZ_BITS_RANGE_UTILS_H_INCLUDED
 #define EZ_BITS_RANGE_UTILS_H_INCLUDED
 
-#include <ezy/bits/empty_size.h> // ezy::size
+#include <ezy/size.h>
 #include <ezy/type_traits.h>
 
 namespace ezy
