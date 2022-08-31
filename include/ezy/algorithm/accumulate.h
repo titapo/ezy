@@ -2,6 +2,7 @@
 #define EZY_ALGORITHM_ACCUMULATE_H_INCLUDED
 
 #include <ezy/invoke.h>
+#include <iterator>
 
 namespace ezy
 {
@@ -32,13 +33,17 @@ namespace ezy
   template <typename Range, typename Init>
   constexpr Init accumulate(Range&& range, Init&& init)
   {
-    return detail::accumulate(std::begin(range), std::end(range), std::forward<Init>(init));
+    using std::begin;
+    using std::end;
+    return detail::accumulate(begin(range), end(range), std::forward<Init>(init));
   }
 
   template <typename Range, typename Init, typename BinaryOp>
   constexpr Init accumulate(Range&& range, Init&& init, BinaryOp&& op)
   {
-    return detail::accumulate(std::begin(range), std::end(range), std::forward<Init>(init), std::forward<BinaryOp>(op));
+    using std::begin;
+    using std::end;
+    return detail::accumulate(begin(range), end(range), std::forward<Init>(init), std::forward<BinaryOp>(op));
   }
 }
 
