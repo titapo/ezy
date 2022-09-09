@@ -6,7 +6,7 @@
 namespace ezy
 {
   template <typename Range>
-  /*constexpr*/ auto slice(Range&& range, detail::size_type_t<Range> from, detail::size_type_t<Range> until)
+  constexpr auto slice(Range&& range, detail::size_type_t<Range> from, detail::size_type_t<Range> until)
   {
     using ResultRangeType = detail::range_view_slice<experimental::detail::deduce_keeper_t<Range>>;
     return ResultRangeType{

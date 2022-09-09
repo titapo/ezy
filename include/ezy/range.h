@@ -1007,7 +1007,7 @@ namespace detail
       using difference_type = typename std::iterator_traits<iterator>::difference_type;
       using size_type = size_type_t<Range>; //difference_type; // TODO
 
-      range_view_slice(Keeper&& orig, size_type f, size_type u)
+      constexpr range_view_slice(Keeper&& orig, size_type f, size_type u)
         : orig_range(std::move(orig))
         , from(f)
         , until(u)
@@ -1016,26 +1016,26 @@ namespace detail
           throw std::logic_error("logic error"); // programming error
       }
 
-      iterator begin()
+      constexpr iterator begin()
       { return iterator(std::next(std::begin(orig_range.get()), bounded(from))); }
 
-      iterator end()
+      constexpr iterator end()
       { return iterator(std::next(std::begin(orig_range.get()), bounded(until))); }
 
 
-      const_iterator begin() const
+      constexpr const_iterator begin() const
       { return const_iterator(std::next(std::begin(orig_range.get()), bounded(from))); }
 
-      const_iterator end() const
+      constexpr const_iterator end() const
       { return const_iterator(std::next(std::begin(orig_range.get()), bounded(until))); }
 
     private:
-      difference_type get_range_size() const
+      constexpr difference_type get_range_size() const
       {
         return std::distance(std::begin(orig_range.get()), std::end(orig_range.get()));
       }
 
-      difference_type bounded(difference_type difference) const
+      constexpr difference_type bounded(difference_type difference) const
       {
         return std::min(get_range_size(), difference);
       }

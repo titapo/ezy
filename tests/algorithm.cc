@@ -429,6 +429,12 @@ SCENARIO("sliced elements can be mutated")
   REQUIRE(join_as_strings(v) == "12305678");
 }
 
+SCENARIO("slice works in compile time")
+{
+  constexpr auto sliced = ezy::slice(std::array{1,2,3,4,5}, 2, 4);
+  static_assert(ezy::accumulate(sliced, 0) == (3 + 4));
+}
+
 static constexpr auto greater_than = ezy::experimental::curry(ezy::experimental::flip(std::greater<>{}));
 static constexpr auto less_than = ezy::experimental::curry(ezy::experimental::flip(std::less<>{}));
 
