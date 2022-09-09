@@ -1512,7 +1512,7 @@ SCENARIO("strong type comparisons")
   }
 }
 
-#include <ezy/compose.h>
+#include <ezy/pipe.h>
 #include <ezy/experimental/function>
 
 const auto str_plus_int = [](const std::string& s, const int i)
@@ -1596,34 +1596,34 @@ int add_5(int in)
   return in + 5;
 }
 
-SCENARIO("compose regular function")
+SCENARIO("pipe regular function")
 {
 
-  auto composed = ezy::compose(add_5, add_5);
-  REQUIRE(composed(4) == 14);
+  auto piped = ezy::pipe(add_5, add_5);
+  REQUIRE(piped(4) == 14);
 }
 
-SCENARIO("compose regular function and invoke in one expression")
+SCENARIO("pipe regular function and invoke in one expression")
 {
-  REQUIRE(ezy::compose(add_5, add_5)(2) == 12);
+  REQUIRE(ezy::pipe(add_5, add_5)(2) == 12);
 }
 
-SCENARIO("compose")
+SCENARIO("pipe")
 {
   using namespace ezy::experimental;
   auto addHundred = curry_as<int, int>(std::plus<int>{})(100);
 
-  WHEN("composed with same type")
+  WHEN("piped with same type")
   {
-    auto addTwoHundred = ezy::compose(addHundred, addHundred);
+    auto addTwoHundred = ezy::pipe(addHundred, addHundred);
     REQUIRE(addTwoHundred(23) == 223);
   }
 
-  WHEN("composed with different type")
+  WHEN("piped with different type")
   {
     // TODO const lambdas are not accepted!
     auto formatNumber = curry_as<std::string, int>(str_plus_int)("result is: ");
-    auto calculate = ezy::compose(addHundred, formatNumber);
+    auto calculate = ezy::pipe(addHundred, formatNumber);
     REQUIRE(calculate(23) == "result is: 123");
   }
 
@@ -1631,7 +1631,7 @@ SCENARIO("compose")
   {
     struct S{ int i; };
 
-    auto calculate = ezy::compose(&S::i, addHundred);
+    auto calculate = ezy::pipe(&S::i, addHundred);
 
     S s{3};
     REQUIRE(calculate(s) == 103);
@@ -1643,17 +1643,17 @@ SCENARIO("compose")
     static constexpr auto plus_4 = [](auto i) {return i + 4;};
     static constexpr auto plus_10 = [](auto i) {return i + 10;};
 
-    constexpr auto plus_14 = ezy::compose(plus_4, plus_10);
+    constexpr auto plus_14 = ezy::pipe(plus_4, plus_10);
     static_assert(plus_14(6) == 20);
   }
 
   WHEN("composing more")
   {
-    auto double_length = ezy::compose(ezy::to_string, &std::string::size, [](auto s) {return s * 2;});
+    auto double_length = ezy::pipe(ezy::to_string, &std::string::size, [](auto s) {return s * 2;});
 
     REQUIRE(double_length(4) == 2);
     REQUIRE(double_length(12345) == 10);
-    REQUIRE(ezy::compose(double_length, double_length)(12345) == 4);
+    REQUIRE(ezy::pipe(double_length, double_length)(12345) == 4);
   }
   // moving etc
 }

@@ -18,4 +18,4 @@
 - (experimental) keeper: generalization of reference wrapper to help express intentions about ownership and
   reference ([Universal reference wrapper](https://www.fluentcpp.com/2020/06/26/implementing-a-universal-reference-wrapper/))
 - (experimental) nullable: self-contained optional-like type without space overhead
-- (experimental) function(al) utilities: *curry* and *compose*
+- (experimental) function(al) utilities: *curry* and *pipe*

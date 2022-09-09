@@ -1,27 +1,27 @@
-#ifndef EZY_COMPOSE_H_INCLUDED
-#define EZY_COMPOSE_H_INCLUDED
+#ifndef EZY_PIPE_H_INCLUDED
+#define EZY_PIPE_H_INCLUDED
 
 #include "invoke.h"
 
 namespace ezy
 {
   /**
-   * compose
+   * pipe
    */
   template <typename... Fs>
-  struct composed
+  struct piped
   {
     static_assert(sizeof...(Fs) > 0, "Composing nothing is not supported.");
 
     using FsTuple = std::tuple<Fs...>;
 
-    composed(const composed&) = default;
-    composed(composed&&) = default;
+    piped(const piped&) = default;
+    piped(piped&&) = default;
 
     // SFINAE out copy and move ctors
     template <typename... Functions,
              std::enable_if_t<(std::is_constructible_v<FsTuple, Functions...>), bool> = true>
-    constexpr explicit composed(Functions&&... fns)
+    constexpr explicit piped(Functions&&... fns)
       : fs(std::forward<Functions>(fns)...)
     {}
 
@@ -76,9 +76,9 @@ namespace ezy
   };
 
   template <typename... Fns>
-  constexpr composed<Fns...> compose(Fns&&... fns)
+  constexpr piped<Fns...> pipe(Fns&&... fns)
   {
-    return composed<Fns...>(std::forward<Fns>(fns)...);
+    return piped<Fns...>(std::forward<Fns>(fns)...);
   }
 
 }

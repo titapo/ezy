@@ -229,10 +229,10 @@ to manually roll out a lambda, which selects the score from the tuple, and calls
 ```
 
 > If you are not entirely happy with this solution, then we are on the same side. There is one experimental
-component which could possibly help here: `ezy::compose` it can chain functions:
-> `compose(f, g, h)(x)` is logically equivalent to `h(g(f(x)))`
-> With this filter can be rewritten `.filter(ezy::compose(ezy::pick_second, test_passed))`
-> (`<ezy/compose.h>` has to be included)
+component which could possibly help here: `ezy::pipe` it can chain functions:
+> `pipe(f, g, h)(x)` is logically equivalent to `h(g(f(x)))`
+> With this filter can be rewritten `.filter(ezy::pipe(ezy::pick_second, test_passed))`
+> (`<ezy/pipe.h>` has to be included)
 > Do you think is it better?
 
 #### Mapping
