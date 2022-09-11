@@ -13,6 +13,16 @@ namespace ezy
       ezy::experimental::make_keeper(std::forward<Range>(range)), n
     };
   }
+
+  template <typename Range, typename Predicate>
+  /*constexpr*/ auto drop_while(Range&& range, Predicate&& pred)
+  {
+    using ResultRangeType = detail::drop_while_range_view<experimental::detail::deduce_keeper_t<Range>, ezy::remove_cvref_t<Predicate>>;
+    return ResultRangeType{
+      ezy::experimental::make_keeper(std::forward<Range>(range)),
+      std::forward<Predicate>(pred)
+    };
+  }
 }
 
 #endif

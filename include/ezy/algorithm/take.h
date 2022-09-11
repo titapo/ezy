@@ -16,7 +16,7 @@ namespace ezy
   }
 
   template <typename Range, typename Predicate>
-  /*constexpr*/ auto take_while(Range&& range, Predicate&& pred)
+  constexpr auto take_while(Range&& range, Predicate&& pred)
   {
     using ResultRangeType = detail::take_while_range_view<experimental::detail::deduce_keeper_t<Range>, ezy::remove_cvref_t<Predicate>>;
     return ResultRangeType{

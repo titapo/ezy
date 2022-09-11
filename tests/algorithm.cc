@@ -598,6 +598,29 @@ SCENARIO("drop works on array")
   REQUIRE(join_as_strings(ezy::drop(a, 4)) == "5678");
 }
 
+SCENARIO("drop_while")
+{
+  GIVEN("a vector of ints")
+  {
+    std::vector<int> v{1,2,3,4,5,6,7,8};
+    WHEN("drip_while drops elements until its different than 5")
+    {
+      auto dropped = ezy::drop_while(v, [](int i) { return i != 5; });
+      THEN("it should contain only the remainings")
+      {
+        REQUIRE(join_as_strings(dropped) == "5678");
+      }
+
+      AND_THEN("it should allow mutating through")
+      {
+        (*std::next(std::begin(dropped), 2)) -= 2;
+        REQUIRE(join_as_strings(v) == "12345658");
+        REQUIRE(join_as_strings(dropped) == "5658");
+      }
+    }
+  }
+}
+
 SCENARIO("step_by")
 {
   auto remaining = ezy::step_by(ezy::iterate(0), 3);

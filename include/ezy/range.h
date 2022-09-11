@@ -244,6 +244,14 @@ namespace detail
         return ++std::get<N>(current);
       }
 
+      template <unsigned N>
+      decltype(auto) next(size_t distance)
+      {
+        auto& it = std::get<N>(current);
+        std::advance(it, distance);
+        return it;
+      }
+
       constexpr void next_all()
       {
         ezy::experimental::static_for_each(current, [](auto& it){ ++it; });
@@ -870,6 +878,85 @@ namespace detail
     range_tracker<Range> tracker;
   };
 
+  template <typename Range, typename Predicate>
+  struct drop_while_iterator
+  {
+    public:
+      using orig_iterator = iterator_type_t<Range>;
+      using orig_iterator_traits = std::iterator_traits<orig_iterator>;
+      using difference_type = typename orig_iterator_traits::difference_type;
+      using value_type = typename orig_iterator_traits::value_type;
+      using pointer = typename orig_iterator_traits::pointer;
+      using reference = typename orig_iterator_traits::reference;
+      using iterator_category = typename orig_iterator_traits::iterator_category;
+
+      constexpr explicit drop_while_iterator(Range& range, Predicate p)
+        : tracker{range}
+        , predicate(std::move(p))
+      {
+          while (ezy::invoke(predicate, *(tracker.template get<0>().first)))
+          {
+            if (tracker.template has_next<0>())
+            {
+              tracker.template next<0>();
+            }
+            else
+            {
+              return;
+            }
+          }
+      }
+
+      constexpr explicit drop_while_iterator(Range& range, Predicate p, end_marker_t)
+        : tracker{range, end_marker_t{}}
+        , predicate(std::move(p))
+      {
+      }
+
+      inline drop_while_iterator& operator++()
+      {
+        tracker.template next<0>();
+        return *this;
+      }
+
+      inline drop_while_iterator& operator--()
+      {
+        tracker.template next<0>(-1);
+        return *this;
+      }
+
+      inline drop_while_iterator& operator+=(difference_type distance)
+      {
+        tracker.template next<0>(distance);
+        return *this;
+      }
+
+      decltype(auto) operator*()
+      {
+        return *(tracker.template get<0>().first);
+      }
+
+      decltype(auto) operator-(const drop_while_iterator& rhs) const
+      {
+        return tracker.template get<0>().first - rhs.tracker.template get<0>().first;
+      }
+
+      bool operator!=(const drop_while_iterator& rhs) const
+      {
+        return tracker.template get<0>().first != rhs.tracker.template get<0>().first;
+      }
+
+      bool operator==(const drop_while_iterator& rhs) const
+      {
+        return !(*this != rhs);
+      }
+
+
+    private:
+      range_tracker<Range> tracker;
+      Predicate predicate;
+  };
+
   template <typename Range>
   struct step_by_iterator
   {
@@ -1341,6 +1428,39 @@ namespace detail
       }
 
       const_iterator end() const
+      {
+        return const_iterator(range.get(), pred, end_marker_t{});
+      }
+
+      Keeper range;
+      Predicate pred;
+  };
+
+  template <typename Keeper, typename Predicate>
+  struct drop_while_range_view
+  {
+    public:
+      using Range = ezy::experimental::keeper_value_type_t<Keeper>;
+      using iterator = drop_while_iterator<Range, Predicate>;
+      using const_iterator = drop_while_iterator<const Range, Predicate>;
+      using size_type = size_type_t<Range>;
+
+      constexpr iterator begin()
+      {
+        return iterator(range.get(), pred);
+      }
+
+      constexpr iterator end()
+      {
+        return iterator(range.get(), pred, end_marker_t{});
+      }
+
+      constexpr const_iterator begin() const
+      {
+        return const_iterator(range.get(), pred);
+      }
+
+      constexpr const_iterator end() const
       {
         return const_iterator(range.get(), pred, end_marker_t{});
       }
