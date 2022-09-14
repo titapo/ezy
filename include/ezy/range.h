@@ -572,7 +572,7 @@ namespace detail
           )>;
       using pointer = std::add_pointer_t<value_type>;
       using reference = std::add_lvalue_reference_t<value_type>;
-      using iterator_category = std::input_iterator_tag; // forward_iterator_tag?
+      using iterator_category = std::common_type_t<std::forward_iterator_tag, ezy::detail::iterator_category_t<Ranges>...>;
 
       using DEBUG = std::tuple<Ranges...>;
       using DEBUG2 = std::tuple<iterator_type_t<Ranges>...>;
@@ -702,7 +702,7 @@ namespace detail
       using value_type = typename _iter_traits::value_type;
       using pointer = typename _iter_traits::pointer;
       using reference = typename _iter_traits::reference;
-      using iterator_category = std::forward_iterator_tag; // ?? TODO use the origin
+      using iterator_category = std::common_type_t<std::forward_iterator_tag, ezy::detail::iterator_category_t<RangeType>>;
       using size_type = size_type_t<RangeType>;
 
       take_iterator() = default;
@@ -831,7 +831,7 @@ namespace detail
     using value_type = typename _iter_traits::value_type;
     using pointer = typename _iter_traits::pointer;
     using reference = typename _iter_traits::reference;
-    using iterator_category = std::forward_iterator_tag; // TODO
+    using iterator_category = std::common_type_t<std::forward_iterator_tag, ezy::detail::iterator_category_t<Range>>;
 
     constexpr explicit drop_iterator(Range& range, size_type_t<Range> n)
       : tracker(range)
@@ -965,7 +965,7 @@ namespace detail
     using value_type = typename _iter_traits::value_type;
     using pointer = typename _iter_traits::pointer;
     using reference = typename _iter_traits::reference;
-    using iterator_category = std::forward_iterator_tag; // TODO
+    using iterator_category = std::common_type_t<std::forward_iterator_tag, ezy::detail::iterator_category_t<Range>>;
     using size_type = size_type_t<Range>;
 
     constexpr explicit step_by_iterator(Range& range, size_type n)

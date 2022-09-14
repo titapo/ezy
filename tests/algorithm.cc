@@ -349,6 +349,12 @@ SCENARIO("zip 3")
   }
 }
 
+SCENARIO("zip iterator category is at most forward iterator")
+{
+  using category = ezy::detail::iterator_category_t<decltype(ezy::zip(std::vector{1,2,3}, std::vector{4,5,6}))>;
+  static_assert(std::is_same_v<category, std::forward_iterator_tag>);
+}
+
 SCENARIO("mapped and zipped")
 {
   const auto zipped = ezy::zip(std::vector{1,2,3}, ezy::transform(std::vector{1,2,3}, [](int i) { return i + 1; }));
