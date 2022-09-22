@@ -59,6 +59,12 @@ namespace detail
           return *this;
       }
 
+      inline constexpr basic_iterator_adaptor& operator--()
+      {
+          --orig;
+          return *this;
+      }
+
       inline constexpr decltype(auto) operator*()
       {
         return *orig;

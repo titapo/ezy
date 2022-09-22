@@ -20,7 +20,7 @@ namespace ezy
     {
       ReturnType result{*begin(range)};
       std::for_each(
-          ++begin(range), // std::next() would be better
+          std::next(begin(range)),
           end(range),
           [&result,separator](const auto& e)
           {
