@@ -5,31 +5,12 @@
 
 #include <ezy/optional.h>
 #include <ezy/pointer.h>
+#include <ezy/bits/dependent_forward.h>
 
 namespace ezy
 {
   namespace detail
   {
-    template <typename T>
-    decltype(auto) dependent_forward_impl(T&& t, ezy::experimental::owner_category_tag, std::false_type)
-    { return std::move(t); }
-
-    template <typename T>
-    decltype(auto) dependent_forward_impl(T&& t, ezy::experimental::reference_category_tag, std::false_type)
-    { return &t; }
-
-    // TODO const cases are missing
-
-    template <typename Dependence, typename T>
-    decltype(auto) dependent_forward(T&& t)
-    {
-      return dependent_forward_impl(
-          std::forward<T>(t),
-          ezy::experimental::detail::ownership_category_t<Dependence>{},
-          std::is_const<Dependence>{}
-      );
-    }
-
     template <typename Range, typename Iterator>
     auto make_find_result(Iterator it, Iterator last)
     {
@@ -40,10 +21,21 @@ namespace ezy
         ezy::optional<std::remove_const_t<ValueType>>
       >;
 
-    if (it != last)
-      return ReturnType(detail::dependent_forward<Range>(*it));
-    else
-      return ReturnType();
+      if (it != last)
+      {
+        auto prepare_argument = [](auto&& argument)
+        {
+          if constexpr (std::is_lvalue_reference_v<decltype(argument)>)
+            return &argument;
+          else
+            return std::move(argument);
+        };
+        return ReturnType(prepare_argument(detail::dependent_forward<Range>(*it)));
+      }
+      else
+      {
+        return ReturnType();
+      }
     }
   }
 
