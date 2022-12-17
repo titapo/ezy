@@ -46,7 +46,6 @@ namespace ezy::features
       // TODO consider to add
       // operator=
       // swap (alongside std::swap specialization)
-      // reset
       // emplace
     };
   }
@@ -57,7 +56,8 @@ namespace ezy::features
     struct impl :
       detail::inherit_std_optional_helper<T>,
       operator_arrow::impl<T>,
-      operator_star::impl<T>
+      operator_star::impl<T>,
+      resettable::impl<T>
     {};
   };
 

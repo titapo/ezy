@@ -185,6 +185,10 @@ namespace experimental
       detail::null_checker_with_binary_predicate<NoneProvider, NoneChecker>::template impl<T>,
       detail::basic_nullable_impl<impl<T>>
     {
+      constexpr void reset() noexcept
+      {
+        static_cast<T>(*this).get() = this->make_null();
+      }
     };
   };
 

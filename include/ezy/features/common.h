@@ -103,6 +103,18 @@ namespace features
       return static_cast<T&>(*this).get();
     }
   };
+
+  struct resettable
+  {
+    template <typename T>
+    struct impl
+    {
+      decltype(auto) reset() noexcept(noexcept(static_cast<T&>(*this).get().reset()))
+      {
+        return static_cast<T&>(*this).get().reset();
+      }
+    };
+  };
 }
 }
 

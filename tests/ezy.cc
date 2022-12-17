@@ -94,6 +94,12 @@ SCENARIO("feature: inherit_std_optional")
       {
         REQUIRE(o.value_or(S{15}).i == 42);
       }
+
+      THEN("reset() resets its value")
+      {
+        o.reset();
+        REQUIRE(!o.has_value());
+      }
     }
 
     WHEN("star operator called on prvalue")
