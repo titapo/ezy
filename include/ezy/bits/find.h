@@ -5,7 +5,8 @@
 
 #include <ezy/optional.h>
 #include <ezy/pointer.h>
-#include <ezy/bits/dependent_forward.h>
+
+#include <ezy/bits/optional_like_value.h>
 
 namespace ezy
 {
@@ -14,27 +15,13 @@ namespace ezy
     template <typename Range, typename Iterator>
     auto make_find_result(Iterator it, Iterator last)
     {
-      using ValueType = std::remove_reference_t<decltype(*begin(std::declval<Range>()))>;
-      using ReturnType = ezy::conditional_t<
-        std::is_lvalue_reference_v<Range>,
-        const ezy::pointer<ValueType>,
-        ezy::optional<std::remove_const_t<ValueType>>
-      >;
-
       if (it != last)
       {
-        auto prepare_argument = [](auto&& argument)
-        {
-          if constexpr (std::is_lvalue_reference_v<decltype(argument)>)
-            return &argument;
-          else
-            return std::move(argument);
-        };
-        return ReturnType(prepare_argument(detail::dependent_forward<Range>(*it)));
+        return make_optional_like_value<Range>(*it);
       }
       else
       {
-        return ReturnType();
+        return make_optional_like_value<Range>();
       }
     }
   }

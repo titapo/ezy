@@ -4,6 +4,7 @@
 #include <ezy/algorithm/accumulate.h>
 #include <ezy/algorithm/all_of.h>
 #include <ezy/algorithm/any_of.h>
+#include <ezy/algorithm/at.h>
 #include <ezy/algorithm/chunk.h>
 #include <ezy/algorithm/collect.h>
 #include <ezy/algorithm/concatenate.h>

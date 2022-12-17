@@ -171,6 +171,158 @@ SCENARIO("size")
   }
 }
 
+SCENARIO("at")
+{
+  GIVEN("a vector")
+  {
+    auto v = std::vector<int>{10,11,12,13,14,15};
+    auto element = ezy::at(v, 1);
+    REQUIRE(element == 11);
+  }
+
+  // not supported: use checked_index instead
+  // GIVEN("a c-style array")
+  // {
+  //   int a[] = {21,22,23,24,25};
+  //   REQUIRE(ezy::at(a, 2) == 23);
+  // }
+
+  // not supported: use checked_index instead
+  // GIVEN("a transformed vector")
+  // {
+  //   auto v = std::vector<int>{10,11,12,13,14,15};
+  //   auto transformed = ezy::transform(v, [](int i) { return i + 5; });
+  //   REQUIRE(ezy::at(transformed, 2) == 17);
+  // }
+
+  GIVEN("a temporary vector")
+  {
+    const auto element = ezy::at(std::vector<int>{10,11,12,13,14,15}, 2);
+    REQUIRE(element == 12);
+  }
+
+  GIVEN("lvalue reference")
+  {
+    auto v = std::vector<int>{10,11,12,13,14,15};
+    const auto& element = ezy::at(v, 4);
+    v[4] += 100;
+    REQUIRE(element == 114);
+  }
+  // mutable reference
+}
+
+SCENARIO("index")
+{
+  GIVEN("a vector")
+  {
+    auto v = std::vector<int>{10,11,12,13,14,15};
+    REQUIRE(ezy::index(v, 1) == 11);
+  }
+
+  GIVEN("a c-style array")
+  {
+    int a[] = {21,22,23,24,25};
+    REQUIRE(ezy::index(a, 2) == 23);
+  }
+
+  GIVEN("a transformed vector")
+  {
+    auto v = std::vector<int>{10,11,12,13,14,15};
+    auto transformed = ezy::transform(v, [](int i) { return i + 5; });
+    REQUIRE(ezy::index(transformed, 2) == 17);
+  }
+
+  GIVEN("a temporary vector")
+  {
+    const auto element = ezy::index(std::vector<int>{10,11,12,13,14,15}, 2);
+    REQUIRE(element == 12);
+  }
+
+  GIVEN("lvalue reference")
+  {
+    auto v = std::vector<int>{10,11,12,13,14,15};
+    const auto& element = ezy::index(v, 4);
+    v[4] += 100;
+    REQUIRE(element == 114);
+  }
+  // mutable reference
+
+  GIVEN("compile time array")
+  {
+    constexpr static std::array<int, 4> a{12,34,56,78};
+    static_assert(ezy::index(a, 2) == 56);
+  }
+}
+
+SCENARIO("checked_index")
+{
+  GIVEN("a vector")
+  {
+    auto v = std::vector<int>{10,11,12,13,14,15};
+
+    auto element = ezy::checked_index(v, 1);
+
+    static_assert(std::is_same_v<decltype(element), ezy::pointer<int>>);
+    REQUIRE(element.has_value());
+    REQUIRE(*element == 11);
+  }
+
+  GIVEN("a c-style array")
+  {
+    int a[] = {21,22,23,24,25};
+
+    auto element = ezy::checked_index(a, 2);
+
+    static_assert(std::is_same_v<decltype(element), ezy::pointer<int>>);
+    REQUIRE(element.has_value());
+    REQUIRE(*element == 23);
+  }
+
+  GIVEN("a transformed vector")
+  {
+    auto v = std::vector<int>{10,11,12,13,14,15};
+    auto transformed = ezy::transform(v, [](int i) { return i + 5; });
+
+    auto element = ezy::checked_index(transformed, 2);
+
+    static_assert(std::is_same_v<decltype(element), ezy::optional<int>>);
+    REQUIRE(element.has_value());
+    REQUIRE(*element == 17);
+  }
+
+  GIVEN("a temporary vector")
+  {
+    const auto element = ezy::checked_index(std::vector<int>{10,11,12,13,14,15}, 2);
+
+    static_assert(std::is_same_v<decltype(element), const ezy::optional<int>>);
+    REQUIRE(element.has_value());
+    REQUIRE(*element == 12);
+  }
+
+  GIVEN("lvalue reference")
+  {
+    auto v = std::vector<int>{10,11,12,13,14,15};
+
+    const auto& element = ezy::checked_index(v, 4);
+
+    static_assert(std::is_same_v<decltype(element), const ezy::pointer<int>&>);
+    v[4] += 100;
+    REQUIRE(element.has_value());
+    REQUIRE(*element == 114);
+  }
+  // mutable reference
+
+  GIVEN("compile time array")
+  {
+    constexpr static std::array<int, 4> a{12,34,56,78};
+    constexpr auto element = ezy::checked_index(a, 2);
+
+    static_assert(std::is_same_v<decltype(element), const ezy::pointer<const int>>);
+    static_assert(element.has_value());
+    static_assert(*element == 56);
+  }
+}
+
 SCENARIO("for_each")
 {
   std::vector<int> v{1,2,3};
@@ -715,6 +867,15 @@ SCENARIO("find in temporary is mutable")
   REQUIRE(found.value() == 6);
   found.value() += 4;
   REQUIRE(found.value() == 10);
+}
+
+SCENARIO("find in a mapped range")
+{
+  auto mapped_range = ezy::transform(std::vector{1,2,3,4,5}, [](int i) { return i * 2;});
+  auto found = ezy::find(mapped_range, 8);
+  static_assert(std::is_same_v<decltype(found), ezy::optional<int>>);
+  REQUIRE(found.has_value());
+  REQUIRE(*found == 8);
 }
 
 constexpr auto greater_than_3 = [](int i) { return i > 3; };
