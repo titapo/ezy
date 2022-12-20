@@ -5,6 +5,7 @@
 #include <ezy/algorithm/all_of.h>
 #include <ezy/algorithm/any_of.h>
 #include <ezy/algorithm/at.h>
+#include <ezy/algorithm/checked_index.h>
 #include <ezy/algorithm/chunk.h>
 #include <ezy/algorithm/collect.h>
 #include <ezy/algorithm/concatenate.h>
@@ -16,6 +17,7 @@
 #include <ezy/algorithm/find_element.h>
 #include <ezy/algorithm/flatten.h>
 #include <ezy/algorithm/for_each.h>
+#include <ezy/algorithm/index.h>
 #include <ezy/algorithm/iterate.h>
 #include <ezy/algorithm/join.h>
 #include <ezy/algorithm/none_of.h>
