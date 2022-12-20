@@ -141,17 +141,17 @@ namespace experimental
       constexpr const Nullable& self() const & { return static_cast<const Nullable&>(*this); }
       constexpr Nullable&& self() && { return static_cast<Nullable &&>(*this); }
 
-      decltype(auto) operator*() const
+      constexpr decltype(auto) operator*() const
       {
         return self().value();
       }
 
-      decltype(auto) operator*()
+      constexpr decltype(auto) operator*()
       {
         return self().value();
       }
 
-      operator bool() const
+      constexpr operator bool() const
       {
         return self().has_value();
       }
