@@ -54,4 +54,37 @@ SCENARIO("ezy::apply curried")
       REQUIRE(apply_add(std::tuple{5, 6}) == 11);
     }
   }
+
+  GIVEN("a stateful temporary curried to ezy::apply")
+  {
+    auto apply_add = ezy::apply([val = std::make_unique<int>(10)](int a, int b) {return (*val) + a + b;});
+    WHEN("called with a tuple")
+    {
+      REQUIRE(apply_add(std::tuple{4, 3}) == 17);
+    }
+  }
+
+  GIVEN("a reference to a stateful object curried to ezy::apply")
+  {
+    struct MyCustomAdder
+    {
+      int plus{};
+      int operator()(int a, int b) const
+      {
+        return plus + a + b;
+      }
+    };
+    auto my_add = MyCustomAdder{10};
+    auto apply_add = ezy::apply(my_add);
+    my_add.plus = 100;
+
+    WHEN("called with a tuple")
+    {
+      const auto result = apply_add(std::tuple{4, 3});
+      THEN("should use the reference (107) not the copy(17)")
+      {
+        REQUIRE(result == 107);
+      }
+    }
+  }
 }
