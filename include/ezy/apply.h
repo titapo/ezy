@@ -4,6 +4,7 @@
 #include "invoke.h"
 #include <cstddef>
 #include <tuple>
+#include <ezy/experimental/keeper.h>
 
 /**
  * ezy::apply is a polyfill for pre-c++17 clients. For newer version std::apply is recommended
@@ -39,9 +40,9 @@ namespace ezy
      * TODO consider fn to be stored in keeper
      * TODO fn should be "forwarded" based on call &/&& qualification
      */
-    return [fn = std::forward<Fn>(fn)](auto&& tuple)
+    return [fn = ezy::experimental::make_keeper(std::forward<Fn>(fn))](auto&& tuple)
     {
-      return ezy::apply(fn, std::forward<decltype(tuple)>(tuple));
+      return ezy::apply(fn.get(), std::forward<decltype(tuple)>(tuple));
     };
   }
 }
