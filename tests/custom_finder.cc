@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 #include <vector>
 #include <ezy/custom_find.h>
+#include <ezy/arithmetic.h>
 
 template <typename T>
 struct fake_optional
@@ -52,8 +53,6 @@ SCENARIO("custom find")
 
 #include <ezy/experimental/function.h>
 
-const auto greater_than = ezy::experimental::curry(ezy::experimental::flip(std::greater<>{}));
-
 SCENARIO("custom find if")
 {
   static constexpr auto myfind_if = ezy::custom_find_if<fake_result_maker>{};
@@ -63,7 +62,7 @@ SCENARIO("custom find if")
 
     WHEN("find for an element")
     {
-      auto found = myfind_if(v, greater_than(2));
+      auto found = myfind_if(v, ezy::greater_than(2));
       THEN("it returns an engaged, containing 3")
       {
         REQUIRE(found.engaged);
@@ -73,7 +72,7 @@ SCENARIO("custom find if")
 
     WHEN("find for a non-presenting element")
     {
-      auto found = myfind_if(v, greater_than(5));
+      auto found = myfind_if(v, ezy::greater_than(5));
       THEN("it returns an not engaged")
       {
         REQUIRE(!found.engaged);
@@ -115,7 +114,7 @@ SCENARIO("custom find feature")
 
   WHEN("find_if an exising element")
   {
-    const auto found = st.find_if(greater_than(3));
+    const auto found = st.find_if(ezy::greater_than(3));
     THEN("returns a fake_optional")
     {
       REQUIRE(found.engaged);
@@ -125,7 +124,7 @@ SCENARIO("custom find feature")
 
   WHEN("find_if an non-exising element")
   {
-    const auto found = st.find_if(greater_than(4));
+    const auto found = st.find_if(ezy::greater_than(4));
     THEN("returns a not-engaged fake_optional")
     {
       REQUIRE(!found.engaged);

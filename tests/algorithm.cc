@@ -6,6 +6,7 @@
 #include <ezy/features/iterable.h>
 #include <ezy/string.h>
 #include <ezy/experimental/function.h>
+#include <ezy/arithmetic.h>
 
 #include <vector>
 #include <list>
@@ -593,30 +594,27 @@ SCENARIO("slice works in compile time")
   static_assert(ezy::accumulate(sliced, 0) == (3 + 4));
 }
 
-static constexpr auto greater_than = ezy::experimental::curry(ezy::experimental::flip(std::greater<>{}));
-static constexpr auto less_than = ezy::experimental::curry(ezy::experimental::flip(std::less<>{}));
-
 SCENARIO("all_of")
 {
   int a[] = {0, 1, 2, 3, 4, 5};
-  REQUIRE(ezy::all_of(a, greater_than(-1)));
-  REQUIRE(!ezy::all_of(a, greater_than(0)));
+  REQUIRE(ezy::all_of(a, ezy::greater_than(-1)));
+  REQUIRE(!ezy::all_of(a, ezy::greater_than(0)));
 }
 
 SCENARIO("any_of")
 {
   int a[] = {0, 1, 2, 3, 4, 5};
-  REQUIRE(ezy::any_of(a, greater_than(-1)));
-  REQUIRE(ezy::any_of(a, less_than(1)));
-  REQUIRE(!ezy::any_of(a, less_than(0)));
+  REQUIRE(ezy::any_of(a, ezy::greater_than(-1)));
+  REQUIRE(ezy::any_of(a, ezy::less_than(1)));
+  REQUIRE(!ezy::any_of(a, ezy::less_than(0)));
 }
 
 SCENARIO("none_of")
 {
   int a[] = {0, 1, 2, 3, 4, 5};
-  REQUIRE(ezy::none_of(a, greater_than(5)));
-  REQUIRE(!ezy::none_of(a, less_than(1)));
-  REQUIRE(ezy::none_of(a, less_than(0)));
+  REQUIRE(ezy::none_of(a, ezy::greater_than(5)));
+  REQUIRE(!ezy::none_of(a, ezy::less_than(1)));
+  REQUIRE(ezy::none_of(a, ezy::less_than(0)));
 }
 
 SCENARIO("take")
@@ -878,33 +876,31 @@ SCENARIO("find in a mapped range")
   REQUIRE(*found == 8);
 }
 
-constexpr auto greater_than_3 = [](int i) { return i > 3; };
-constexpr auto greater_than_10 = [](int i) { return i > 10; };
 
 SCENARIO("find_if")
 {
   std::vector<int> v{1,2,3,4,5,6,7,8};
-  const auto found = ezy::find_if(v, greater_than_3);
+  const auto found = ezy::find_if(v, ezy::greater_than(3));
   REQUIRE(found.has_value());
   REQUIRE(found.value() == 4);
 
-  const auto not_found = ezy::find_if(v, greater_than_10);
+  const auto not_found = ezy::find_if(v, ezy::greater_than(10));
   REQUIRE(!not_found.has_value());
 }
 
 SCENARIO("find_if in temporary")
 {
-  const auto found = ezy::find_if(std::vector{1,2,3,4,5,6,7,8}, greater_than_3);
+  const auto found = ezy::find_if(std::vector{1,2,3,4,5,6,7,8}, ezy::greater_than(3));
   REQUIRE(found.has_value());
   REQUIRE(found.value() == 4);
 
-  const auto not_found = ezy::find_if(std::vector{1,2,3,4,5,6,7,8}, greater_than_10);
+  const auto not_found = ezy::find_if(std::vector{1,2,3,4,5,6,7,8}, ezy::greater_than(10));
   REQUIRE(!not_found.has_value());
 }
 
 SCENARIO("find_if in temporary returns mutable")
 {
-  auto found = ezy::find_if(std::vector{1,2,3,4,5,6,7,8}, greater_than_3);
+  auto found = ezy::find_if(std::vector{1,2,3,4,5,6,7,8}, ezy::greater_than(3));
   REQUIRE(found.has_value());
   REQUIRE(found.value() == 4);
   found.value() += 3;
@@ -914,17 +910,17 @@ SCENARIO("find_if in temporary returns mutable")
 SCENARIO("find_element_if")
 {
   std::vector<int> v{1,2,3,4,5,6,7,8};
-  const auto found = ezy::find_element_if(v, greater_than_3);
+  const auto found = ezy::find_element_if(v, ezy::greater_than(3));
   REQUIRE(found != end(v));
   REQUIRE(*found == 4);
 
-  const auto not_found = ezy::find_element_if(v, greater_than_10);
+  const auto not_found = ezy::find_element_if(v, ezy::greater_than(10));
   REQUIRE(not_found == end(v));
 }
 
 SCENARIO("find_element_if in temporary should not compile")
 {
-  //const auto found = ezy::find_element_if(std::vector{1,2,3,4,5,6,7,8}, greater_than_3);
+  //const auto found = ezy::find_element_if(std::vector{1,2,3,4,5,6,7,8}, ezy::greater_than(3));
   // > "Range must be a reference! Cannot form an iterator to a temporary!"
 }
 

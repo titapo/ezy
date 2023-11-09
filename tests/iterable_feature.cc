@@ -1,6 +1,7 @@
 #include <ezy/strong_type.h>
 #include <ezy/string.h>
 #include <ezy/features/iterable.h>
+#include <ezy/arithmetic.h>
 
 #include <sstream>
 #include <map>
@@ -268,19 +269,13 @@ SCENARIO("strong type extensions")
     }
 
 
-    const auto less_than = [](const auto& rhs)
-    {
-      return [rhs](const auto& lhs)
-      { return lhs < rhs; };
-    };
-
     WHEN("all() called")
     {
       THEN("it is OK")
       {
-        REQUIRE(numbers.all(less_than(11)));
-        REQUIRE_FALSE(numbers.all(less_than(10)));
-        REQUIRE_FALSE(numbers.all(less_than(-1)));
+        REQUIRE(numbers.all(ezy::less_than(11)));
+        REQUIRE_FALSE(numbers.all(ezy::less_than(10)));
+        REQUIRE_FALSE(numbers.all(ezy::less_than(-1)));
       }
     }
 
@@ -288,10 +283,10 @@ SCENARIO("strong type extensions")
     {
       THEN("it is OK")
       {
-        REQUIRE(numbers.any(less_than(11)));
-        REQUIRE(numbers.any(less_than(10)));
-        REQUIRE_FALSE(numbers.any(less_than(1)));
-        REQUIRE_FALSE(numbers.any(less_than(-1)));
+        REQUIRE(numbers.any(ezy::less_than(11)));
+        REQUIRE(numbers.any(ezy::less_than(10)));
+        REQUIRE_FALSE(numbers.any(ezy::less_than(1)));
+        REQUIRE_FALSE(numbers.any(ezy::less_than(-1)));
       }
     }
 
@@ -299,10 +294,10 @@ SCENARIO("strong type extensions")
     {
       THEN("it is OK")
       {
-        REQUIRE_FALSE(numbers.none(less_than(11)));
-        REQUIRE_FALSE(numbers.none(less_than(10)));
-        REQUIRE(numbers.none(less_than(1)));
-        REQUIRE(numbers.none(less_than(-1)));
+        REQUIRE_FALSE(numbers.none(ezy::less_than(11)));
+        REQUIRE_FALSE(numbers.none(ezy::less_than(10)));
+        REQUIRE(numbers.none(ezy::less_than(1)));
+        REQUIRE(numbers.none(ezy::less_than(-1)));
       }
     }
 
@@ -474,7 +469,7 @@ SCENARIO("strong type extensions")
 
     WHEN("find_if existing")
     {
-      const auto result = numbers.find_if(less_than(5));
+      const auto result = numbers.find_if(ezy::less_than(5));
       REQUIRE(result.has_value());
       REQUIRE(result.value_or(99) == 1);
     }
@@ -482,7 +477,7 @@ SCENARIO("strong type extensions")
     WHEN("find_if returns reference-like from lvalue")
     {
       MyNumbers v{6, 4, 3};
-      auto result = v.find_if(less_than(5));
+      auto result = v.find_if(ezy::less_than(5));
       REQUIRE(result.has_value());
       REQUIRE(result.value_or(9) == 4);
 
@@ -502,7 +497,7 @@ SCENARIO("strong type extensions")
 
     WHEN("find_if returns mutable from rvalue")
     {
-      auto result = MyNumbers{8,5,7}.find_if(less_than(6));
+      auto result = MyNumbers{8,5,7}.find_if(ezy::less_than(6));
       REQUIRE(result.has_value());
       REQUIRE(result.value() == 5);
 
@@ -512,7 +507,7 @@ SCENARIO("strong type extensions")
 
     WHEN("find_if non existing")
     {
-      const auto result = numbers.find_if(less_than(0));
+      const auto result = numbers.find_if(ezy::less_than(0));
       REQUIRE(!result.has_value());
       REQUIRE(result.value_or(99) == 99);
     }
