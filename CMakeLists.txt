@@ -8,7 +8,7 @@ endif ()
 
 project(ezy
   LANGUAGES CXX
-  VERSION 0.0.2
+  VERSION 0.0.3
 )
 
 option(EZY_BUILD_TESTS "Build ezy tests" ON)
