@@ -30,6 +30,7 @@ add_executable(unit_test
   nullable_feature.cc
   to_string.cc
   custom_finder.cc
+  operators.cc
 )
 
 target_link_libraries(unit_test
