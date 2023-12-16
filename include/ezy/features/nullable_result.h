@@ -74,7 +74,8 @@ namespace ezy::features::experimental
       ezy::features::result_interface
       <
         adapter_for_nullable<ezy::features::experimental::basic_nullable_ptr::impl>::apply
-      >::impl<T>
+      >::impl<T>,
+      ezy::features::operator_arrow::impl<T>
     {};
   };
 }

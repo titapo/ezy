@@ -349,4 +349,63 @@ SCENARIO("pointer")
     }
     */
   }
+
+}
+
+
+SCENARIO("ezy::pointer accessors")
+{
+  struct S
+  {
+    int i{10};
+    std::string name{"asd"};
+
+    bool operator==(const S& rhs) const {
+      return (i == rhs.i) && (name == rhs.name);
+    }
+  };
+
+  GIVEN("a pointer to a struct")
+  {
+    S s{12, "Name"};
+    Pointer<S> ptr{&s};
+    THEN("it can be dereferenced")
+    {
+      REQUIRE(*ptr == s);
+    }
+
+    THEN("its members can be accessed with '->'")
+    {
+      REQUIRE(ptr->i == 12);
+      REQUIRE(ptr->name == "Name");
+    }
+
+    WHEN("its member modified")
+    {
+      ptr->i += 10;
+      THEN("it is truly changed")
+      {
+        REQUIRE(s.i == 22);
+      }
+    }
+  }
+
+  GIVEN("a const pointer to a struct")
+  {
+    S s{12, "Name"};
+    Pointer<const S> ptr{&s};
+    THEN("it can be dereferenced")
+    {
+      static_assert(std::is_same<decltype(*ptr), const S&>::value);
+      REQUIRE(*ptr == s);
+    }
+
+    THEN("its members can be accessed with '->'")
+    {
+      static_assert(std::is_same<decltype((ptr->i)), const int&>::value);
+      static_assert(std::is_same<decltype((ptr->name)), const std::string&>::value);
+      REQUIRE(ptr->i == 12);
+      REQUIRE(ptr->name == "Name");
+    }
+  }
 }
